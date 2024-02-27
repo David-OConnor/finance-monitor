@@ -25,9 +25,9 @@ BASE_URL = "https://www.plaid.com/api"
 
 PLAID_PRODUCTS = [
     "assets",
-    "balance",
+    # "balance",
     "transactions",
-    "investements",
+    "investments",
     # "recurring_transactions",
 ]
 

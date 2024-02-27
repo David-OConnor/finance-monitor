@@ -58,7 +58,11 @@ for product in PLAID_PRODUCTS:
 
 PLAID_COUNTRY_CODES = ["US"]
 
+# todo temp
+LINK_TOKEN = "link-sandbox-19fd5aee-b3ff-46cd-9e14-0f45e7a5ffaa"
+
 # @login_required
+
 
 # Create your views here.
 def home(request: HttpRequest) -> HttpResponse:
@@ -66,7 +70,11 @@ def home(request: HttpRequest) -> HttpResponse:
     #     "Successfully synchronized user accounts with people in your squadron."
     # )
 
-    institutions = plaid_.get_institutions("asdf")
+    # institutions = plaid_.get_institutions("asdf")
+
+    # plaid_.get_balance(LINK_TOKEN)
+
+    # plaid_.get_investment_holdings(LINK_TOKEN)
 
     inst_test = Institution(
         name="My bank"
@@ -98,25 +106,36 @@ def home(request: HttpRequest) -> HttpResponse:
     return render(request, "index.html", context)
 
 
-def create_link_token(request: HttpRequest):
+def create_link_token(request: HttpRequest) -> HttpResponse:
+    user_id = 100
+
     try:
         request = LinkTokenCreateRequest(
             products=products,
             client_name="Plaid Quickstart",
             country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
+            # redirect_uri=PLAID_REDIRECT_URI,
             language='en',
             user=LinkTokenCreateRequestUser(
-                client_user_id=str(time.time())
+                client_user_id=str(user_id)
             )
         )
-        if PLAID_REDIRECT_URI!=None:
-            request['redirect_uri'] = PLAID_REDIRECT_URI
 
         # create link token
         response = client.link_token_create(request)
 
         print(response, "RESP")
-        return HttpResponse(response.to_dict())
+
+        # note: expiration available.
+        link_token = response["link_token"]
+
+        return HttpResponse(
+            json.dumps({
+                "link_token": link_token
+            }),
+            content_type="application/json"
+        )
+
     except plaid.ApiException as e:
         print(e, "Plaid error")
         return HttpResponse(json.loads(e.body))
