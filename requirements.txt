@@ -1,0 +1,6 @@
+Django~=4.2.4
+gunicorn~=21.2.0
+requests~=2.31.0
+djangorestframework~=3.14.0
+django-cors-headers~=4.2.0
+pydantic~=2.3.0

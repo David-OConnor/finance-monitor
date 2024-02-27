@@ -1,0 +1,19 @@
+# Standard python ignores.
+__pycache__/
+Thumbs.db
+*.egg-info/
+__pypackages__/
+
+# Pycharm
+*.iws
+workspace.xml
+
+# Project-specific
+node_modules/
+pucks/static/dist/
+/secrets.py
+
+
+# Local DB files
+*.dump*
+*.sqlite3
