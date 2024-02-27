@@ -9,12 +9,37 @@
 {# Menu #}
 <h2>Login</h2>
 <h2>Register</h2>
-<h2>Net worth</h2>
-<h2>Transactions</h2>
+
 
 <h1>Welcome to Wallet</h1>
 
-<h2></h2>
+<h2>Net worth</h2>
+{% for account in accounts %}
+    <div style="display: flex;">
+        <h3>Institution:{{ account.institution.name }}</h3>
+        <h3>Name: {{ account.name }}</h3>
+        <h3>Value: ${{ account.name }}</h3>
+    </div>
+{% endfor %}
+{# todo: Load transactions and account info async with JS #}
+
+
+<h2>Transactions</h2>
+{% for transaction in transactions %}
+    <div style="display: flex;">
+        <h3>Account: ${{ transaction.account.name }}</h3>
+        <h3>Amount: ${{ transaction.amount }}</h3>
+        <h3>{{ transaction.description }}</h3>
+    </div>
+{% endfor %}
+
+{# todo: Load locally. #}
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+
+<script>
+    console.log("JS working")
+</script>
+
 
 </body>
 </html>
