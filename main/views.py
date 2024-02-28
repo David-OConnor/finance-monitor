@@ -1,3 +1,5 @@
+# Sandbox test credentials: user_good, pass_good, credential_good (pin), mfa_device (pin etc), code: 1234
+
 import time
 import json
 
@@ -5,7 +7,7 @@ from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
-from main.models import Account, Transaction, Institution, Person
+from main.models import FinancialAccount, Transaction, Institution, Person
 
 import plaid
 from plaid.model.payment_amount import PaymentAmount
@@ -84,7 +86,7 @@ def home(request: HttpRequest) -> HttpResponse:
 
     )
 
-    account_test = Account(
+    account_test = FinancialAccount(
         name="My account 1",
         institution=inst_test,
         person=person_test,
@@ -103,10 +105,11 @@ def home(request: HttpRequest) -> HttpResponse:
         ]
     }
 
-    return render(request, "index.html", context)
+    return render(request, "../templates/index.html", context)
 
 
 def create_link_token(request: HttpRequest) -> HttpResponse:
+    """The first stage of the Plaid workflow."""
     user_id = 100
 
     try:
@@ -124,21 +127,52 @@ def create_link_token(request: HttpRequest) -> HttpResponse:
         # create link token
         response = client.link_token_create(request)
 
-        print(response, "RESP")
-
-        # note: expiration available.
-        link_token = response["link_token"]
-
-        return HttpResponse(
-            json.dumps({
-                "link_token": link_token
-            }),
-            content_type="application/json"
-        )
-
     except plaid.ApiException as e:
         print(e, "Plaid error")
         return HttpResponse(json.loads(e.body))
+
+    print(f"Link token response: {response}")
+
+    # note: expiration available.
+    link_token = response["link_token"]
+
+    return HttpResponse(
+        json.dumps({
+            "link_token": link_token
+        }),
+        content_type="application/json"
+    )
+
+
+def exchange_public_token(request: HttpRequest) -> HttpResponse:
+    """Part of the Plaid workflow."""
+    global access_token
+
+    print(f"Request for public token exchange: {request}")
+
+    public_token = request.body['public_token']
+
+    request = ItemPublicTokenExchangeRequest(
+        public_token=public_token
+    )
+
+    response = client.item_public_token_exchange(request)
+
+    # These values should be saved to a persistent database and
+    # associated with the currently signed-in user
+    access_token = response['access_token']
+    item_id = response['item_id']
+
+    # person = Person ()
+    # person.access_token = access_token
+    # person.save()
+
+    print(f"Token exchange response: {response}")
+
+    return HttpResponse(
+        json.dumps({'public_token_exchange': 'complete'}),
+        content_type="application/json"
+    )
 
 
 # @app.route('/api/create_link_token_for_payment', methods=['POST'])

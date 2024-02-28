@@ -9,7 +9,8 @@ class Person(Model):
     # user = models.OneToOneField(
     #     User, null=True, blank=True, related_name="person", on_delete=SET_NULL
     # )
-    pass
+    access_token = CharField(max_length=50)
+    item_id = CharField(max_length=50)  # todo: Is this right? Maybe multiples?
 
     def __str__(self):
         return f""
@@ -23,14 +24,14 @@ class Institution(Model):
     name = CharField(max_length=50)
 
 
-class Account(Model):
+class FinancialAccount(Model):
     person = ForeignKey(Person, on_delete=CASCADE)
     institution = ForeignKey(Institution, on_delete=CASCADE)
     name = CharField(max_length=50)
 
 
 class Transaction(Model):
-    account = ForeignKey(Account, on_delete=CASCADE)
+    account = ForeignKey(FinancialAccount, on_delete=CASCADE)
     amount = FloatField()
     description = TextField()
     dt = DateTimeField()
