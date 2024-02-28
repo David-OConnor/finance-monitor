@@ -22,6 +22,11 @@ let LINK_TOKEN = ""
 
 
 function getPublicToken() {
+    // Launches a Plaid-controlled window to link to an account, using an already-retrieved link token.
+    // After the user enters information, sends the public token to the backend, which exchanges it for
+    // an access token. This is then stored in the database, associated with the user's account at
+    // the linked institution.
+
     console.log("Getting public token. Link token: ", LINK_TOKEN)
     let handler = Plaid.create({
         // Create a new link_token to initialize Link
@@ -41,8 +46,14 @@ function getPublicToken() {
             // });
             //
             console.log("Received a public token; sending to the backend.")
+            console.log("Metadata: ", metadata)
 
-            fetch("/exchange-public-token", { body: JSON.stringify({pulic_token: public_token}), ...FETCH_HEADERS_POST })
+            const payload = {
+                public_token: public_token,
+                metadata: metadata
+            }
+
+            fetch("/exchange-public-token", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
                 // Parse JSON if able.
                 .then(result => {
                     try {
@@ -53,8 +64,11 @@ function getPublicToken() {
                     }
                 })
                 .then(r => {
-                    let linkToken = r.link_token
-                    console.log("Received link token: ", linkToken)
+                    if (r.success) {
+                        console.log("Token exchange complete")
+                    } else {
+                        console.error("Token exchange failed")
+                    }
                 });
         },
         onExit: function(err, metadata) {
@@ -103,12 +117,8 @@ function getCrsfToken() {
     return cookieValue;
 }
 
-btn = document.getElementById("token_exchange")
-btn.addEventListener("click", e => {
-    postData = {}
-
-    const url = "/create-link-token"
-    fetch(url, { body: JSON.stringify(postData), ...FETCH_HEADERS_POST })
+document.getElementById("link-button").addEventListener("click", _ => {
+    fetch("/create-link-token", FETCH_HEADERS_GET)
         // Parse JSON if able.
         .then(result => {
             try {
@@ -121,12 +131,6 @@ btn.addEventListener("click", e => {
         .then(r => {
             LINK_TOKEN = r.link_token
             console.log("Link token set: ", LINK_TOKEN)
+            getPublicToken()
         });
-})
-
-let handler = null
-const btnPublic = document.getElementById("link-button")
-btnPublic.addEventListener("click", _ => {
-    console.log("CLICK")
-    getPublicToken()
 });

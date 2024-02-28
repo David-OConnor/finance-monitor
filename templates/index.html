@@ -1,15 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Wallet</title>
-</head>
-<body>
+{% extends 'base.html'  %}
 
-{# Menu #}
-<h2>Login</h2>
-<h2>Register</h2>
+{% block head_contents %}
+<title>Wallet</title>
+{% endblock %}
 
+{% block contents %}
 
 <h1>Welcome to Wallet</h1>
 
@@ -33,10 +28,7 @@
     </div>
 {% endfor %}
 
-<button id="token_exchange">Click me</button>
-
-<button id="link-button">Link Account</button>
-{#<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>#}
+<button id="link-button">Add account</button>
 
 
 {# todo: Load locally. #}
@@ -44,5 +36,4 @@
 
 <script src="../static/main.js"></script>
 
-</body>
-</html>
+{% endblock %}

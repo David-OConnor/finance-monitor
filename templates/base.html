@@ -1,0 +1,44 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+
+    <script type="module">
+        document.documentElement.classList.remove('no-js');
+        document.documentElement.classList.add('js');
+    </script>
+
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+
+{#    Note: Some pages overwrite this description. #}
+    <meta name="description" content="Sensors and measurement for science, hydroponics, and aquariums">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:url" content="https://www.wallet.org">
+
+    {# SVG favicons appear to only be supported in Firefox? #}
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
+
+    {#    <link rel="icon" href="/favicon.ico">#}
+    {#    <link rel="icon" href="/favicon.svg" type="image/svg+xml">#}
+    <link rel="apple-touch-icon" href="{% static 'favicon.png' %}">
+    {#    <link rel="manifest" href="/my.webmanifest">#}
+    <meta name="theme-color" content="#a2c8a9">
+
+    {%  block head_contents %} {% endblock %}
+
+</head>
+<body>
+
+{# Menu #}
+<h2>Login</h2>
+<h2>Register</h2>
+
+{% block contents %}{% endblock %}
+
+</body>
+</html>

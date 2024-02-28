@@ -13,7 +13,9 @@ from plaid.model.accounts_get_request import AccountsGetRequest
 from plaid.model.country_code import CountryCode
 from plaid.model.institutions_get_request import InstitutionsGetRequest
 from plaid.model.investments_holdings_get_request import InvestmentsHoldingsGetRequest
-from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
+from plaid.model.item_public_token_exchange_request import (
+    ItemPublicTokenExchangeRequest,
+)
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 
 from .keys import PLAID_SECRET, PLAID_CLIENT_ID
@@ -38,10 +40,10 @@ PLAID_PRODUCTS = [
 configuration = plaid.Configuration(
     host=plaid.Environment.Sandbox,
     api_key={
-        'clientId': PLAID_CLIENT_ID,
-        'secret': PLAID_SECRET,
+        "clientId": PLAID_CLIENT_ID,
+        "secret": PLAID_SECRET,
         # 'plaidVersion': '2020-09-14'
-    }
+    },
 )
 
 api_client = plaid.ApiClient(configuration)
@@ -51,12 +53,12 @@ client = plaid_api.PlaidApi(api_client)
 def link(access_token: str) -> str:
     # the public token is received from Plaid Link
     exchange_request = ItemPublicTokenExchangeRequest(
-        public_token=pt_response['public_token']
+        public_token=pt_response["public_token"]
     )
     exchange_response = client.item_public_token_exchange(exchange_request)
 
     print("Exchange resp: {:?}", exchange_response)
-    return exchange_response['access_token']
+    return exchange_response["access_token"]
 
 
 def get_institutions(access_token: str) -> dict:
@@ -64,15 +66,13 @@ def get_institutions(access_token: str) -> dict:
     offset = 0
 
     request = InstitutionsGetRequest(
-        country_codes=[CountryCode('US')],
-        count=count,
-        offset=offset
+        country_codes=[CountryCode("US")], count=count, offset=offset
     )
     response = client.institutions_get(request)
 
     print("Inst resp", response)
 
-    institutions = response['institutions']
+    institutions = response["institutions"]
 
     print(institutions, "INSTS")
 
@@ -84,9 +84,12 @@ def get_balance(access_token: str) -> dict:
     # with the Item
     request = AccountsBalanceGetRequest(access_token=access_token)
     response = client.accounts_balance_get(request)
-    accounts = response['accounts']
 
     print(response, "RESP")
+
+    accounts = response["accounts"]
+
+
 
     return accounts
 
@@ -97,10 +100,10 @@ def get_investment_holdings(access_token: str) -> (dict, dict):
     response = client.investments_holdings_get(request)
 
     # Handle Holdings response
-    holdings = response['holdings']
+    holdings = response["holdings"]
 
     # Handle Securities response
-    securities = response['securities']
+    securities = response["securities"]
 
     print("holdings", holdings)
     print(f"security: {securities}")
@@ -113,20 +116,19 @@ def load_transactions(access_token: str):
         access_token=access_token,
     )
     response = client.transactions_sync(request)
-    transactions = response['added']
+    transactions = response["added"]
 
     # the transactions in the response are paginated, so make multiple calls while incrementing the cursor to
     # retrieve all transactions
-    while (response['has_more']):
+    while response["has_more"]:
         request = TransactionsSyncRequest(
-            access_token=access_token,
-            cursor=response['next_cursor']
+            access_token=access_token, cursor=response["next_cursor"]
         )
         response = client.transactions_sync(request)
 
         json_string = json.dumps(response.to_dict(), default=str)
 
-        transactions += response['added']
+        transactions += response["added"]
 
 
 def load_accounts(access_token: str):
@@ -136,7 +138,7 @@ def load_accounts(access_token: str):
 
     request = AccountsGetRequest(access_token=access_token)
     response = client.accounts_get(request)
-    accounts = response['accounts']
+    accounts = response["accounts"]
 
     print("ACCOUNTS", accounts)
 
@@ -148,5 +150,5 @@ def load_accounts(access_token: str):
             "access_token": access_token,
             # "options": {},
             # "account_ids": [],
-        }
+        },
     )
