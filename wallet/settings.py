@@ -35,11 +35,13 @@ else:
     SECRET_KEY = "django-insecure-kt#8(6pid*k1u6b9!yh(70^7s41ydqu=_!#%l79n8nm-os*$b)"
 
     try:
-        from main.private import SENDGRID_KEY
+        from main.private import SENDGRID_KEY, PLAID_SECRET, PLAID_CLIENT_ID
     # Allow an escape hatch so the problem runs and can be tested with a quick
     # git pull. Email is non-functional here.
     except ImportError:
         SENDGRID_KEY = ""
+        PLAID_SECRET = ""
+        PLAID_CLIENT_ID = ""
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
@@ -181,3 +183,58 @@ EMAIL_HOST_USER = "apikey"
 EMAIL_HOST_PASSWORD = os.environ["SENDGRID_KEY"] if DEPLOYED else SENDGRID_KEY
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+PLAID_CLIENT_ID = os.environ["PLAID_CLIENT_ID"] if DEPLOYED else PLAID_CLIENT_ID
+PLAID_SECRET = os.environ["PLAID_SECRET"] if DEPLOYED else PLAID_SECRET
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {
+        "require_debug_false": {
+            "()": "django.utils.log.RequireDebugFalse",
+        },
+        "require_debug_true": {
+            "()": "django.utils.log.RequireDebugTrue",
+        },
+    },
+    "formatters": {
+        "django.server": {
+            "()": "django.utils.log.ServerFormatter",
+            "format": "[%(server_time)s] %(message)s",
+        }
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "filters": ["require_debug_true"],
+            "class": "logging.StreamHandler",
+        },
+        "console_debug_false": {
+            "level": "ERROR",
+            "filters": ["require_debug_false"],
+            "class": "logging.StreamHandler",
+        },
+        "django.server": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "django.server",
+        },
+        "mail_admins": {
+            "level": "ERROR",
+            "filters": ["require_debug_false"],
+            "class": "django.utils.log.AdminEmailHandler",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "mail_admins"],
+            "level": "INFO",
+        },
+        "django.server": {
+            "handlers": ["django.server"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}

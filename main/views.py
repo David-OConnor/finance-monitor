@@ -2,15 +2,27 @@
 
 import time
 import json
-from datetime import datetime
+from datetime import datetime, date
 
+from django.contrib.auth import login, authenticate, logout, user_login_failed
 from django.db import OperationalError
-from django.http import HttpResponse, HttpRequest
+from django.dispatch import receiver
+from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import requires_csrf_token
+from django.contrib.auth.models import Group, User
 
-from main.models import FinancialAccount, Transaction, Institution, Person, SubAccount, AccountType, SubAccountType
+from main.models import (
+    FinancialAccount,
+    Transaction,
+    Institution,
+    Person,
+    SubAccount,
+    AccountType,
+    SubAccountType,
+)
 
 import plaid
 from plaid.model.products import Products
@@ -24,16 +36,11 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 
 
 from main import plaid_
-from main.plaid_ import client, PLAID_PRODUCTS
-
-products = []
-for product in PLAID_PRODUCTS:
-    products.append(Products(product))
-
-PLAID_COUNTRY_CODES = ["US"]
-PLAID_REDIRECT_URI = "http://localhost:8080/"  # todo
+from main.plaid_ import client, PLAID_PRODUCTS, PLAID_COUNTRY_CODES
 
 ACCOUNT_REFRESH_INTERVAL = 30 * 60  # seconds. Todo: Increase this.
+
+MAX_LOGIN_ATTEMPTS = 5
 
 
 def landing(request: HttpRequest) -> HttpResponse:
@@ -42,6 +49,7 @@ def landing(request: HttpRequest) -> HttpResponse:
     return render(request, "../templates/index.html", context)
 
 
+@login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
     # todo: Set up a login system, then change this.
     person = Person.objects.first()
@@ -51,7 +59,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     # todo
     transactions = []
 
-    net_worth = 0.
+    net_worth = 0.0
 
     # Update account info, if we are due for a refresh
     for acc in accounts:
@@ -68,7 +76,10 @@ def dashboard(request: HttpRequest) -> HttpResponse:
             if sub_acc_model.current is not None:
                 sign = 1
 
-                if AccountType(sub_acc_model.type) in [AccountType.LOAN, AccountType.CREDIT]:
+                if AccountType(sub_acc_model.type) in [
+                    AccountType.LOAN,
+                    AccountType.CREDIT,
+                ]:
                     sign *= -1
                     print("Debit")
 
@@ -91,7 +102,7 @@ def create_link_token(request_: HttpRequest) -> HttpResponse:
 
     try:
         request = LinkTokenCreateRequest(
-            products=products,
+            products=PLAID_PRODUCTS,
             client_name="Plaid Quickstart",
             country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
             # redirect_uri=PLAID_REDIRECT_URI,
@@ -119,8 +130,9 @@ def create_link_token(request_: HttpRequest) -> HttpResponse:
 def exchange_public_token(request: HttpRequest) -> HttpResponse:
     """Part of the Plaid workflow. POST request. Exchanges the public token retrieved by
     the client, after it successfullya uthenticates with an institution. Exchanges this for
-    an access token, which is stored in the database, along with its associated item id."""
-    data = json.loads(request.body.decode('utf-8'))
+    an access token, which is stored in the database, along with its associated item id.
+    """
+    data = json.loads(request.body.decode("utf-8"))
 
     public_token = data["public_token"]
     metadata = data["metadata"]
@@ -168,3 +180,112 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         content_type="application/json",
     )
 
+
+@receiver(user_login_failed)
+def login_failed_handler(sender, credentials, request, **kwargs):
+    attempted_username = credentials["username"]
+    attempted_password = credentials["password"]
+
+    # todo: The relevant DB fields should be tied to a user, not Person, ideally.
+
+    try:
+        user = User.objects.get(username=attempted_username)
+    except User.DoesNotExist:
+        print("User doesn't exist on failed login attempt")
+        return
+
+    try:
+        person = user.person
+    except Person.DoesNotExist:
+        # No action required; their login will be blocked in `user_login()`.
+        print("Person doesn't exist on failed login attempt")
+        return
+        # todo: Do something else sus?
+
+    person.unsuccessful_login_attempts += 1
+
+    if person.unsuccessful_login_attempts >= MAX_LOGIN_ATTEMPTS:
+        person.account_locked = True
+
+    person.save()
+
+
+@requires_csrf_token
+def user_login(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        password = request.POST["password"]
+
+        unsuccessful_msg = (
+            "Unable to log you on. ☹️ If you've incorrectly entered your password several times "
+            "in a row, your account may have been temporarily locked. Please contact a scheduling "
+            "shop member (etc) to unlock your account."
+        )
+
+        user = authenticate(request, username=username.lower(), password=password)
+        if user is not None:
+            login(request, user)
+
+            # todo: How do we log unsuccessful attempts?
+
+            # Once authenticated, make sure the user's password isn't expired. We perform this check to make
+            # 4FW Comm and IG happier; agreed on a 180-day expiration for now. (2021-09-27).
+            try:
+                person = user.person
+            except Person.DoesNotExist:
+                return HttpResponse(
+                    "No person associated with your account; please "
+                    "contact a training or scheduling shop member."
+                )
+
+            if person.account_locked:
+                return HttpResponse(unsuccessful_msg)
+            else:
+                if person.unsuccessful_login_attempts > 0:
+                    person.unsuccessful_login_attempts = 0
+                    person.save()
+
+            # if (dt.date.today() - person.last_changed_password).days > 180:
+            # This is the default date; so, require a PW change if this is the first login.
+            # Note that this is skippable in its current form...
+            if person.last_changed_password == "2021-09-30":
+                # Send to the default password change form instead of the page requested.
+                # return auth_views.PasswordChangeView
+                return HttpResponseRedirect("/password_change/")
+
+            # Redirect to a success page.
+            return HttpResponseRedirect(request.POST.get("next"))
+        else:
+            # Return an 'invalid login' error message.
+            return HttpResponse(unsuccessful_msg)
+
+    else:
+        return render(request, "login.html")
+
+
+@requires_csrf_token
+def password_change_done(request):
+    """Thin wrapper around the Django default PasswordChangeDone, but updates the password-changed date."""
+    # return auth_views.PasswordChangeDoneView.as_view(),
+    # return auth_views.PasswordChangeDoneView,
+    try:
+        person = request.user.person
+    except Person.DoesNotExist:
+        return HttpResponse(
+            "No person associated with your account; please "
+            "contact a training or scheduling shop member."
+        )
+
+    person.last_changed_password = date.today()
+    person.save()
+
+    return HttpResponseRedirect("/dashboard")
+
+
+# Use the login_required() decorator to ensure only those logged in can access the view.
+@login_required
+def user_logout(request):
+    # Since we know the user is logged in, we can now just log them out.
+    logout(request)
+    # Take the user back to the homepage.
+    return HttpResponseRedirect("/")

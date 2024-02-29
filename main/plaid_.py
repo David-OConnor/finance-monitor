@@ -19,10 +19,11 @@ from plaid.model.investments_holdings_get_request import InvestmentsHoldingsGetR
 from plaid.model.item_public_token_exchange_request import (
     ItemPublicTokenExchangeRequest,
 )
+from plaid.model.products import Products
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 
 from .models import FinancialAccount, SubAccount, AccountType, SubAccountType
-from .private import PLAID_SECRET, PLAID_CLIENT_ID
+from wallet.settings import PLAID_SECRET, PLAID_CLIENT_ID
 
 import plaid
 from plaid.api import plaid_api
@@ -30,12 +31,19 @@ from plaid.api import plaid_api
 BASE_URL = "https://www.plaid.com/api"
 
 PLAID_PRODUCTS = [
-    "assets",
-    # "balance",
-    "transactions",
-    "investments",
-    # "recurring_transactions",
+    Products(p)
+    for p in [
+        "assets",
+        # "balance",
+        "transactions",
+        "investments",
+        # "recurring_transactions",
+    ]
 ]
+
+
+PLAID_COUNTRY_CODES = ["US"]
+PLAID_REDIRECT_URI = "http://localhost:8080/"  # todo
 
 # Available environments arefr
 # 'Production'
@@ -52,6 +60,7 @@ configuration = plaid.Configuration(
 
 api_client = plaid.ApiClient(configuration)
 client = plaid_api.PlaidApi(api_client)
+
 
 def get_balance_data(access_token: str) -> AccountBase:
     """Pull real-time balance information for each account associated
@@ -82,7 +91,7 @@ def refresh_account_balances(acc: FinancialAccount):
                 "available": sub_loaded.balances.available,
                 "current": sub_loaded.balances.current,
                 "limit": sub_loaded.balances.limit,
-            }
+            },
         )
 
     acc.last_refreshed = timezone.now()

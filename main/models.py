@@ -20,6 +20,7 @@ from django.db.models import (
 
 def enum_choices(cls):
     """Required to make Python enums work with Django integer fields"""
+
     @classmethod
     def choices(cls_):
         return [(key.value, key.name) for key in cls_]
@@ -31,6 +32,7 @@ def enum_choices(cls):
 @enum_choices
 class AccountType(Enum):
     """These are types as reported by Plaid"""
+
     DEPOSITORY = 1
     INVESTMENT = 2
     LOAN = 3
@@ -49,9 +51,11 @@ class AccountType(Enum):
         print("Fallthrough in parsing account type: ", s)
         return cls.DEPOSITORY
 
+
 @enum_choices
 class SubAccountType(Enum):
     """These are types as reported by Plaid"""
+
     CHECKING = 0
     SAVINGS = 1
     DEBIT_CARD = 2
@@ -114,7 +118,9 @@ class Institution(Model):
 
 class FinancialAccount(Model):
     person = ForeignKey(Person, related_name="accounts", on_delete=CASCADE)
-    institution = ForeignKey(Institution, on_delete=CASCADE, related_name="institutions")
+    institution = ForeignKey(
+        Institution, on_delete=CASCADE, related_name="institutions"
+    )
     # A user-entered nickname for the account.
     name = CharField(max_length=100)
     # todo: nullable if it expires etc.
@@ -136,7 +142,9 @@ class FinancialAccount(Model):
 
 
 class SubAccount(Model):
-    account = ForeignKey(FinancialAccount, related_name="sub_accounts", on_delete=CASCADE)
+    account = ForeignKey(
+        FinancialAccount, related_name="sub_accounts", on_delete=CASCADE
+    )
     plaid_id = CharField(max_length=100)
     plaid_id_persistent = CharField(max_length=100, blank=True, null=True)
     name = CharField(max_length=50)

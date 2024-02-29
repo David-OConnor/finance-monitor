@@ -24,7 +24,16 @@ class FinancialAccountAdmin(ModelAdmin):
 
 @admin.register(models.SubAccount)
 class SubAccountAdmin(ModelAdmin):
-    list_display = ("name", "plaid_id", "name_official", "type", "sub_type", "available", "current", "limit")
+    list_display = (
+        "name",
+        "plaid_id",
+        "name_official",
+        "type",
+        "sub_type",
+        "available",
+        "current",
+        "limit",
+    )
 
 
 @admin.register(models.Transaction)
