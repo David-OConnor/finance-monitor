@@ -1,6 +1,7 @@
 from enum import Enum
 
 from django.db import models
+from django.contrib.auth.models import Group, User
 
 from django.db.models import (
     SET_NULL,
@@ -90,14 +91,15 @@ class SubAccountType(Enum):
 
 
 class Person(Model):
-    # todo: Put this in.
-    # user = models.OneToOneField(
-    #     User, null=True, blank=True, related_name="person", on_delete=SET_NULL
-    # )
-    pass
+    # If we don't change on_delete, deleting a user will delete the associated person.
+    user = models.OneToOneField(
+        User, related_name="person", on_delete=CASCADE
+    )
+    unsuccessful_login_attempts = IntegerField(default=0)
+    account_locked = BooleanField(default=False)
 
     def __str__(self):
-        return f"Person. id: {self.id}"
+        return f"Person. id: {self.id} User: {self.user.username}"
 
     class Meta:
         # ordering = ["-datetime"]

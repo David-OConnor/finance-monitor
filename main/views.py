@@ -53,12 +53,10 @@ def landing(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
-    # todo: Set up a login system, then change this.
-    person = Person.objects.first()
+    person = request.user.person
 
     accounts = person.accounts.all()
 
-    # todo
     transactions = []
 
     net_worth = 0.0
@@ -134,6 +132,8 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     the client, after it successfullya uthenticates with an institution. Exchanges this for
     an access token, which is stored in the database, along with its associated item id.
     """
+    person = request.user.person
+
     data = json.loads(request.body.decode("utf-8"))
 
     public_token = data["public_token"]
@@ -150,8 +150,6 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     access_token = response["access_token"]
     item_id = response["item_id"]
     # request_id = response["request_id"]
-
-    person = Person.objects.first()  # todo temp
 
     # sub_accounts = metadata["accounts"]
 
@@ -217,6 +215,11 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
+
+            person = Person()
+            person.user = user
+            person.save()
+
             login(request, user)  # Log the user in
             messages.success(request, 'Registration successful.')
             return redirect('/dashboard')  # Redirect to a desired URL
@@ -233,8 +236,7 @@ def user_login(request):
 
         unsuccessful_msg = (
             "Unable to log you on. ☹️ If you've incorrectly entered your password several times "
-            "in a row, your account may have been temporarily locked. Please contact a scheduling "
-            "shop member (etc) to unlock your account."
+            "in a row, your account may have been temporarily locked. Click here to unlock it."
         )
 
         user = authenticate(request, username=username.lower(), password=password)
@@ -269,7 +271,7 @@ def user_login(request):
             #     return HttpResponseRedirect("/password_change/")
 
             # Redirect to a success page.
-            return HttpResponseRedirect(request.POST.get("next"))
+            return HttpResponseRedirect("/dashboard")
         else:
             # Return an 'invalid login' error message.
             return HttpResponse(unsuccessful_msg)

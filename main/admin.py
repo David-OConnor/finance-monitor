@@ -8,8 +8,7 @@ from . import models
 
 @admin.register(models.Person)
 class PersonAdmin(ModelAdmin):
-    # list_display = (""pause_orders", "restock_messag"e")
-    pass
+    list_display = ("user",)
 
 
 @admin.register(models.Institution)

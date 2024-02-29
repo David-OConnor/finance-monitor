@@ -35,8 +35,12 @@
 <body>
 
 {# Menu #}
-<h2><a href="/login">Login</a></h2>
-<h2><a href="/register">Register</a></h2>
+{% if request.user.is_authenticated %}
+    <h2><a href="/logout">Logout</a></h2>
+{% else %}
+    <h2><a href="/login">Login</a></h2>
+    <h2><a href="/register">Register</a></h2>
+{% endif %}
 
 {% block contents %}{% endblock %}
 
