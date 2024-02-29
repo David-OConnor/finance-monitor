@@ -116,7 +116,7 @@ class FinancialAccount(Model):
     person = ForeignKey(Person, related_name="accounts", on_delete=CASCADE)
     institution = ForeignKey(Institution, on_delete=CASCADE, related_name="institutions")
     # A user-entered nickname for the account.
-    name = CharField(max_length=50)
+    name = CharField(max_length=100)
     # todo: nullable if it expires etc.
     # access_token and `item_id` are retrieved from Plaid as part of the token exchange procedure.
     # Lengths we've seen in initial tests are around 40-50.
@@ -139,8 +139,8 @@ class SubAccount(Model):
     account = ForeignKey(FinancialAccount, related_name="sub_accounts", on_delete=CASCADE)
     plaid_id = CharField(max_length=100)
     plaid_id_persistent = CharField(max_length=100, blank=True, null=True)
-    name = CharField(max_length=30)
-    name_official = CharField(max_length=30, null=True, blank=True)
+    name = CharField(max_length=50)
+    name_official = CharField(max_length=100, null=True, blank=True)
     type = IntegerField(choices=AccountType.choices())
     sub_type = IntegerField(choices=SubAccountType.choices())
     iso_currency_code = CharField(max_length=5)

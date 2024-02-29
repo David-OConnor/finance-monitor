@@ -55,36 +55,11 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     # Update account info, if we are due for a refresh
     for acc in accounts:
-        now = timezone.now()
-        print("TIME", (acc.last_refreshed - now).seconds)
-        if (now - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
-            acc.last_refreshed = now
-            acc.save()
+        if (timezone.now() - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
+            plaid_.refresh_account_balances(acc)
 
             print("Refreshing account data...")
             # todo: Function?
-            balance_data = plaid_.get_balance(acc.access_token)
-
-            # todo:  Handle  sub-acct entries in DB that have missing data.
-            for sub_loaded in balance_data:
-                # print("\n\nSub acc: ", sub_loaded, type(sub_loaded))
-
-                sub_acc_model, _ = SubAccount.objects.update_or_create(
-                    account=acc,
-                    plaid_id=sub_loaded.account_id,
-                    defaults={
-                        # "plaid_id_persistent": acc_sub.persistent_account_id,
-                        "plaid_id_persistent": "",  # todo temp
-                        "name": sub_loaded.name,
-                        "name_official": sub_loaded.official_name,
-                        "type": AccountType.from_str(str(sub_loaded.type)).value,
-                        "sub_type": SubAccountType.from_str(str(sub_loaded.subtype)).value,
-                        "iso_currency_code": sub_loaded.balances.iso_currency_code,
-                        "available": sub_loaded.balances.available,
-                        "current": sub_loaded.balances.current,
-                        "limit": sub_loaded.balances.limit,
-                    }
-                )
 
         else:
             print("Not refreshing account data")
@@ -156,8 +131,6 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
 
     response = client.item_public_token_exchange(request)
 
-    print(f"Token exchange response: {response}")
-
     # These values should be saved to a persistent database and
     # associated with the currently signed-in user
     access_token = response["access_token"]
@@ -166,7 +139,7 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
 
     person = Person.objects.first()  # todo temp
 
-    sub_accounts = metadata["accounts"]
+    # sub_accounts = metadata["accounts"]
 
     inst, _ = Institution.objects.get_or_create(
         plaid_id=metadata["institution"]["institution_id"],
@@ -176,7 +149,7 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     account_added = FinancialAccount(
         person=person,
         institution=inst,
-        name="",  # todo: Pull from response, and/or metadata
+        name="",
         access_token=access_token,
         item_id=item_id,
         last_refreshed=timezone.now(),
@@ -188,6 +161,7 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         print("\nError saving the account: ", e)
     else:
         print(f"\nSuccessfully saved an account: {account_added}")
+        plaid_.refresh_account_balances(account_added)
 
     return HttpResponse(
         json.dumps({"success": True}),

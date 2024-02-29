@@ -7,6 +7,8 @@ import json
 import requests
 import pydantic
 
+from django.utils import timezone
+
 import plaid
 from plaid.model.account_base import AccountBase
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
@@ -19,6 +21,7 @@ from plaid.model.item_public_token_exchange_request import (
 )
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 
+from .models import FinancialAccount, SubAccount, AccountType, SubAccountType
 from .private import PLAID_SECRET, PLAID_CLIENT_ID
 
 import plaid
@@ -50,19 +53,44 @@ configuration = plaid.Configuration(
 api_client = plaid.ApiClient(configuration)
 client = plaid_api.PlaidApi(api_client)
 
+def get_balance_data(access_token: str) -> AccountBase:
+    """Pull real-time balance information for each account associated
+    with the access token. This returns sub-accounts, currently as a dict."""
+    request = AccountsBalanceGetRequest(access_token=access_token)
+    response = client.accounts_balance_get(request)
 
-def link(access_token: str) -> str:
-    # the public token is received from Plaid Link
-    exchange_request = ItemPublicTokenExchangeRequest(
-        public_token=pt_response["public_token"]
-    )
-    exchange_response = client.item_public_token_exchange(exchange_request)
-
-    print("Exchange resp: {:?}", exchange_response)
-    return exchange_response["access_token"]
+    return response["accounts"]
 
 
-def get_institutions(access_token: str) -> dict:
+def refresh_account_balances(acc: FinancialAccount):
+    """Update account information in the database."""
+    balance_data = get_balance_data(acc.access_token)
+
+    # todo:  Handle  sub-acct entries in DB that have missing data.
+    for sub_loaded in balance_data:
+        sub_acc_model, _ = SubAccount.objects.update_or_create(
+            account=acc,
+            plaid_id=sub_loaded.account_id,
+            defaults={
+                # "plaid_id_persistent": acc_sub.persistent_account_id,
+                "plaid_id_persistent": "",  # todo temp
+                "name": sub_loaded.name,
+                "name_official": sub_loaded.official_name,
+                "type": AccountType.from_str(str(sub_loaded.type)).value,
+                "sub_type": SubAccountType.from_str(str(sub_loaded.subtype)).value,
+                "iso_currency_code": sub_loaded.balances.iso_currency_code,
+                "available": sub_loaded.balances.available,
+                "current": sub_loaded.balances.current,
+                "limit": sub_loaded.balances.limit,
+            }
+        )
+
+    acc.last_refreshed = timezone.now()
+    acc.save()
+
+
+# todo: Do we need this? Handled in get_balance_data
+def _get_institutions(access_token: str) -> dict:
     count = 3
     offset = 0
 
@@ -80,17 +108,7 @@ def get_institutions(access_token: str) -> dict:
     return institutions
 
 
-def get_balance(access_token: str) -> AccountBase:
-    # Pull real-time balance information for each account associated
-    # with the access token. This returns sub-accounts, currently as a dict.
-    # todo: Return something typed; perhaps the DB model.
-    request = AccountsBalanceGetRequest(access_token=access_token)
-    response = client.accounts_balance_get(request)
-
-    return response["accounts"]
-
-
-def get_investment_holdings(access_token: str) -> (dict, dict):
+def _get_investment_holdings(access_token: str) -> (dict, dict):
     # Pull Holdings for an Item
     request = InvestmentsHoldingsGetRequest(access_token=access_token)
     response = client.investments_holdings_get(request)

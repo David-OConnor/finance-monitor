@@ -19,7 +19,7 @@ class InstitionAdmin(ModelAdmin):
 
 @admin.register(models.FinancialAccount)
 class FinancialAccountAdmin(ModelAdmin):
-    list_display = ("name", "item_id", "access_token")
+    list_display = ("item_id", "name", "access_token")
 
 
 @admin.register(models.SubAccount)
