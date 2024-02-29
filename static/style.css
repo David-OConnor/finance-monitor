@@ -1,0 +1,333 @@
+body {
+    background-color: #ffffff;
+    background-position: top center;
+    background-size: auto;
+}
+
+div {
+    font-family: 'Karla', sans-serif;
+    font-size: 1.0em;
+}
+
+input {
+    border: 1px solid black;
+}
+
+textarea {
+    font-family: 'Karla', sans-serif;
+    border: 1px solid #333333;  /* matches `.order-input`.*/
+}
+
+img {
+    max-width: 100%;
+}
+
+/*h2 {*/
+/*    margin-top: 60px;*/
+/*}*/
+
+/*span {*/
+/*    font-family: 'Karla', sans-serif;*/
+/*}*/
+
+#top-bar {
+    display: flex;
+    background-color: #a2c8a9;
+    justify-content: space-between;
+}
+
+#menu {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+#footer {
+    text-align: center;
+    margin-top: 100px;
+}
+
+.home-body {
+    display: flex;
+    flex-direction: column;
+
+    /*text-align: center;*/
+    background-color: white;
+}
+
+@media (min-width : 600px) {
+    .home-body {
+        padding: 40px;
+        margin-left: 10%;
+        margin-right: 10%;
+    }
+}
+
+@media (max-width : 600px) {
+    .home-body {
+        padding: 10px;
+    }
+
+    #menu {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+@media (min-width : 600px) {
+    .express-checkout {
+        flex-direction: row;
+    }
+}
+
+@media (max-width : 600px) {
+    .express-checkout {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+.section-header {
+    margin-top: 60px;
+}
+
+.menu-item {
+    margin-left: 20px;
+    margin-right: 20px;
+    text-decoration: none;
+    color: black;
+}
+
+.features {
+    display: flex;
+    flex-direction: column;
+    /*justify-content: stretch;*/
+}
+
+.quick-features {
+    display: flex;
+    justify-content: stretch;
+    /*align-items: stretch;*/
+}
+
+.products-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 200px;
+    background-color: #a7d7e6;
+    border: 2px solid #222222;
+    padding: 14px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 4px;  /* Useful when flex-wrapped, eg on mobile. */
+    color: #3d3d3d;
+    cursor: pointer;
+}
+
+@media (min-width: 600px) {
+    .products-button {
+        height: 50px;
+    }
+}
+
+.cart {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border: 1px solid black;
+    align-items: center;
+    justify-content: center;
+}
+
+.products-button:hover {
+    /*background-color: #a1afe1;*/
+    border-color: #58af55;
+}
+
+@media (min-width : 600px) {
+    .top3 {
+        display: flex;
+        justify-content: center;
+        font-size: 1.2em;
+        margin-bottom: 60px;
+        margin-top: 30px;
+    }
+}
+
+@media (max-width : 600px) {
+    .top3 {
+        display: none;
+        /*display: flex;*/
+        /*flex-direction: column;*/
+        /*flex-direction: row;*/
+        /*flex-wrap: wrap;*/
+        /*font-size: 0.9em;*/
+        /*justify-content: center;*/
+        /*align-items: center;*/
+        /*tex-align: center;*/
+    }
+}
+
+@media (min-width : 900px) {
+    .top6 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        text-align: center;
+        margin-top: 40px;
+        margin-bottom: 40px;
+    }
+}
+
+@media (max-width : 900px) {
+    .top6 {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+.code-block {
+    background: #ffffff;
+    overflow:auto;
+    width:auto;
+    border:solid gray;
+    border-width:.1em .1em .1em .8em;
+    padding:.2em .6em;
+}
+
+#order-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /*background-color: #e2f1f8*/
+    border: 1px solid #bbbbbb;
+}
+
+.form-entry {
+    display: flex;
+    flex-direction: column;
+    /*width: 300px;*/
+}
+
+.order-input {
+    width: 300px;
+    height: 34px;
+    border: 1px solid #333333;
+}
+
+@media (min-width : 800px) {
+    #contact-info-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+}
+
+@media (max-width : 800px) {
+    #contact-info-form {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .card-wrapper {
+        width: 360px;
+    }
+}
+
+@media (min-width : 800px) {
+    .left-side {
+        margin-right: 20px
+    }
+
+    .right-side {
+        margin-left: 20px
+    }
+
+    .card-wrapper {
+    }
+}
+
+.fineprint {
+    color: #777777;
+    font-size: .8em;
+    font-weight: normal;
+}
+
+.input-label {
+    margin-bottom: 0;
+    text-align: center;
+    font-weight: normal;
+}
+
+.blog-body {
+
+}
+
+/* For the central section selector on the home page */
+.home-picker {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.home-picker-item {
+    display: flex;
+    width: 250px;
+    flex-direction: column;
+    align-items: center;
+    margin: 50px;
+    /* Add an invisble border so things don't jump when we add a highlighted one. */
+    border: 2px solid #ffffff;
+}
+
+.home-picker-heading {
+    color: black;
+    text-decoration: none;
+}
+
+@media (max-width : 800px) {
+    .home-picker {
+        flex-direction: column;
+    }
+
+    .home-picker-item {
+        width: auto;
+        margin-left: 0;
+        margin-right: 0;
+        border: 2px solid black;
+    }
+}
+
+.home-picker-item:hover {
+    border: 2px solid #178217;
+}
+
+
+.about-item {
+    margin-top: 40px;
+    margin-bottom: 0px;
+}
+
+/* latin-ext */
+@font-face {
+  font-family: 'Karla';
+  font-style: normal;
+  font-weight: 400;
+  src: url(/static/fonts/karla_latin_ext.woff2) format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Karla';
+  font-style: normal;
+  font-weight: 400;
+  src: url(/static/fonts/karla_latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}

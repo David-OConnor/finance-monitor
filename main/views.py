@@ -5,12 +5,14 @@ import json
 from datetime import datetime, date
 
 from django.contrib.auth import login, authenticate, logout, user_login_failed
+from django.contrib.auth.forms import UserCreationForm
 from django.db import OperationalError
 from django.dispatch import receiver
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.views.decorators.csrf import requires_csrf_token
 from django.contrib.auth.models import Group, User
 
@@ -210,6 +212,19 @@ def login_failed_handler(sender, credentials, request, **kwargs):
     person.save()
 
 
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # Log the user in
+            messages.success(request, 'Registration successful.')
+            return redirect('/dashboard')  # Redirect to a desired URL
+    else:
+        form = UserCreationForm()
+    return render(request, "register.html", {'form': form})
+
+
 @requires_csrf_token
 def user_login(request):
     if request.method == "POST":
@@ -245,13 +260,13 @@ def user_login(request):
                     person.unsuccessful_login_attempts = 0
                     person.save()
 
-            # if (dt.date.today() - person.last_changed_password).days > 180:
-            # This is the default date; so, require a PW change if this is the first login.
-            # Note that this is skippable in its current form...
-            if person.last_changed_password == "2021-09-30":
-                # Send to the default password change form instead of the page requested.
-                # return auth_views.PasswordChangeView
-                return HttpResponseRedirect("/password_change/")
+            # # if (dt.date.today() - person.last_changed_password).days > 180:
+            # # This is the default date; so, require a PW change if this is the first login.
+            # # Note that this is skippable in its current form...
+            # if person.last_changed_password == "2021-09-30":
+            #     # Send to the default password change form instead of the page requested.
+            #     # return auth_views.PasswordChangeView
+            #     return HttpResponseRedirect("/password_change/")
 
             # Redirect to a success page.
             return HttpResponseRedirect(request.POST.get("next"))
@@ -265,19 +280,19 @@ def user_login(request):
 
 @requires_csrf_token
 def password_change_done(request):
-    """Thin wrapper around the Django default PasswordChangeDone, but updates the password-changed date."""
+    """Thin wrapper around the Django default PasswordChangeDone"""
     # return auth_views.PasswordChangeDoneView.as_view(),
     # return auth_views.PasswordChangeDoneView,
-    try:
-        person = request.user.person
-    except Person.DoesNotExist:
-        return HttpResponse(
-            "No person associated with your account; please "
-            "contact a training or scheduling shop member."
-        )
+    # try:
+    #     person = request.user.person
+    # except Person.DoesNotExist:
+    #     return HttpResponse(
+    #         "No person associated with your account; please "
+    #         "contact a training or scheduling shop member."
+    #     )
 
-    person.last_changed_password = date.today()
-    person.save()
+    # person.last_changed_password = date.today()
+    # person.save()
 
     return HttpResponseRedirect("/dashboard")
 

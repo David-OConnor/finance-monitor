@@ -1,9 +1,11 @@
 {% extends 'base.html'  %}
+{% load static %}
 
 
 {% block head_contents %} Login to Wallet{%  endblock %}
 
 {% block contents %}
+
     <div style="display: flex; align-items: center">
         <h1>Login</h1>
         <img src="{% static "log.png" %}" height="40" style="margin-left: 20px" />
@@ -25,4 +27,5 @@
             <p class="help-tblock">Don't know your username or password? <a href="">Reset it here.</a></p>
         </form>
     </div>
+
 {% endblock %}
