@@ -36,7 +36,13 @@ PLAID_REDIRECT_URI = "http://localhost:8080/"  # todo
 ACCOUNT_REFRESH_INTERVAL = 30 * 60  # seconds. Todo: Increase this.
 
 
-def home(request: HttpRequest) -> HttpResponse:
+def landing(request: HttpRequest) -> HttpResponse:
+    context = {}
+
+    return render(request, "../templates/index.html", context)
+
+
+def dashboard(request: HttpRequest) -> HttpResponse:
     # todo: Set up a login system, then change this.
     person = Person.objects.first()
 
@@ -100,7 +106,7 @@ def home(request: HttpRequest) -> HttpResponse:
         "net_worth": net_worth,
     }
 
-    return render(request, "../templates/index.html", context)
+    return render(request, "../templates/dashboard.html", context)
 
 
 def create_link_token(request_: HttpRequest) -> HttpResponse:
