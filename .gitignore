@@ -11,7 +11,7 @@ workspace.xml
 # Project-specific
 node_modules/
 pucks/static/dist/
-/main/keys.py
+/main/private.py
 
 
 # Local DB files

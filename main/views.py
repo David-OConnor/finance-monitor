@@ -2,75 +2,26 @@
 
 import time
 import json
+from datetime import datetime
 
 from django.db import OperationalError
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 
-from main.models import FinancialAccount, Transaction, Institution, Person
+from main.models import FinancialAccount, Transaction, Institution, Person, SubAccount, AccountType, SubAccountType
 
 import plaid
-from plaid.model.payment_amount import PaymentAmount
-from plaid.model.payment_amount_currency import PaymentAmountCurrency
 from plaid.model.products import Products
 from plaid.model.country_code import CountryCode
-from plaid.model.recipient_bacs_nullable import RecipientBACSNullable
-from plaid.model.payment_initiation_address import PaymentInitiationAddress
-from plaid.model.payment_initiation_recipient_create_request import (
-    PaymentInitiationRecipientCreateRequest,
-)
-from plaid.model.payment_initiation_payment_create_request import (
-    PaymentInitiationPaymentCreateRequest,
-)
-from plaid.model.payment_initiation_payment_get_request import (
-    PaymentInitiationPaymentGetRequest,
-)
-from plaid.model.link_token_create_request_payment_initiation import (
-    LinkTokenCreateRequestPaymentInitiation,
-)
+
 from plaid.model.item_public_token_exchange_request import (
     ItemPublicTokenExchangeRequest,
 )
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
-from plaid.model.asset_report_create_request import AssetReportCreateRequest
-from plaid.model.asset_report_create_request_options import (
-    AssetReportCreateRequestOptions,
-)
-from plaid.model.asset_report_user import AssetReportUser
-from plaid.model.asset_report_get_request import AssetReportGetRequest
-from plaid.model.asset_report_pdf_get_request import AssetReportPDFGetRequest
-from plaid.model.auth_get_request import AuthGetRequest
-from plaid.model.transactions_sync_request import TransactionsSyncRequest
-from plaid.model.identity_get_request import IdentityGetRequest
-from plaid.model.investments_transactions_get_request_options import (
-    InvestmentsTransactionsGetRequestOptions,
-)
-from plaid.model.investments_transactions_get_request import (
-    InvestmentsTransactionsGetRequest,
-)
-from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
-from plaid.model.accounts_get_request import AccountsGetRequest
-from plaid.model.investments_holdings_get_request import InvestmentsHoldingsGetRequest
-from plaid.model.item_get_request import ItemGetRequest
-from plaid.model.institutions_get_by_id_request import InstitutionsGetByIdRequest
-from plaid.model.transfer_authorization_create_request import (
-    TransferAuthorizationCreateRequest,
-)
-from plaid.model.transfer_create_request import TransferCreateRequest
-from plaid.model.transfer_get_request import TransferGetRequest
-from plaid.model.transfer_network import TransferNetwork
-from plaid.model.transfer_type import TransferType
-from plaid.model.transfer_authorization_user_in_request import (
-    TransferAuthorizationUserInRequest,
-)
-from plaid.model.ach_class import ACHClass
-from plaid.model.transfer_create_idempotency_key import TransferCreateIdempotencyKey
-from plaid.model.transfer_user_address_in_request import TransferUserAddressInRequest
-from plaid.api import plaid_api
 
-PLAID_REDIRECT_URI = "http://localhost:3000/"
 
 from main import plaid_
 from main.plaid_ import client, PLAID_PRODUCTS
@@ -80,47 +31,73 @@ for product in PLAID_PRODUCTS:
     products.append(Products(product))
 
 PLAID_COUNTRY_CODES = ["US"]
+PLAID_REDIRECT_URI = "http://localhost:8080/"  # todo
 
-# todo temp
-LINK_TOKEN = "link-sandbox-19fd5aee-b3ff-46cd-9e14-0f45e7a5ffaa"
-
-# @login_required
+ACCOUNT_REFRESH_INTERVAL = 30 * 60  # seconds. Todo: Increase this.
 
 
-# Create your views here.
 def home(request: HttpRequest) -> HttpResponse:
     # todo: Set up a login system, then change this.
     person = Person.objects.first()
 
     accounts = person.accounts.all()
 
-    # plaid_.get_balance(LINK_TOKEN)
-
-    # plaid_.get_investment_holdings(LINK_TOKEN)
-
+    # todo
     transactions = []
 
+    net_worth = 0.
+
+    # Update account info, if we are due for a refresh
     for acc in accounts:
-        for tran in acc.transactions.all():
-            transactions.append(tran)
+        now = timezone.now()
+        print("TIME", (acc.last_refreshed - now).seconds)
+        if (now - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
+            acc.last_refreshed = now
+            acc.save()
 
+            print("Refreshing account data...")
+            # todo: Function?
+            balance_data = plaid_.get_balance(acc.access_token)
 
-        # todo: Don't do this every time! Cache it.
-        plaid_.get_balance(acc.access_token)
+            # todo:  Handle  sub-acct entries in DB that have missing data.
+            for sub_loaded in balance_data:
+                # print("\n\nSub acc: ", sub_loaded, type(sub_loaded))
 
-    #     person = ForeignKey(Person, on_delete=CASCADE)
-    #     institution = ForeignKey(Institution, on_delete=CASCADE)
-    #     # A user-entered nickname for the account.
-    #     name = CharField(max_length=50)
-    #     # todo: nullable if it expires etc.
-    #     # access_token and `item_id` are retrieved from Plaid as part of the token exchange procedure.
-    #     # Lengths we've seen in initial tests are around 40-50.
-    #     access_token = CharField(max_length=100)
-    #     item_id = CharField(max_length=100)
+                sub_acc_model, _ = SubAccount.objects.update_or_create(
+                    account=acc,
+                    plaid_id=sub_loaded.account_id,
+                    defaults={
+                        # "plaid_id_persistent": acc_sub.persistent_account_id,
+                        "plaid_id_persistent": "",  # todo temp
+                        "name": sub_loaded.name,
+                        "name_official": sub_loaded.official_name,
+                        "type": AccountType.from_str(str(sub_loaded.type)).value,
+                        "sub_type": SubAccountType.from_str(str(sub_loaded.subtype)).value,
+                        "iso_currency_code": sub_loaded.balances.iso_currency_code,
+                        "available": sub_loaded.balances.available,
+                        "current": sub_loaded.balances.current,
+                        "limit": sub_loaded.balances.limit,
+                    }
+                )
+
+        else:
+            print("Not refreshing account data")
+
+        for sub_acc_model in acc.sub_accounts.all():
+            if sub_acc_model.current is not None:
+                sign = 1
+
+                if AccountType(sub_acc_model.type) in [AccountType.LOAN, AccountType.CREDIT]:
+                    sign *= -1
+                    print("Debit")
+
+                net_worth += sign * sub_acc_model.current
 
     context = {
         "accounts": accounts,
+        # "sub_accounts": sub_accounts,
         "transactions": transactions,
+        "net_worth": net_worth,
     }
 
     return render(request, "../templates/index.html", context)
@@ -193,9 +170,10 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     account_added = FinancialAccount(
         person=person,
         institution=inst,
-        name="",
+        name="",  # todo: Pull from response, and/or metadata
         access_token=access_token,
-        item_id=item_id
+        item_id=item_id,
+        last_refreshed=timezone.now(),
     )
 
     try:

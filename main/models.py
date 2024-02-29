@@ -34,7 +34,20 @@ class AccountType(Enum):
     DEPOSITORY = 1
     INVESTMENT = 2
     LOAN = 3
+    CREDIT = 4
 
+    @classmethod
+    def from_str(cls, s: str) -> "AccountType":
+        s = s.lower()
+        if "depos" in s:
+            return cls.DEPOSITORY
+        if "invest" in s:
+            return cls.INVESTMENT
+        if "loan" in s:
+            return cls.LOAN
+
+        print("Fallthrough in parsing account type: ", s)
+        return cls.DEPOSITORY
 
 @enum_choices
 class SubAccountType(Enum):
@@ -47,6 +60,29 @@ class SubAccountType(Enum):
     STUDENT = 5
     MORTGAGE = 6
     CD = 7
+
+    @classmethod
+    def from_str(cls, s: str) -> "SubAccountType":
+        s = s.lower()
+        if "check" in s:
+            return cls.CHECKING
+        if "saving" in s:
+            return cls.SAVINGS
+        if "debit" in s:
+            return cls.DEBIT_CARD
+        if "credit" in s:
+            return cls.CREDIT_CARD
+        if "401" in s:
+            return cls.T401K
+        if "student" in s:
+            return cls.STUDENT
+        if "mort" in s:
+            return cls.MORTGAGE
+        if "cd" in s:
+            return cls.CD
+
+        print("Fallthrough in parsing sub account type: ", s)
+        return cls.CHECKING
 
 
 class Person(Model):
@@ -77,7 +113,7 @@ class Institution(Model):
 
 
 class FinancialAccount(Model):
-    person = ForeignKey(Person, on_delete=CASCADE, related_name="accounts")
+    person = ForeignKey(Person, related_name="accounts", on_delete=CASCADE)
     institution = ForeignKey(Institution, on_delete=CASCADE, related_name="institutions")
     # A user-entered nickname for the account.
     name = CharField(max_length=50)
@@ -99,8 +135,30 @@ class FinancialAccount(Model):
         ordering = ["name"]
 
 
+class SubAccount(Model):
+    account = ForeignKey(FinancialAccount, related_name="sub_accounts", on_delete=CASCADE)
+    plaid_id = CharField(max_length=100)
+    plaid_id_persistent = CharField(max_length=100, blank=True, null=True)
+    name = CharField(max_length=30)
+    name_official = CharField(max_length=30, null=True, blank=True)
+    type = IntegerField(choices=AccountType.choices())
+    sub_type = IntegerField(choices=SubAccountType.choices())
+    iso_currency_code = CharField(max_length=5)
+    # unofficial currency code is also available
+    available = FloatField(blank=True, null=True)
+    current = FloatField(blank=True, null=True)
+    limit = FloatField(blank=True, null=True)
+    # todo: Mask?
+
+    def __str__(self):
+        return f"Sub account. {self.name}, {self.name_official}, {self.type}, Current: {self.current}"
+
+    class Meta:
+        ordering = ["name"]
+
+
 class Transaction(Model):
-    account = ForeignKey(FinancialAccount, related_name="transactions", on_delete=CASCADE)
+    account = ForeignKey(SubAccount, related_name="transactions", on_delete=CASCADE)
     amount = FloatField()
     description = TextField()
     dt = DateTimeField()

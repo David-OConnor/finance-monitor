@@ -8,6 +8,7 @@ import requests
 import pydantic
 
 import plaid
+from plaid.model.account_base import AccountBase
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
 from plaid.model.accounts_get_request import AccountsGetRequest
 from plaid.model.country_code import CountryCode
@@ -18,7 +19,7 @@ from plaid.model.item_public_token_exchange_request import (
 )
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 
-from .keys import PLAID_SECRET, PLAID_CLIENT_ID
+from .private import PLAID_SECRET, PLAID_CLIENT_ID
 
 import plaid
 from plaid.api import plaid_api
@@ -79,19 +80,14 @@ def get_institutions(access_token: str) -> dict:
     return institutions
 
 
-def get_balance(access_token: str) -> dict:
+def get_balance(access_token: str) -> AccountBase:
     # Pull real-time balance information for each account associated
-    # with the Item
+    # with the access token. This returns sub-accounts, currently as a dict.
+    # todo: Return something typed; perhaps the DB model.
     request = AccountsBalanceGetRequest(access_token=access_token)
     response = client.accounts_balance_get(request)
 
-    print(response, "RESP")
-
-    accounts = response["accounts"]
-
-
-
-    return accounts
+    return response["accounts"]
 
 
 def get_investment_holdings(access_token: str) -> (dict, dict):

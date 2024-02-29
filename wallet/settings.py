@@ -20,7 +20,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-DEPLOYED = True if "SECRET_KEY" in os.environ else False
+# DEPLOYED = True if "SECRET_KEY" in os.environ else False
+DEPLOYED = True if "DATABASE_URL" in os.environ else False
 
 if DEPLOYED:
     DEBUG = False
@@ -29,6 +30,13 @@ if DEPLOYED:
 else:
     DEBUG = True
     SECRET_KEY = "django-insecure-kt#8(6pid*k1u6b9!yh(70^7s41ydqu=_!#%l79n8nm-os*$b)"
+
+    try:
+        from main.private import SENDGRID_KEY
+    # Allow an escape hatch so the problem runs and can be tested with a quick
+    # git pull. Email is non-functional here.
+    except ImportError:
+        SENDGRID_KEY = ""
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
@@ -136,3 +144,19 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+ADMINS = (("admin", "anyleaf@anyleaf.org"),)
+MANAGERS = ADMINS
+
+if DEPLOYED:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
+
+SENDGRID_API_KEY = os.getenv("SENDGRID_KEY")
+
+EMAIL_HOST = "smtp.sendgrid.net"
+EMAIL_HOST_USER = "apikey"
+EMAIL_HOST_PASSWORD = os.environ["SENDGRID_KEY"] if DEPLOYED else SENDGRID_KEY
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
