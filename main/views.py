@@ -37,7 +37,7 @@ from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 
 
-from main import plaid_
+from main import plaid_, util
 from main.plaid_ import client, PLAID_PRODUCTS, PLAID_COUNTRY_CODES
 
 ACCOUNT_REFRESH_INTERVAL = 30 * 60  # seconds. Todo: Increase this.
@@ -57,14 +57,13 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     accounts = person.accounts.all()
 
-    transactions = []
-
     net_worth = 0.0
 
     # Update account info, if we are due for a refresh
     for acc in accounts:
         if (timezone.now() - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
             plaid_.refresh_account_balances(acc)
+            plaid_.load_transactions(acc)
 
             print("Refreshing account data...")
             # todo: Function?
@@ -72,23 +71,10 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         else:
             print("Not refreshing account data")
 
-        for sub_acc_model in acc.sub_accounts.all():
-            if sub_acc_model.current is not None:
-                sign = 1
-
-                if AccountType(sub_acc_model.type) in [
-                    AccountType.LOAN,
-                    AccountType.CREDIT,
-                ]:
-                    sign *= -1
-                    print("Debit")
-
-                net_worth += sign * sub_acc_model.current
+        util.update_net_worth(net_worth, acc)
 
     context = {
         "accounts": accounts,
-        # "sub_accounts": sub_accounts,
-        "transactions": transactions,
         "net_worth": net_worth,
     }
 
@@ -179,6 +165,18 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         json.dumps({"success": True}),
         content_type="application/json",
     )
+
+
+def about(request: HttpRequest) -> HttpResponse:
+    return render(request, "about.html", {})
+
+def privacy(request: HttpRequest) -> HttpResponse:
+    return render(request, "privacy.html", {})
+
+
+def terms(request: HttpRequest) -> HttpResponse:
+    return render(request, "terms.html", {})
+
 
 
 @receiver(user_login_failed)
@@ -306,3 +304,4 @@ def user_logout(request):
     logout(request)
     # Take the user back to the homepage.
     return HttpResponseRedirect("/")
+

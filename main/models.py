@@ -42,6 +42,7 @@ class AccountType(Enum):
     @classmethod
     def from_str(cls, s: str) -> "AccountType":
         s = s.lower()
+
         if "depos" in s:
             return cls.DEPOSITORY
         if "invest" in s:
@@ -69,6 +70,7 @@ class SubAccountType(Enum):
     @classmethod
     def from_str(cls, s: str) -> "SubAccountType":
         s = s.lower()
+
         if "check" in s:
             return cls.CHECKING
         if "saving" in s:
@@ -88,6 +90,53 @@ class SubAccountType(Enum):
 
         print("Fallthrough in parsing sub account type: ", s)
         return cls.CHECKING
+
+
+@enum_choices
+class TransactionCategory(Enum):
+    """These are types as reported by Plaid"""
+
+    FOOD_AND_DRINK = 0
+    RESTAURANTS = 1
+    TRAVEL = 3
+    AIRLINES_AND_AVIATION_SERVICES = 4
+    RECREATION = 5
+    GYMS_AND_FITNESS_CENTERS = 6
+    TRANSFER = 7
+    DEPOSIT = 8
+    PAYROLL = 9
+    CREDIT_CARD = 10
+    FAST_FOOD = 11  # todo: Move up
+
+    @classmethod
+    def from_str(cls, s: str) -> "TransactionCategory":
+        s = s.lower()
+
+        if "food and" in s:
+            return cls.FOOD_AND_DRINK
+        if "restau" in s:
+            return cls.RESTAURANTS
+        if "travel" in s:
+            return cls.TRAVEL
+        if "airlines" in s:
+            return cls.AIRLINES_AND_AVIATION_SERVICES
+        if "recrea" in s:
+            return cls.RECREATION
+        if "gyms" in s:
+            return cls.GYMS_AND_FITNESS_CENTERS
+        if "transfer" in s:
+            return cls.TRANSFER
+        if "deposit" in s:
+            return cls.DEPOSIT
+        if "payroll" in s:
+            return cls.PAYROLL
+        if "credit c" in s:
+            return cls.CREDIT_CARD
+        if "fast food" in s:
+            return cls.FAST_FOOD
+
+        print("Fallthrough in parsing transaction category: ", s)
+        return cls.FOOD_AND_DRINK
 
 
 class Person(Model):
@@ -124,7 +173,7 @@ class FinancialAccount(Model):
         Institution, on_delete=CASCADE, related_name="institutions"
     )
     # A user-entered nickname for the account.
-    name = CharField(max_length=100)
+    name = CharField(max_length=100, blank=True)
     # todo: nullable if it expires etc.
     # access_token and `item_id` are retrieved from Plaid as part of the token exchange procedure.
     # Lengths we've seen in initial tests are around 40-50.
@@ -133,6 +182,11 @@ class FinancialAccount(Model):
     # todo: Account types associated with this institution/account. Checking, 401k etc.
     # todo: Check the metadata for this A/R.
     last_refreshed = DateTimeField()
+    # The cursor is used with the `/transactions/sync` endpoint, to know the latest data loaded.
+    # Generally initialized to null, but has a value after. It is encoded in base64, and has a max length of 256 characters.
+    # It appears that None fails for the Python Plaid API, eg at init, but an empty string works.
+    # plaid_cursor = CharField(max_length=256, null=True, blank=True)
+    plaid_cursor = CharField(max_length=256, default="", blank=True)
 
     # todo: Unique together with person, institution, or can we allow multiples?
 
@@ -168,13 +222,18 @@ class SubAccount(Model):
 
 
 class Transaction(Model):
-    account = ForeignKey(SubAccount, related_name="transactions", on_delete=CASCADE)
+    # todo: SubAccout as required, but I'm not sure how using Plaid's API atm.
+    # account = ForeignKey(SubAccount, related_name="transactions", on_delete=CASCADE)
+    account = ForeignKey(FinancialAccount, related_name="transactions", on_delete=CASCADE)
+    # We generally have 1-2 categories.
+    categories = JSONField()  # List of category enums, eg [0, 2]
     amount = FloatField()
     description = TextField()
-    dt = DateTimeField()
+    date = DateField()  # It appears we don't have datetimes available from plaid
+    plaid_id = CharField(max_length=100)
 
     def __str__(self):
-        return f"Institution. Name: {self.name} Plaid ID: {self.plaid_id}"
+        return f"Transaction. {self.description} Amount: {self.amount}, date: {self.date}"
 
     class Meta:
-        ordering = ["dt"]
+        ordering = ["date"]

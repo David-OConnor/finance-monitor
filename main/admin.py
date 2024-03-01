@@ -18,12 +18,13 @@ class InstitionAdmin(ModelAdmin):
 
 @admin.register(models.FinancialAccount)
 class FinancialAccountAdmin(ModelAdmin):
-    list_display = ("item_id", "name", "access_token")
+    list_display = ("person", "institution", "item_id", "name", "access_token")
 
 
 @admin.register(models.SubAccount)
 class SubAccountAdmin(ModelAdmin):
     list_display = (
+        "account",
         "name",
         "plaid_id",
         "name_official",
@@ -37,5 +38,4 @@ class SubAccountAdmin(ModelAdmin):
 
 @admin.register(models.Transaction)
 class TransactionAdmin(ModelAdmin):
-    # list_display = ("account__name", "amount", "description", "dt")
-    list_display = ("amount", "description", "dt")
+    list_display = ("account", "amount", "description", "categories", "date")

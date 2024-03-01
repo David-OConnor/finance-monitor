@@ -29,4 +29,7 @@ urlpatterns = [
     path("dashboard", views.dashboard),
     path("create-link-token", views.create_link_token),
     path("exchange-public-token", views.exchange_public_token),
+    path("about", views.about),
+    path("privacy", views.privacy),
+    path("terms", views.terms),
 ]

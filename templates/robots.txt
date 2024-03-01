@@ -1,0 +1,14 @@
+User-agent: *
+Disallow: /admin
+Disallow: /*.txt
+
+User-agent: Yandex
+Disallow: /admin
+Crawl-delay: 3
+
+User-agent: Googlebot
+Disallow: /admin
+Crawl-delay: 3
+
+Host: https://anyleaf.org
+Sitemap: https://example.com/sitemap.xml

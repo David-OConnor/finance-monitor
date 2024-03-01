@@ -1,0 +1,79 @@
+{% extends 'base.html'  %}
+
+{% block head_contents %}
+    <title>Wallet: About</title>
+{% endblock %}
+
+{% block contents %}
+
+    <div class="home-body">
+{#        <div style="text-align: center">#}
+{#            <img src="{%  static 'logo.png' %}" style = "margin-top: 40px" width=300 alt="AnyLeaf" />#}
+{#        </div>#}
+        <h2 style="margin-bottom: 0px">Goal</h2>
+        <p>Our goal is to create accurate, reliable, and affordable hardware devices for
+            small UAVs. Our products
+            are designed to be easy to use and well-documented.</p>
+
+        <h2 class="about-item">Flexible, and easy</h2>
+        <p>Our products and accompanying software are designed with maximum
+            flexibility in mind: Get started with code samples that are streamlined and
+            free of clutter, or customize as much as you like, with raw access to sensor
+            data. We think that our software will work well for most users, but
+            our drivers are all open source, so modify them as much as you'd like.</p>
+
+
+        <h2 class="about-item">We value transparency</h2>
+        <p>We believe that in scientific endeavors, the open sharing of information is
+            fundamental. If you publish data using our sensor and circuits, we'd like you
+            to have information available to make your results reproducable.
+            Our datasheets don't attempt
+            to hide or obfuscate how our products work, or what components we use.
+            If you have questions, send us an email. We'll provide an answer, and add the
+            information to our datasheet and website if needed. We encourage creating
+            issues and pull requests on the <a href="https://github.com/anyleaf">Anyleaf
+                Github page.</a></p>
+
+        <h2 class="about-item">A design philosophy</h2>
+        <p>
+            Hardware devices should be timeless, not trendy. One
+            recent trend we'd like to avoid is associated with the <i>Internet of Things</i>.
+            We believe your devices should never stop working due to uncommanded updates.
+            They shouldn't require you to register an account, sign in, pair to a phone, or enter a product
+            key. Many of those traits are for the benefit of the manufacturer, not the user -
+            we'd like to avoid that. For example, our <a href="/water-monitor">Water Monitor</a>
+            doesn't include internet connectivity, but gives you the option to
+            share readings with devices you trust.
+        </p>
+
+        <h2 class="about-item">We value privacy</h2>
+        <p>
+            In a world where so many things move to the cloud, and software is more and more often
+            coming as a subscription service, privacy concerns are more relevant than ever. Our devices
+            are designed to just work, and store data locally whenever possible. Software and firmware
+            updates are optional, and will never require a subscription. We don't store your data
+            in the cloud, and don't pass it to third parties.
+        </p>
+
+        <h2 class="about-item">Warranty and return policy</h2>
+        <p>We accept returns for any reason within 30 days of product arrival. Send us an email, and
+            we'll provide instructions for mailing the item back. We'll refund the initial charge,
+            and if the refund is due to a product defect, we'll compensate you up to $10 for return shipping.
+        </p>
+{##}
+{#        <h2 class="about-item">Founder: David O'Connor</h2>#}
+{#        <ul>#}
+{#            <li><a href="https://github.com/David-OConnor">Github</a></li>#}
+{#            <li><a href="https://news.ycombinator.com/user?id=the__alchemist">Hacker News</a></li>#}
+{#            <li><a href="https://www.reddit.com/user/firefrommoonlight">Reddit</a></li>#}
+{#            <li>Matrix: <i>@firefrommoonlight:matrix.org</i></li>#}
+{#        </ul>#}
+
+        {#    todo: Add notification option#}
+    </div>
+
+    <script>
+        document.getElementById("menu-about").style.color = "#F6F7EB"
+    </script>
+
+{% endblock %}

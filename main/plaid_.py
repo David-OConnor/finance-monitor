@@ -22,7 +22,7 @@ from plaid.model.item_public_token_exchange_request import (
 from plaid.model.products import Products
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 
-from .models import FinancialAccount, SubAccount, AccountType, SubAccountType
+from .models import FinancialAccount, SubAccount, AccountType, SubAccountType, Transaction, TransactionCategory
 from wallet.settings import PLAID_SECRET, PLAID_CLIENT_ID
 
 import plaid
@@ -71,14 +71,14 @@ def get_balance_data(access_token: str) -> AccountBase:
     return response["accounts"]
 
 
-def refresh_account_balances(acc: FinancialAccount):
+def refresh_account_balances(account: FinancialAccount):
     """Update account information in the database."""
-    balance_data = get_balance_data(acc.access_token)
+    balance_data = get_balance_data(account.access_token)
 
     # todo:  Handle  sub-acct entries in DB that have missing data.
     for sub_loaded in balance_data:
         sub_acc_model, _ = SubAccount.objects.update_or_create(
-            account=acc,
+            account=account,
             plaid_id=sub_loaded.account_id,
             defaults={
                 # "plaid_id_persistent": acc_sub.persistent_account_id,
@@ -94,8 +94,102 @@ def refresh_account_balances(acc: FinancialAccount):
             },
         )
 
-    acc.last_refreshed = timezone.now()
-    acc.save()
+    account.last_refreshed = timezone.now()
+    account.save()
+
+
+def load_transactions(account: FinancialAccount) -> None:
+    """
+    Updates the database with transactions for a single account.
+    https://plaid.com/docs/api/products/transactions/#transactionssync
+    """
+    # Provide a cursor from your database if you've previously
+    # received one for the Item. Leave null if this is your first sync call for this Item. The first request will
+    # return a cursor. (It seems None doesn't work with this API, but an empty string does.)
+    cursor = account.plaid_cursor
+
+    # New transaction updates since "cursor"
+    added = []
+    modified = []
+    removed = []  # Removed transaction ids
+    has_more = True
+
+    # Iterate through each page of new transaction updates for item
+    while has_more:
+        request = TransactionsSyncRequest(
+            access_token=account.access_token,
+            cursor=cursor,
+        )
+        response = client.transactions_sync(request)
+
+        print("Transaction resp: ", response)
+
+        # Add this page of results
+        added.extend(response['added'])
+        modified.extend(response['modified'])
+        removed.extend(response['removed'])
+
+        has_more = response['has_more']
+
+        # Update cursor to the next cursor
+        cursor = response['next_cursor']
+
+        print("Cursor: ", cursor)
+
+    # Persist cursor and updated data
+    # database.apply_updates(item_id, added, modified, removed, cursor)
+
+    print("Added: ", added)
+    print("Mod: ", modified)
+    print("Rem: ", removed)
+
+    for tran in added:
+        categories = [TransactionCategory.from_str(cat).value for cat in tran.category]
+
+        tran_db = Transaction(
+            account=account,
+            categories=json.dumps(categories),
+            amount=tran.amount,
+            # Note: Other fields like "merchange_name" are available, but aren't used on many transactcions.
+            description=tran.name,
+            date=tran.date,
+            plaid_id=tran.transaction_id,
+        )
+        tran_db.save()
+
+    for tran in modified:
+        # tran_db_, _ = Transaction.objects.update(
+        #
+        # )
+        pass
+
+    for tran in removed:
+        # _ = Transaction.objects.filter().delete
+        pass
+
+    account.plaid_cursor = cursor
+    account.save()
+
+
+def load_transactions2(access_token: str):
+    """Note:  /transactions/sync replaces /transactions/get."""
+    request = TransactionsSyncRequest(
+        access_token=access_token,
+    )
+    response = client.transactions_sync(request)
+    transactions = response["added"]
+
+    # the transactions in the response are paginated, so make multiple calls while incrementing the cursor to
+    # retrieve all transactions
+    while response["has_more"]:
+        request = TransactionsSyncRequest(
+            access_token=access_token, cursor=response["next_cursor"]
+        )
+        response = client.transactions_sync(request)
+
+        json_string = json.dumps(response.to_dict(), default=str)
+
+        transactions += response["added"]
 
 
 # todo: Do we need this? Handled in get_balance_data
@@ -134,27 +228,7 @@ def _get_investment_holdings(access_token: str) -> (dict, dict):
     return holdings, securities
 
 
-def load_transactions(access_token: str):
-    request = TransactionsSyncRequest(
-        access_token=access_token,
-    )
-    response = client.transactions_sync(request)
-    transactions = response["added"]
-
-    # the transactions in the response are paginated, so make multiple calls while incrementing the cursor to
-    # retrieve all transactions
-    while response["has_more"]:
-        request = TransactionsSyncRequest(
-            access_token=access_token, cursor=response["next_cursor"]
-        )
-        response = client.transactions_sync(request)
-
-        json_string = json.dumps(response.to_dict(), default=str)
-
-        transactions += response["added"]
-
-
-def load_accounts(access_token: str):
+def _load_accounts(access_token: str):
     url = BASE_URL + "accounts/get"
 
     access_token = "asdf"

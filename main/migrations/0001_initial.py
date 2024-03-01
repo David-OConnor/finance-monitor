@@ -171,7 +171,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "ordering": ["dt"],
+                "ordering": ["date"],
             },
         ),
     ]
