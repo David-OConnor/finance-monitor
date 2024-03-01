@@ -81,15 +81,21 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     # Transactions is pre-formatted.
     transactions = []
 
+    # todo: Organize sub-accts by category instead of top-level account.
+
+    # todo: Color-code by + or / (g/r)
+
     for acc in accounts:
         for tran in acc.transactions.all():
-            cats = ", ".join([TransactionCategory(cat).to_str() for cat in json.loads(tran.categories)])
+            cats = [TransactionCategory(cat) for cat in json.loads(tran.categories)]
+            cats = util.cleanup_categories(cats)
 
             transactions.append({
-                "categories": cats,
+                "categories": " | ".join([c.to_icon() for c in cats]),
                 "description": tran.description,
                 # todo: Currency-appropriate symbol.
-                "amount": f"${tran.amount:.2f}",
+                "amount": f"${tran.amount:,.2f}",
+                "amount_class": "tran_pos" if tran.amount > 0. else "tran_neg",  # eg to color green or red.
                 "date": tran.date,
             })
 
@@ -98,7 +104,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     context = {
         "accounts": accounts,
         "transactions": transactions,
-        "net_worth": net_worth,
+        "net_worth": f"{net_worth:,.2f}",
     }
 
     return render(request, "../templates/dashboard.html", context)

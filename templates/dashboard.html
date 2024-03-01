@@ -34,14 +34,17 @@
         {#         todo: Sort by date in the view#}
 
         <h2>Transactions</h2>
-        {% for transaction in transactions %}
-            <div style="display: flex;">
-                <h3>{{ transaction.categories}}</h3>
-                <h3>{{ transaction.description }}</h3>
-                <h3>Amount: {{ transaction.amount }}</h3>
-                <h3>{{ transaction.date }}</h3>
-            </div>
+        {# Required to show borders?#}
+        <table style="border-collapse: collapse;">
+        {% for tran in transactions %}
+            <tr class="transaction">
+                <td><h4>{{ tran.categories}}</h4></td>
+                <td><h4>{{ tran.description }}</h4></td>
+                <td class="{{ tran.amount_class }}"><h4>{{ tran.amount }}</h4></td>
+                <td><h4>{{ tran.date }}</h4></td>
+            </tr>
         {% endfor %}
+        </table>
 
         {# todo: Load locally. #}
         <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>

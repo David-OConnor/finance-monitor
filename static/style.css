@@ -1,3 +1,5 @@
+/*todo: Remove unused.*/
+
 body {
     background-color: #ffffff;
     background-position: top center;
@@ -312,7 +314,26 @@ img {
 
 .about-item {
     margin-top: 40px;
-    margin-bottom: 0px;
+    margin-bottom: 0;
+}
+
+.transaction {
+    /*display: flex;*/
+    /*border: 2px solid black;*/
+    border: 2px solid black;
+    /*margin-bottom: 20px;*/
+    border-radius: 8px;
+    padding-left: 10px;
+    /*justify-content: flex-start;*/
+    /*gap: 40px;*/
+}
+
+.tran_pos {
+    color: #2ba929;
+}
+
+.tran_neg {
+    color: #bd5935;
 }
 
 /* latin-ext */

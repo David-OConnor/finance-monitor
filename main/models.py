@@ -141,6 +141,8 @@ class TransactionCategory(Enum):
     def to_str(self) -> str:
         if self == TransactionCategory.FOOD_AND_DRINK:
             return "Food and drink"
+        if self == TransactionCategory.RESTAURANTS:
+            return "Restaurants"
         if self == TransactionCategory.TRAVEL:
             return "Travel"
         if self == TransactionCategory.AIRLINES_AND_AVIATION_SERVICES:
@@ -160,10 +162,35 @@ class TransactionCategory(Enum):
         if self == TransactionCategory.FAST_FOOD:
             return "Fast food"
 
-        print("Fallthrough on cat to string")
+        print("Fallthrough on cat to string", self)
         return "Fallthrough"
 
-    # todo: Abbreviation or icon for display
+    def to_icon(self) -> str:
+        if self == TransactionCategory.FOOD_AND_DRINK:
+            return "🍴"
+        if self == TransactionCategory.RESTAURANTS:
+            return "🍎"
+        if self == TransactionCategory.TRAVEL:
+            return "✈️"
+        if self == TransactionCategory.AIRLINES_AND_AVIATION_SERVICES:
+            return "✈️"
+        if self == TransactionCategory.RECREATION:
+            return "⛵"
+        if self == TransactionCategory.GYMS_AND_FITNESS_CENTERS:
+            return "🏋️"
+        if self == TransactionCategory.TRANSFER:
+            return "💸➡️"
+        if self == TransactionCategory.DEPOSIT:
+            return "💸⬆️"
+        if self == TransactionCategory.PAYROLL:
+            return "💸⬆️"
+        if self == TransactionCategory.CREDIT_CARD:
+            return "💸⬇️"
+        if self == TransactionCategory.FAST_FOOD:
+            return "🍔"
+
+        print("Fallthrough on cat to icon", self)
+        return "Fallthrough"
 
 
 
