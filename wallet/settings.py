@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+from enum import Enum, auto
 from pathlib import Path
 
 import dj_database_url
@@ -26,24 +27,49 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # DEPLOYED = True if "SECRET_KEY" in os.environ else False
 DEPLOYED = True if "DATABASE_URL" in os.environ else False
 
+
+class PlaidMode(Enum):
+    SANDBOX = auto()
+    DEV = auto()
+    PRODUCTION = auto()
+
+
+PLAID_MODE = PlaidMode.SANDBOX
+
 if DEPLOYED:
     DEBUG = False
     # SECURITY WARNING: keep the secret key used in production secret!
     SECRET_KEY = os.environ["SECRET_KEY"]
+    PLAID_CLIENT_ID = os.environ["PLAID_CLIENT_ID"]
+    PLAID_SECRET = os.environ["PLAID_SECRET"]
+    SENDGRID_API_KEY = os.environ["SENDGRID_KEY"]
+    EMAIL_HOST_PASSWORD = os.environ["SENDGRID_KEY"]
 else:
     DEBUG = True
     SECRET_KEY = "django-insecure-kt#8(6pid*k1u6b9!yh(70^7s41ydqu=_!#%l79n8nm-os*$b)"
 
     try:
-        from main.private import SENDGRID_KEY, PLAID_SECRET, PLAID_CLIENT_ID
+        from main import private
     # Allow an escape hatch so the problem runs and can be tested with a quick
     # git pull. Email is non-functional here.
     except ImportError:
         SENDGRID_KEY = ""
         PLAID_SECRET = ""
         PLAID_CLIENT_ID = ""
+    else:
+        PLAID_CLIENT_ID = private.PLAID_CLIENT_ID
 
-# SECURITY WARNING: don't run with debug turned on in production!
+        if PLAID_MODE == PlaidMode.SANDBOX:
+            PLAID_SECRET = private.PLAID_SECRET_SANDBOX
+        elif PLAID_MODE == PlaidMode.DEV:
+            PLAID_SECRET = private.PLAID_SECRET_DEV
+        else:
+            PLAID_SECRET = private.PLAID_SECRET_PRODUCTION
+
+        SENDGRID_API_KEY = private.SENDGRID_KEY
+        EMAIL_HOST_PASSWORD = private.SENDGRID_KEY
+
+        # SECURITY WARNING: don't run with debug turned on in production!
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
@@ -176,16 +202,12 @@ if DEPLOYED:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
 
-SENDGRID_API_KEY = os.getenv("SENDGRID_KEY")
-
 EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_HOST_USER = "apikey"
-EMAIL_HOST_PASSWORD = os.environ["SENDGRID_KEY"] if DEPLOYED else SENDGRID_KEY
+
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-PLAID_CLIENT_ID = os.environ["PLAID_CLIENT_ID"] if DEPLOYED else PLAID_CLIENT_ID
-PLAID_SECRET = os.environ["PLAID_SECRET"] if DEPLOYED else PLAID_SECRET
 
 LOGGING = {
     "version": 1,

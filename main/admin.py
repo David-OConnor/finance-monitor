@@ -33,6 +33,7 @@ class SubAccountAdmin(ModelAdmin):
         "available",
         "current",
         "limit",
+        "ignored",
     )
 
 

@@ -18,27 +18,29 @@
                 <h3>{{ account.institution.name }}</h3>
                 {#            <h3>Name: {{ account.name }}</h3>#}
 
+{#                 todo: May be more efficient with a filter query, which is likely not possible in templates.#}
                 {% for sub_acc in account.sub_accounts.all %}
-                    <div style="display: flex">
-                        <h4>Name: {{ sub_acc.name }}</h4>
-                        <h4>Balance: {{ sub_acc.current }}</h4>
-                    </div>
+                    {% if not sub_acc.ignored %}
+                        <div style="display: flex">
+                            <h4>Name: {{ sub_acc.name }}</h4>
+                            <h4>Balance: {{ sub_acc.current }}</h4>
+                        </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         {% endfor %}
         {# todo: Load transactions and account info async with JS #}
 
-{#         todo: Sort by date in the view#}
+        {#         todo: Sort by date in the view#}
+
         <h2>Transactions</h2>
-        {% for account in accounts %}
-            {% for transaction in account.transactions.all %}
-                <div style="display: flex;">
-                    <h3>{{ transaction.categories}}</h3>
-                    <h3>{{ transaction.description }}</h3>
-                    <h3>Amount: {{ transaction.amount }}</h3>
-                    <h3>{{ transaction.date }}</h3>
-                </div>
-            {% endfor %}
+        {% for transaction in transactions %}
+            <div style="display: flex;">
+                <h3>{{ transaction.categories}}</h3>
+                <h3>{{ transaction.description }}</h3>
+                <h3>Amount: {{ transaction.amount }}</h3>
+                <h3>{{ transaction.date }}</h3>
+            </div>
         {% endfor %}
 
         {# todo: Load locally. #}

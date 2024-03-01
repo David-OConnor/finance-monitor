@@ -138,6 +138,34 @@ class TransactionCategory(Enum):
         print("Fallthrough in parsing transaction category: ", s)
         return cls.FOOD_AND_DRINK
 
+    def to_str(self) -> str:
+        if self == TransactionCategory.FOOD_AND_DRINK:
+            return "Food and drink"
+        if self == TransactionCategory.TRAVEL:
+            return "Travel"
+        if self == TransactionCategory.AIRLINES_AND_AVIATION_SERVICES:
+            return "Airlines"
+        if self == TransactionCategory.RECREATION:
+            return "Recreation"
+        if self == TransactionCategory.GYMS_AND_FITNESS_CENTERS:
+            return "Gyms"
+        if self == TransactionCategory.TRANSFER:
+            return "Transfer"
+        if self == TransactionCategory.DEPOSIT:
+            return "Deposit"
+        if self == TransactionCategory.PAYROLL:
+            return "Payroll"
+        if self == TransactionCategory.CREDIT_CARD:
+            return "Credit card"
+        if self == TransactionCategory.FAST_FOOD:
+            return "Fast food"
+
+        print("Fallthrough on cat to string")
+        return "Fallthrough"
+
+    # todo: Abbreviation or icon for display
+
+
 
 class Person(Model):
     # If we don't change on_delete, deleting a user will delete the associated person.
@@ -165,6 +193,8 @@ class Institution(Model):
 
     class Meta:
         ordering = ["name"]
+
+# todo: Personal and account-level snapshots over time, eg for generating graphs.
 
 
 class FinancialAccount(Model):
@@ -212,6 +242,8 @@ class SubAccount(Model):
     available = FloatField(blank=True, null=True)
     current = FloatField(blank=True, null=True)
     limit = FloatField(blank=True, null=True)
+    # Lets the user mark the account as ignored by the program.
+    ignored = BooleanField(default=False)
     # todo: Mask?
 
     def __str__(self):

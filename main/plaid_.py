@@ -3,6 +3,7 @@ This module contains interacdtions with Plaid's API
 """
 
 import json
+from enum import Enum, auto
 
 import requests
 import pydantic

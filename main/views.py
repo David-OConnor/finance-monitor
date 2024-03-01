@@ -23,7 +23,7 @@ from main.models import (
     Person,
     SubAccount,
     AccountType,
-    SubAccountType,
+    SubAccountType, TransactionCategory,
 )
 
 import plaid
@@ -59,6 +59,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     net_worth = 0.0
 
+
     # Update account info, if we are due for a refresh
     for acc in accounts:
         if (timezone.now() - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
@@ -71,10 +72,32 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         else:
             print("Not refreshing account data")
 
-        util.update_net_worth(net_worth, acc)
+        net_worth = util.update_net_worth(net_worth, acc)
+
+
+    # We use a separate transactions variable, since we want these grouped together, and sorted by date.
+    # todo: You really need datetime for transactions. How do you get it? Take another pass through, and confirm
+    # todo you're not missing something.
+    # Transactions is pre-formatted.
+    transactions = []
+
+    for acc in accounts:
+        for tran in acc.transactions.all():
+            cats = ", ".join([TransactionCategory(cat).to_str() for cat in json.loads(tran.categories)])
+
+            transactions.append({
+                "categories": cats,
+                "description": tran.description,
+                # todo: Currency-appropriate symbol.
+                "amount": f"${tran.amount:.2f}",
+                "date": tran.date,
+            })
+
+    transactions.sort(key=lambda t: t["date"], reverse=True)
 
     context = {
         "accounts": accounts,
+        "transactions": transactions,
         "net_worth": net_worth,
     }
 
