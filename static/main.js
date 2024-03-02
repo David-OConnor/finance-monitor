@@ -134,3 +134,8 @@ document.getElementById("link-button").addEventListener("click", _ => {
             getPublicToken()
         });
 });
+
+document.getElementById('export').addEventListener('click', function() {
+    console.log("WHAT")
+    window.location.href = '/export'
+})

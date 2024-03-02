@@ -102,6 +102,7 @@ class SubAccountType(Enum):
 class TransactionCategory(Enum):
     """These are types as reported by Plaid"""
 
+    UNCATEGORIZED = -1
     FOOD_AND_DRINK = 0
     RESTAURANTS = 1
     TRAVEL = 3
@@ -119,12 +120,16 @@ class TransactionCategory(Enum):
     COFFEE_SHOP = 15
     TAXI = 16
     SPORTING_GOODS = 17
+    ELECTRONICS = 18
+    PETS = 19
+    CHILDREN = 20
 
     @classmethod
     def from_str(cls, s: str) -> "TransactionCategory":
+        """A little loose. We currently use it for both Plaid, and mint."""
         s = s.lower()
 
-        if "food and" in s:
+        if "food" in s or "grocer" in s:
             return cls.FOOD_AND_DRINK
         if "restau" in s:
             return cls.RESTAURANTS
@@ -134,13 +139,13 @@ class TransactionCategory(Enum):
             return cls.AIRLINES_AND_AVIATION_SERVICES
         if "recrea" in s:
             return cls.RECREATION
-        if "gyms" in s:
+        if "gym" in s or "fitness" in s or "health" in s:
             return cls.GYMS_AND_FITNESS_CENTERS
         if "transfer" in s:
             return cls.TRANSFER
         if "deposit" in s:
             return cls.DEPOSIT
-        if "payroll" in s:
+        if "payroll" in s or "income" in s:
             return cls.PAYROLL
         if "credit c" in s:
             return cls.CREDIT_CARD
@@ -148,7 +153,7 @@ class TransactionCategory(Enum):
             return cls.FAST_FOOD
         if "debit" == s:
             return cls.DEBIT
-        if "shops" == s:
+        if "shop" == s:
             return cls.SHOPS
         if "payment" == s:
             return cls.PAYMENT
@@ -158,11 +163,19 @@ class TransactionCategory(Enum):
             return cls.TAXI
         if "sporting" == s:
             return cls.SPORTING_GOODS
+        if "electron" in s:
+            return cls.ELECTRONICS
+        if "pet" in s:
+            return cls.PETS
+        if "child" in s or "kid" in s:
+            return cls.CHILDREN
 
         print("Fallthrough in parsing transaction category: ", s)
-        return cls.FOOD_AND_DRINK
+        return cls.UNCATEGORIZED
 
     def to_str(self) -> str:
+        if self == TransactionCategory.UNCATEGORIZED:
+            return "Uncategorized"
         if self == TransactionCategory.FOOD_AND_DRINK:
             return "Food and drink"
         if self == TransactionCategory.RESTAURANTS:
@@ -197,11 +210,19 @@ class TransactionCategory(Enum):
             return "Taxi"
         if self == TransactionCategory.SPORTING_GOODS:
             return "Sporting goods"
+        if self == TransactionCategory.ELECTRONICS:
+            return "Electronics"
+        if self == TransactionCategory.PETS:
+            return "Pets"
+        if self == TransactionCategory.CHILDREN:
+            return "Children"
 
         print("Fallthrough on cat to string", self)
         return "Fallthrough"
 
     def to_icon(self) -> str:
+        if self == TransactionCategory.UNCATEGORIZED:
+            return ""
         if self == TransactionCategory.FOOD_AND_DRINK:
             return "🍴"
         if self == TransactionCategory.RESTAURANTS:
@@ -236,6 +257,12 @@ class TransactionCategory(Enum):
             return "🚕"
         if self == TransactionCategory.SPORTING_GOODS:
             return "⚽"
+        if self == TransactionCategory.ELECTRONICS:
+            return "🔌"
+        if self == TransactionCategory.PETS:
+            return "🐕"
+        if self == TransactionCategory.CHILDREN:
+            return "🧒"
 
         print("Fallthrough on cat to icon", self)
         return "Fallthrough"
@@ -327,10 +354,15 @@ class SubAccount(Model):
 
 
 class Transaction(Model):
-    # todo: SubAccout as required, but I'm not sure how using Plaid's API atm.
-    # account = ForeignKey(SubAccount, related_name="transactions", on_delete=CASCADE)
+    # Note that Plaid associates this with a primary account, vice sub account.
+    # account can be blank or null, if the transaction is imported, or manual.
+    # todo: Allow the user to assign this to an account.
     account = ForeignKey(
-        FinancialAccount, related_name="transactions", on_delete=CASCADE
+        FinancialAccount, related_name="transactions", null=True, blank=True, on_delete=SET_NULL
+    )
+    # We use Person for imports, and manually-added transactions.
+    person = ForeignKey(
+        Person, related_name="transactions_without_account", null=True, blank=True, on_delete=SET_NULL
     )
     # We generally have 1-2 categories.
     categories = JSONField()  # List of category enums, eg [0, 2]
@@ -342,6 +374,7 @@ class Transaction(Model):
     plaid_id = CharField(max_length=100)
     currency_code = CharField(max_length=5)  # ISO, eg USD
     pending = BooleanField(default=False)
+    notes = CharField(max_length=100, default="")
 
     def __str__(self):
         return (

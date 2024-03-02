@@ -12,7 +12,7 @@ workspace.xml
 node_modules/
 pucks/static/dist/
 /main/private.py
-
+*.csv  # Exports
 
 # Local DB files
 *.dump*

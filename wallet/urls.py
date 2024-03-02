@@ -32,4 +32,6 @@ urlpatterns = [
     path("about", views.about),
     path("privacy", views.privacy),
     path("terms", views.terms),
+    path("export", views.export_),
+    path("import", views.import_),
 ]

@@ -1,12 +1,16 @@
 # Sandbox test credentials: user_good, pass_good, credential_good (pin), mfa_device (pin etc), code: 1234
-
+import csv
 import time
 import json
 from datetime import datetime, date
 
+from django.db.models import Q
+
+from . import export
+
 from django.contrib.auth import login, authenticate, logout, user_login_failed
 from django.contrib.auth.forms import UserCreationForm
-from django.db import OperationalError
+from django.db import OperationalError, IntegrityError
 from django.dispatch import receiver
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import render, redirect
@@ -344,3 +348,75 @@ def user_logout(request):
     logout(request)
     # Take the user back to the homepage.
     return HttpResponseRedirect("/")
+
+
+@login_required
+def import_(request: HttpRequest) -> HttpResponse:
+    """
+    Import whitelist data from a CSV formatted string.
+
+    Parses a CSV formatted string from the request body and creates Whitelist
+    entries in the database. Skips the header row and handles duplicate entries
+    by ignoring them. Responds with a success message upon completion.
+    """
+    # todo: DRY with Tasking.
+    body_unicode = request.body.decode('utf-8')
+    csv_file = StringIO(body_unicode)
+    reader = csv.reader(csv_file, escapechar='\\')
+
+    dynamic = False
+    for i, row in enumerate(reader):
+        # Use the header to determine if we are using a dynamic import.
+        if i == 0:
+            (dynamic, dynamic_id_col, dynamic_sensor_name_col, dynamic_sensor_list_col, dynamic_data_type_col,
+             dynamic_ssid_col, dynamic_vendor_col) = get_dynamic_data(row)
+            continue
+
+        if dynamic:
+            sensor_name = get_dynamic_sensor_name(row, dynamic_sensor_list_col, dynamic_sensor_name_col)
+            sensor_type = SensorType.from_str(row[dynamic_data_type_col])
+
+            rule_name, value, field_name = get_dynamic_values(row, dynamic_id_col, dynamic_ssid_col, dynamic_vendor_col,
+                                                              dynamic_sensor_list_col, sensor_type)
+
+            entry = Whitelist(
+                tag=rule_name,
+                sensor_type=sensor_type.value,
+                field_name=field_name,
+                operation=TaskingOperation.Equal.value,
+                value=value,
+                time_added=timezone.now(),
+            )
+        else:
+            entry = Whitelist(
+                tag=row[0],
+                sensor_type=int(row[1]),
+                field_name=int(row[2]),
+                operation=int(row[3]),
+                value=row[4],
+                time_added=row[5],
+            )
+
+        try:
+            entry.save()
+        except IntegrityError:
+            # Handle duplicate entry
+            pass
+
+    return HttpResponse({"success": True})
+
+
+@login_required
+def export_(request: HttpRequest) -> HttpResponse:
+    filename = f"transaction_export_{timezone.now().date().isoformat()}.csv"
+
+    response = HttpResponse(
+        content_type="text/csv",
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    export.export_csv(Transaction.objects.filter(
+        Q(account__person=request.user.person) | Q(person=request.user.person)
+    ), response)
+
+    return response
