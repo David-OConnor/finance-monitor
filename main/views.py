@@ -74,10 +74,46 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
         net_worth = util.update_net_worth(net_worth, acc)
 
+    # todo: Delegate this to a fn A/R
+    # Organize balances by sub-account
+    cash_accs = []
+    investment_accs = []
+    crypto_accs = []
+    credit_debit_accs = []
+    loan_accs = []
+
+    for sub_acc in SubAccount.objects.filter(account__person=person):
+        if sub_acc.ignored:
+            continue
+
+        t = SubAccountType(sub_acc.sub_type)
+
+        if t in [SubAccountType.CHECKING, SubAccountType.SAVINGS]:
+            cash_accs.append(sub_acc)
+        elif t in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
+            credit_debit_accs.append(sub_acc)
+        elif t in [SubAccountType.T401K, SubAccountType.CD, SubAccountType.MONEY_MARKET, SubAccountType.IRA]:
+            investment_accs.append(sub_acc)
+        elif t in [SubAccountType.STUDENT, SubAccountType.MORTGAGE]:
+            loan_accs.append(sub_acc)
+        else:
+            print("Fallthrough in sub account type: ", t)
+
+    print(credit_debit_accs, "CDA")
+
+    # These are populated manually by the user.
+    assets = []
+
     transactions = util.create_transaction_display(accounts)
 
     context = {
         "accounts": accounts,
+        "cash_accs": cash_accs,
+        "investment_accs": investment_accs,
+        "crypto_accs:": crypto_accs,
+        "credit_debit_accs": credit_debit_accs,
+        "loan_accs": loan_accs,
+        "assets": assets,
         "transactions": transactions,
         "net_worth": f"{net_worth:,.2f}",
     }

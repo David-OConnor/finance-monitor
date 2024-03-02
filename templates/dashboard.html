@@ -11,39 +11,100 @@
         <h2>Net worth: ${{ net_worth }}</h2>
 
         <h2>Account balances</h2>
-        <button id="link-button">Add an account</button>
+        <button id="link-button" class="general-button">Add an account</button>
 
-        {% for account in accounts %}
-            <div style="display: flex; flex-direction: column; margin-bottom: 40px">
-                <h3>{{ account.institution.name }}</h3>
-                {#            <h3>Name: {{ account.name }}</h3>#}
+        {#                <h3>{{ account.institution.name }}</h3>#}
+        {#                {% for sub_acc in account.sub_accounts.all %}#}
+        {#                    {% if not sub_acc.ignored %}#}
+        {#                        <div style="display: flex">#}
+        {#                            <h4>Name: {{ sub_acc.name }}</h4>#}
+        {#                            <h4>Balance: {{ sub_acc.current }}</h4>#}
+        {#                        </div>#}
+        {#                    {% endif %}#}
+        {#                {% endfor %}#}
 
-{#                 todo: May be more efficient with a filter query, which is likely not possible in templates.#}
-                {% for sub_acc in account.sub_accounts.all %}
-                    {% if not sub_acc.ignored %}
-                        <div style="display: flex">
-                            <h4>Name: {{ sub_acc.name }}</h4>
-                            <h4>Balance: {{ sub_acc.current }}</h4>
-                        </div>
-                    {% endif %}
+        {#        <div style="display: flex; flex-direction: column; margin-bottom: 40px">#}
+        {#     todo: border color a/r#}
+        <div style="display: flex; flex-wrap: wrap; border: 1px solid #666666; margin-bottom: 60px;">
+            <div class="account-type">
+                <h2 style="margin: 0">Cash</h2>
+                {% for acc in cash_accs %}
+                    <div style="display: flex">
+                        <h4 class="acct-hdg">{{ acc.name }}</h4>
+                        <h4 class="acct-hdg">Balance: {{ acc.current|stringformat:".2f" }}</h4>
+                    </div>
                 {% endfor %}
             </div>
-        {% endfor %}
-        {# todo: Load transactions and account info async with JS #}
 
-        {#         todo: Sort by date in the view#}
+            {#    todo: DRY#}
+            <div class="account-type">
+                <h2 style="margin: 0">Investments</h2>
+                {% for acc in investment_accs %}
+                    <div style="display: flex">
+                        <h4 class="acct-hdg">{{ acc.name }}</h4>
+                        <h4 class="acct-hdg">Balance: {{ acc.current|stringformat:".2f" }}</h4>
+                    </div>
+                {% endfor %}
+            </div>
 
-        <h2>Transactions</h2>
-        {# Required to show borders?#}
+            <div class="account-type">
+                <h2 style="margin: 0">Crypto</h2>
+                {% for acc in crypto_accs %}
+                    <div style="display: flex">
+                        <h4 class="acct-hdg">{{ acc.name }}</h4>
+                        <h4 class="acct-hdg">Balance: {{ acc.current|stringformat:".2f" }}</h4>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="account-type">
+                <h2 style="margin: 0">Credit and debit</h2>
+                {% for acc in credit_debit_accs %}
+                    <div style="display: flex">
+                        <h4 class="acct-hdg">{{ acc.name }}</h4>
+                        <h4 class="acct-hdg">Balance: {{ acc.current|stringformat:".2f" }}</h4>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="account-type">
+                <h2 style="margin: 0">Loans</h2>
+                {% for acc in loan_accs %}
+                    <div style="display: flex">
+                        <h4 class="acct-hdg">{{ acc.name }}</h4>
+                        <h4 class="acct-hdg">Balance: {{ acc.current|stringformat:".2f" }}</h4>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="account-type">
+                <h2 style="margin: 0">Assets and manual</h2>
+                {% for acc in assets %}
+                    <div style="display: flex">
+                        <h4 class="acct-hdg">{{ acc.name }}</h4>
+                        <h4 class="acct-hdg">Balance: {{ acc.current|stringformat:".2f" }}</h4>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="display: flex; margin-bottom: 18px;">
+            <h2 style="margin-right: 80px;">Transactions</h2>
+            {# Required to show borders?#}
+
+            <button id="import" class="general-button">Import from Mint</button>
+            <button id="export" class="general-button">Export</button>
+        </div>
+
         <table style="border-collapse: collapse;">
-        {% for tran in transactions %}
-            <tr class="transaction">
-                <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>
-                <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>
-                <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-headin"g>{{ tran.amount }}</h4></td>
-                <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>
-            </tr>
-        {% endfor %}
+            {% for tran in transactions %}
+                <tr class="transaction">
+                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>
+                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>
+                    <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-heading">{{ tran.amount }}</h4></td>
+                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>
+                </tr>
+            {% endfor %}
         </table>
 
         {# todo: Load locally. #}
