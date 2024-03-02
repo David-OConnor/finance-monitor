@@ -1,2 +1,2 @@
 #web: uwsgi uwsgi.ini
-web: gunicorn schedule.wsgi --log-file -
+web: gunicorn wallet.wsgi --log-file -
