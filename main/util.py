@@ -3,7 +3,7 @@ import json
 from datetime import date
 from typing import List, Dict, Iterable
 
-from main.models import AccountType, FinancialAccount, TransactionCategory
+from main.models import AccountType, FinancialAccount, TransactionCategory, Person, Transaction
 
 
 def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
@@ -116,7 +116,44 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
     return cats
 
 
-def create_transaction_display(accounts: Iterable[FinancialAccount]) -> List[Dict[str, str]]:
+def add_tran(tran: Transaction, result: List[Dict[str, str]]) -> None:
+    """Helper function"""
+    cats = [TransactionCategory(cat) for cat in json.loads(tran.categories)]
+    cats = cleanup_categories(cats)
+
+    # Only display the year if not the present one.
+    if tran.date.year == date.today().year:
+        if tran.datetime is not None:
+            date_display = tran.datetime.strftime("%m/%d %H:%M")
+        else:
+            date_display = tran.date.strftime("%m/%d")
+    else:
+        if tran.datetime is not None:
+            date_display = tran.datetime.strftime("%m/%d%y %H:%M")
+        else:
+            date_display = tran.date.strftime("%m/%d/%y")
+
+    description = tran.description
+    if tran.pending:
+        # todo: Separate element so you can make it faded, or otherwise a custom style or cell.
+        description += " (pending)"
+
+    result.append(
+        {
+            "categories": " | ".join([c.to_icon() for c in cats]),
+            "description": description,
+            # todo: Currency-appropriate symbol.
+            "amount": f"${tran.amount:,.2f}",
+            "amount_class": (
+                "tran_pos" if tran.amount > 0.0 else "tran_neg"
+            ),  # eg to color green or red.
+            "date_display": date_display,
+            "date": tran.date,
+        }
+    )
+
+
+def create_transaction_display(accounts: Iterable[FinancialAccount], person: Person) -> List[Dict[str, str]]:
     """Create a set of transactions, formatted for display on the Dashboard table. These
     are combined from all sub-accounts."""
 
@@ -126,42 +163,13 @@ def create_transaction_display(accounts: Iterable[FinancialAccount]) -> List[Dic
 
     # todo: Pending? Would have to parse into the DB.
 
+
+    for tran in person.transactions_without_account.all():
+        add_tran(tran, result)
+
     for acc in accounts:
         for tran in acc.transactions.all():
-            cats = [TransactionCategory(cat) for cat in json.loads(tran.categories)]
-            cats = cleanup_categories(cats)
-
-            # Only display the year if not the present one.
-            if tran.date.year == date.today().year:
-                if tran.datetime is not None:
-                    date_display = tran.datetime.strftime("%m/%d %H:%M")
-                else:
-                    date_display = tran.date.strftime("%m/%d")
-            else:
-                if tran.datetime is not None:
-                    date_display = tran.datetime.strftime("%m/%d%y %H:%M")
-                else:
-                    date_display = tran.date.strftime("%m/%d/%y")
-
-
-            description = tran.description
-            if tran.pending:
-                # todo: Separate element so you can make it faded, or otherwise a custom style or cell.
-                description += " (pending)"
-
-            result.append(
-                {
-                    "categories": " | ".join([c.to_icon() for c in cats]),
-                    "description": description,
-                    # todo: Currency-appropriate symbol.
-                    "amount": f"${tran.amount:,.2f}",
-                    "amount_class": (
-                        "tran_pos" if tran.amount > 0.0 else "tran_neg"
-                    ),  # eg to color green or red.
-                    "date_display": date_display,
-                    "date": tran.date,
-                }
-            )
+            add_tran(tran, result)
 
     result.sort(key=lambda t: t["date"], reverse=True)
     return result

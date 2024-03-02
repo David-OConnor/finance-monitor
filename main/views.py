@@ -108,7 +108,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     # These are populated manually by the user.
     assets = []
 
-    transactions = util.create_transaction_display(accounts)
+    transactions = util.create_transaction_display(accounts, person)
 
     context = {
         "accounts": accounts,

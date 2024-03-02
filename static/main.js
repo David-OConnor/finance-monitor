@@ -136,6 +136,10 @@ document.getElementById("link-button").addEventListener("click", _ => {
 });
 
 document.getElementById('export').addEventListener('click', function() {
+    window.location.href = '/export'
+})
+
+document.getElementById('export').addEventListener('click', function() {
     console.log("WHAT")
     window.location.href = '/export'
 })
