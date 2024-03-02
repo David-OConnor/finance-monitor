@@ -3,16 +3,18 @@ import csv
 import json
 from dataclasses import dataclass
 import datetime
-from io import StringIO
+from io import StringIO, TextIOWrapper
 from typing import List, Iterable
 
-from django.db import OperationalError
+from django.db import OperationalError, IntegrityError
 from django.http import HttpResponse
 
-from .models import Transaction, Person, TransactionCategory
+from . import transaction_cats
+from .models import Transaction, Person
+from .transaction_cats import TransactionCategory
 
 
-def import_csv_mint(csv_data: StringIO, person: Person):
+def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
     """Parse CSV from mint; update the database accordingly."""
     # lines = csv_data.strip().split('\n')
     reader = csv.reader(csv_data)
@@ -39,13 +41,18 @@ def import_csv_mint(csv_data: StringIO, person: Person):
         d = datetime.datetime.strptime(row[0], "%m/%d/%Y")
         date = d.date().isoformat()
 
+        description = row[1]
+
+        categories = [TransactionCategory.from_str(row[5])]
+        categories = transaction_cats.category_override(description, categories)
+
         transaction = Transaction(
             # Associate this transaction directly with the person, vice the account.
             person=person,
             # Exactly one category, including "Uncategorized" is reported by Mint
-            categories=json.dumps([TransactionCategory.from_str(row[5].lower()).value]),
+            categories=json.dumps([c.value for c in categories]),
             amount=amount,
-            description=row[1],
+            description=description,
             date=date,
             plaid_id="",  # N/A
             currency_code="USD",  # todo: Allow the user to select this A/R.
@@ -55,6 +62,9 @@ def import_csv_mint(csv_data: StringIO, person: Person):
             transaction.save()
         except OperationalError:
             print("Unable to save this transaction: ", transaction)
+        except IntegrityError:
+            # Eg a duplicate.
+            pass
 
 
 def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str:
@@ -85,7 +95,7 @@ def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str
         writer.writerow([
             transaction.date,
             transaction.description,
-            transaction.description,  # Assuming the same value for Original Description
+            "",  # "Original description"
             amount,
             transaction_type,
             category,

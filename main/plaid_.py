@@ -23,14 +23,15 @@ from plaid.model.item_public_token_exchange_request import (
 from plaid.model.products import Products
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 
+from . import transaction_cats
 from .models import (
     FinancialAccount,
     SubAccount,
     AccountType,
     SubAccountType,
     Transaction,
-    TransactionCategory,
 )
+from .transaction_cats import TransactionCategory
 from wallet.settings import PLAID_SECRET, PLAID_CLIENT_ID
 
 import plaid
@@ -154,10 +155,7 @@ def load_transactions(account: FinancialAccount) -> None:
     for tran in added:
         categories = [TransactionCategory.from_str(cat).value for cat in tran.category]
 
-        name = tran.name.lower()
-        # Some category overrides. Separate function A/R
-        if "coffee" in name:
-            categories = [TransactionCategory.COFFEE_SHOP]
+        categories = transaction_cats.category_override(tran.name, categories)
 
         tran_db = Transaction(
             account=account,

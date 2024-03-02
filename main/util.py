@@ -3,7 +3,9 @@ import json
 from datetime import date
 from typing import List, Dict, Iterable
 
-from main.models import AccountType, FinancialAccount, TransactionCategory, Person, Transaction
+
+from main.models import AccountType, FinancialAccount, Person, Transaction
+from main.transaction_cats import TransactionCategory
 
 
 def update_net_worth(net_worth: float, account: FinancialAccount) -> float:

@@ -1,16 +1,16 @@
 {% extends 'base.html'  %}
 
 {% block head_contents %}
-    <title>Wallet</title>
+    <title>Finance Monitor</title>
 {% endblock %}
 
 {% block contents %}
     <div class="home-body">
-{#        <h1>Welcome to Wallet</h1>#}
+{#        <h1>Welcome to Finance Monitor</h1>#}
 
         <h2>Net worth: {{ net_worth }}</h2>
 
-        <div style="display: flex;">
+        <div style="display: flex; align-items: center;">
             <h2 style="margin-right: 32px">Account balances</h2>
             <button id="link-button" class="general-button">Add an account</button>
         </div>
@@ -105,19 +105,26 @@
             {% endif %}
         </div>
 
-        <div style="display: flex; margin-bottom: 18px;">
+        <div style="display: flex; align-items: center; margin-bottom: 18px;">
             <h2 style="margin-right: 80px;">Transactions</h2>
             {# Required to show borders?#}
 
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" style="display: flex; align-items: center;">
                 {% csrf_token %}
-                {{ import_form.as_p }}
-                <button type="submit">Import from Mint</button>
+{#                <input#}
+{#                    style="color: black; background-color: #aaaaaa; height: 38px;"#}
+{#                    type="file"#}
+{#                    accept="text/csv"#}
+{#                />#}
+                <input type="file" name="file" required id="id_file"
+                style="color: black; background-color: #aaaaaa; height: 38px;">
+                <button type="submit" class="general-button">Import from Mint ↑</button>
             </form>
+
 
             {#            Have a button show the import dialog#}
             {#            <button id="import" class="general-button">Import from Mint</button>#}
-            <button id="export" class="general-button">Export</button>
+            <button id="export" class="general-button">Export ↓</button>
         </div>
 
         <table id="transactions" style="border-collapse: collapse;">

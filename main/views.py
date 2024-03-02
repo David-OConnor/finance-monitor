@@ -30,8 +30,8 @@ from main.models import (
     SubAccount,
     AccountType,
     SubAccountType,
-    TransactionCategory,
 )
+from .transaction_cats import TransactionCategory
 
 import plaid
 from plaid.model.products import Products
@@ -47,7 +47,7 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 from main import plaid_, util
 from main.plaid_ import client, PLAID_PRODUCTS, PLAID_COUNTRY_CODES
 
-ACCOUNT_REFRESH_INTERVAL = 30 * 60  # seconds. Todo: Increase this.
+ACCOUNT_REFRESH_INTERVAL = 120 * 60  # seconds.
 
 MAX_LOGIN_ATTEMPTS = 5
 
@@ -115,20 +115,12 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     #  todo: Move this A/R
     if request.method == 'POST':
         import_form = UploadFileForm(request.POST, request.FILES)
-        if import_form.is_valid():
+        uploaded_file = request.FILES['file']
+        file_data = TextIOWrapper(uploaded_file.file, encoding='utf-8')
 
-            uploaded_file = request.FILES['file']
-            file_data = TextIOWrapper(uploaded_file.file, encoding='utf-8')
-            # csv_data = csv.reader(file_data)
-
-            # body_unicode = request.body.decode('utf-8')
-            # csv_file = StringIO(body_unicode)
-
-            export.import_csv_mint(file_data, request.user.person)
-
-            # Here, you would handle the file upload
-            # return HttpResponseRedirect('/success/url/')  # Redirect to another page after handling the file
+        export.import_csv_mint(file_data, request.user.person)
     else:
+        print("NOT POST")
         import_form = UploadFileForm()
 
     context = {

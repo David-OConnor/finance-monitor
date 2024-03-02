@@ -1,7 +1,9 @@
 Django~=5.0.2
-gunicorn~=21.2.0
-dj-database-url==2.0.0
 
+dj-database-url==2.0.0
+dj-static==0.0.6
+
+gunicorn~=21.2.0
 psycopg2-binary==2.9.6
 requests~=2.31.0
 django-cors-headers~=4.2.0
