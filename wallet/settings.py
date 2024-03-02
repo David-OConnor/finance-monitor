@@ -72,7 +72,7 @@ else:
 
         # SECURITY WARNING: don't run with debug turned on in production!
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "financial-monitor-783ae5ca6965.herokuapp.com", "financial-monitor.com"]
 
 # Application definition
 
