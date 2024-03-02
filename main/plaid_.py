@@ -154,6 +154,11 @@ def load_transactions(account: FinancialAccount) -> None:
     for tran in added:
         categories = [TransactionCategory.from_str(cat).value for cat in tran.category]
 
+        name = tran.name.lower()
+        # Some category overrides. Separate function A/R
+        if "coffee" in name:
+            categories = [TransactionCategory.COFFEE_SHOP]
+
         tran_db = Transaction(
             account=account,
             categories=json.dumps(categories),

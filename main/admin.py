@@ -39,4 +39,4 @@ class SubAccountAdmin(ModelAdmin):
 
 @admin.register(models.Transaction)
 class TransactionAdmin(ModelAdmin):
-    list_display = ("account", "amount", "description", "categories", "date")
+    list_display = ("description", "account", "amount", "categories", "date")

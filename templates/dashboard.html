@@ -6,12 +6,14 @@
 
 {% block contents %}
     <div class="home-body">
-        <h1>Welcome to Wallet</h1>
+{#        <h1>Welcome to Wallet</h1>#}
 
-        <h2>Net worth: ${{ net_worth }}</h2>
+        <h2>Net worth: {{ net_worth }}</h2>
 
-        <h2>Account balances</h2>
-        <button id="link-button" class="general-button">Add an account</button>
+        <div style="display: flex;">
+            <h2 style="margin-right: 32px">Account balances</h2>
+            <button id="link-button" class="general-button">Add an account</button>
+        </div>
 
         {#                <h3>{{ account.institution.name }}</h3>#}
         {#                {% for sub_acc in account.sub_accounts.all %}#}
@@ -25,7 +27,9 @@
 
         {#        <div style="display: flex; flex-direction: column; margin-bottom: 40px">#}
         {#     todo: border color a/r#}
-        <div style="display: flex; flex-wrap: wrap; border: 1px solid #666666; margin-bottom: 60px;">
+        <div id="balances"
+             style="display: flex; flex-wrap: wrap; border: 1px solid #666666; margin-bottom: 60px;"
+        >
 
             {% if cash_accs|length %}
                 <div class="account-type">
@@ -33,7 +37,7 @@
                     {% for acc in cash_accs %}
                         <div style="display: flex">
                             <h4 class="acct-hdg">{{ acc.name }}</h4>
-                            <h4 class="acct-hdg">${{ acc.current|stringformat:".0f" }}</h4>
+                            <h4 class="acct-hdg">{{ acc.current|stringformat:".0f" }}</h4>
                         </div>
                     {% endfor %}
                 </div>
@@ -46,7 +50,7 @@
                     {% for acc in investment_accs %}
                         <div style="display: flex">
                             <h4 class="acct-hdg">{{ acc.name }}</h4>
-                            <h4 class="acct-hdg">${{ acc.current|stringformat:".0f" }}</h4>
+                            <h4 class="acct-hdg">{{ acc.current|stringformat:".0f" }}</h4>
                         </div>
                     {% endfor %}
                 </div>
@@ -58,7 +62,7 @@
                     {% for acc in crypto_accs %}
                         <div style="display: flex">
                             <h4 class="acct-hdg">{{ acc.name }}</h4>
-                            <h4 class="acct-hdg">${{ acc.current|stringformat:".0f" }}</h4>
+                            <h4 class="acct-hdg">{{ acc.current|stringformat:".0f" }}</h4>
                         </div>
                     {% endfor %}
                 </div>
@@ -70,7 +74,7 @@
                     {% for acc in credit_debit_accs %}
                         <div style="display: flex">
                             <h4 class="acct-hdg">{{ acc.name }}</h4>
-                            <h4 class="acct-hdg">${{ acc.current|stringformat:".0f" }}</h4>
+                            <h4 class="acct-hdg">{{ acc.current|stringformat:".0f" }}</h4>
                         </div>
                     {% endfor %}
                 </div>
@@ -82,7 +86,7 @@
                     {% for acc in loan_accs %}
                         <div style="display: flex">
                             <h4 class="acct-hdg">{{ acc.name }}</h4>
-                            <h4 class="acct-hdg">${{ acc.current|stringformat:".0f" }}</h4>
+                            <h4 class="acct-hdg">{{ acc.current|stringformat:".0f" }}</h4>
                         </div>
                     {% endfor %}
                 </div>
@@ -94,7 +98,7 @@
                     {% for acc in assets %}
                         <div style="display: flex">
                             <h4 class="acct-hdg">{{ acc.name }}</h4>
-                            <h4 class="acct-hdg">${{ acc.current|stringformat:".0f" }}</h4>
+                            <h4 class="acct-hdg">{{ acc.current|stringformat:".0f" }}</h4>
                         </div>
                     {% endfor %}
                 </div>
@@ -105,15 +109,23 @@
             <h2 style="margin-right: 80px;">Transactions</h2>
             {# Required to show borders?#}
 
-            <button id="import" class="general-button">Import from Mint</button>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ import_form.as_p }}
+                <button type="submit">Import from Mint</button>
+            </form>
+
+            {#            Have a button show the import dialog#}
+            {#            <button id="import" class="general-button">Import from Mint</button>#}
             <button id="export" class="general-button">Export</button>
         </div>
 
-        <table style="border-collapse: collapse;">
+        <table id="transactions" style="border-collapse: collapse;">
             {% for tran in transactions %}
                 <tr class="transaction">
                     <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>
                     <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>
+                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal; color: #444444;">{{ tran.notes }}</h4></td>
                     <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-heading">{{ tran.amount }}</h4></td>
                     <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>
                 </tr>

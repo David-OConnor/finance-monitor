@@ -143,7 +143,7 @@ def add_tran(tran: Transaction, result: List[Dict[str, str]]) -> None:
             "categories": " | ".join([c.to_icon() for c in cats]),
             "description": description,
             # todo: Currency-appropriate symbol.
-            "amount": f"${tran.amount:,.2f}",
+            "amount": f"{tran.amount:,.2f}",
             "amount_class": (
                 "tran_pos" if tran.amount > 0.0 else "tran_neg"
             ),  # eg to color green or red.
@@ -163,12 +163,13 @@ def create_transaction_display(accounts: Iterable[FinancialAccount], person: Per
 
     # todo: Pending? Would have to parse into the DB.
 
+    # todo: Sort out amounts/pagination etc
 
-    for tran in person.transactions_without_account.all():
+    for tran in person.transactions_without_account.all()[:30]:
         add_tran(tran, result)
 
     for acc in accounts:
-        for tran in acc.transactions.all():
+        for tran in acc.transactions.all()[:30]:
             add_tran(tran, result)
 
     result.sort(key=lambda t: t["date"], reverse=True)

@@ -2,6 +2,7 @@
 import csv
 import json
 from dataclasses import dataclass
+import datetime
 from io import StringIO
 from typing import List, Iterable
 
@@ -11,24 +12,11 @@ from django.http import HttpResponse
 from .models import Transaction, Person, TransactionCategory
 
 
-# Step 1: Define the DataClass
-# @dataclass
-# class Transaction:
-#     date: str
-#     description: str
-#     original_description: str
-#     amount: float
-#     transaction_type: str
-#     category: str
-#     account_name: str
-#     labels: str
-#     notes: str
-
-
-def import_csv_mint(csv_data: str, person: Person):
+def import_csv_mint(csv_data: StringIO, person: Person):
     """Parse CSV from mint; update the database accordingly."""
-    lines = csv_data.strip().split('\n')
-    reader = csv.reader(lines)
+    # lines = csv_data.strip().split('\n')
+    reader = csv.reader(csv_data)
+    # reader = csv.reader(csv_file, escapechar='\\')
 
     # Skip the header
     next(reader)
@@ -45,14 +33,20 @@ def import_csv_mint(csv_data: str, person: Person):
         if row[4] == "debit":
             amount *= -1
 
+        # todo: Error handlign in this function in general.
+
+        # Convert the date to iso format.
+        d = datetime.datetime.strptime(row[0], "%m/%d/%Y")
+        date = d.date().isoformat()
+
         transaction = Transaction(
             # Associate this transaction directly with the person, vice the account.
-            person=Person,
+            person=person,
             # Exactly one category, including "Uncategorized" is reported by Mint
-            categories=[TransactionCategory.from_str(row[5].lower())],
+            categories=json.dumps([TransactionCategory.from_str(row[5].lower()).value]),
             amount=amount,
             description=row[1],
-            date=row[0],
+            date=date,
             plaid_id="",  # N/A
             currency_code="USD",  # todo: Allow the user to select this A/R.
             notes=row[8],

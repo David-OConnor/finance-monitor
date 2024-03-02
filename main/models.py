@@ -123,12 +123,19 @@ class TransactionCategory(Enum):
     ELECTRONICS = 18
     PETS = 19
     CHILDREN = 20
+    MORTGAGE_AND_RENT = 21
+    CAR = 22
+    HOME_AND_GARDEN = 23
+    MEDICAL = 24
+    ENTERTAINMENT = 25
 
     @classmethod
     def from_str(cls, s: str) -> "TransactionCategory":
         """A little loose. We currently use it for both Plaid, and mint."""
         s = s.lower()
 
+        if "uncategorized" == s:
+            return cls.UNCATEGORIZED
         if "food" in s or "grocer" in s:
             return cls.FOOD_AND_DRINK
         if "restau" in s:
@@ -153,7 +160,7 @@ class TransactionCategory(Enum):
             return cls.FAST_FOOD
         if "debit" == s:
             return cls.DEBIT
-        if "shop" == s:
+        if "shop" in s:
             return cls.SHOPS
         if "payment" == s:
             return cls.PAYMENT
@@ -169,6 +176,16 @@ class TransactionCategory(Enum):
             return cls.PETS
         if "child" in s or "kid" in s:
             return cls.CHILDREN
+        if "mortgate" in s or "rent" in s:
+            return cls.MORTGAGE_AND_RENT
+        if "car" in s:
+            return cls.CAR
+        if "home" in s or "garden" in s:
+            return cls.HOME_AND_GARDEN
+        if "medical" in s:
+            return cls.MEDICAL
+        if "entertainment" in s:
+            return cls.ENTERTAINMENT
 
         print("Fallthrough in parsing transaction category: ", s)
         return cls.UNCATEGORIZED
@@ -216,6 +233,16 @@ class TransactionCategory(Enum):
             return "Pets"
         if self == TransactionCategory.CHILDREN:
             return "Children"
+        if self == TransactionCategory.MORTGAGE_AND_RENT:
+            return "Mortgage and rent"
+        if self == TransactionCategory.CAR:
+            return "Car"
+        if self == TransactionCategory.HOME_AND_GARDEN:
+            return "Home and garden"
+        if self == TransactionCategory.MEDICAL:
+            return "Medical"
+        if self == TransactionCategory.ENTERTAINMENT:
+            return "Entertainment"
 
         print("Fallthrough on cat to string", self)
         return "Fallthrough"
@@ -263,6 +290,16 @@ class TransactionCategory(Enum):
             return "🐕"
         if self == TransactionCategory.CHILDREN:
             return "🧒"
+        if self == TransactionCategory.MORTGAGE_AND_RENT:
+            return "🏠"
+        if self == TransactionCategory.CAR:
+            return "Car"
+        if self == TransactionCategory.HOME_AND_GARDEN:
+            return "🏡"
+        if self == TransactionCategory.MEDICAL:
+            return "☤"
+        if self == TransactionCategory.ENTERTAINMENT:
+            return "🎥"
 
         print("Fallthrough on cat to icon", self)
         return "Fallthrough"
@@ -365,7 +402,8 @@ class Transaction(Model):
         Person, related_name="transactions_without_account", null=True, blank=True, on_delete=SET_NULL
     )
     # We generally have 1-2 categories.
-    categories = JSONField()  # List of category enums, eg [0, 2]
+    # todo: Consider just u sing a Textfield here; you're not using the wrapping json object
+    categories = TextField()  # List of category enums, eg [0, 2]
     amount = FloatField()
     description = TextField()
     date = DateField()  # It appears we don't have datetimes available from plaid
@@ -374,7 +412,8 @@ class Transaction(Model):
     plaid_id = CharField(max_length=100)
     currency_code = CharField(max_length=5)  # ISO, eg USD
     pending = BooleanField(default=False)
-    notes = CharField(max_length=100, default="")
+    # Ie, entered by the user.
+    notes = CharField(max_length=200, default="")
 
     def __str__(self):
         return (
@@ -382,4 +421,4 @@ class Transaction(Model):
         )
 
     class Meta:
-        ordering = ["date"]
+        ordering = ["-date"]

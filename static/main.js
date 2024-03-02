@@ -54,15 +54,7 @@ function getPublicToken() {
             }
 
             fetch("/exchange-public-token", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
-                // Parse JSON if able.
-                .then(result => {
-                    try {
-                        return result.json();
-                    }
-                    catch (e) {
-                        console.error("Error parsing JSON: ", e)
-                    }
-                })
+                .then(result => result.json())
                 .then(r => {
                     if (r.success) {
                         console.log("Token exchange complete")
@@ -100,6 +92,38 @@ function getPublicToken() {
     handler.open();
 }
 
+function refreshBalances() {
+    fetch("/refresh-alances", FETCH_HEADERS_GET)
+    // Parse JSON if able.
+    .then(result => result.json())
+    .then(r => {
+        if (!r.updated) {
+            return
+        }
+
+        let div = document.getElementById("balances")
+        div.innerHTML = ""
+    });
+}
+
+function refreshTransactions() {
+    // todo DRY with balance refresh
+
+    fetch("/refresh-transactions", FETCH_HEADERS_GET)
+    // Parse JSON if able.
+    .then(result => result.json())
+    .then(r => {
+        if (!r.updated) {
+            return
+        }
+
+        let div = document.getElementById("transaction-section")
+        div.innerHTML = ""
+
+    });
+}
+
+
 function getCrsfToken() {
     // For CRSF compatibility
     let name_ = "csrftoken"
@@ -117,17 +141,12 @@ function getCrsfToken() {
     return cookieValue;
 }
 
+
+
 document.getElementById("link-button").addEventListener("click", _ => {
     fetch("/create-link-token", FETCH_HEADERS_GET)
         // Parse JSON if able.
-        .then(result => {
-            try {
-                return result.json();
-            }
-            catch (e) {
-                console.error("Error parsing JSON: ", e)
-            }
-        })
+        .then(result => result.json())
         .then(r => {
             LINK_TOKEN = r.link_token
             console.log("Link token set: ", LINK_TOKEN)
@@ -143,3 +162,4 @@ document.getElementById('export').addEventListener('click', function() {
     console.log("WHAT")
     window.location.href = '/export'
 })
+

@@ -3,8 +3,10 @@ import csv
 import time
 import json
 from datetime import datetime, date
+from io import StringIO, TextIOWrapper
 
 from django.db.models import Q
+from django import forms
 
 from . import export
 
@@ -110,6 +112,25 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     transactions = util.create_transaction_display(accounts, person)
 
+    #  todo: Move this A/R
+    if request.method == 'POST':
+        import_form = UploadFileForm(request.POST, request.FILES)
+        if import_form.is_valid():
+
+            uploaded_file = request.FILES['file']
+            file_data = TextIOWrapper(uploaded_file.file, encoding='utf-8')
+            # csv_data = csv.reader(file_data)
+
+            # body_unicode = request.body.decode('utf-8')
+            # csv_file = StringIO(body_unicode)
+
+            export.import_csv_mint(file_data, request.user.person)
+
+            # Here, you would handle the file upload
+            # return HttpResponseRedirect('/success/url/')  # Redirect to another page after handling the file
+    else:
+        import_form = UploadFileForm()
+
     context = {
         "accounts": accounts,
         "cash_accs": cash_accs,
@@ -119,7 +140,8 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         "loan_accs": loan_accs,
         "assets": assets,
         "transactions": transactions,
-        "net_worth": f"{net_worth:,.2f}",
+        "net_worth": f"{net_worth:,.0f}",
+        "import_form": import_form,
     }
 
     return render(request, "../templates/dashboard.html", context)
@@ -350,58 +372,20 @@ def user_logout(request):
     return HttpResponseRedirect("/")
 
 
+class UploadFileForm(forms.Form):
+    title = forms.CharField(max_length=50)
+    file = forms.FileField()
+
+
 @login_required
 def import_(request: HttpRequest) -> HttpResponse:
-    """
-    Import whitelist data from a CSV formatted string.
+    # todo: A/R
 
-    Parses a CSV formatted string from the request body and creates Whitelist
-    entries in the database. Skips the header row and handles duplicate entries
-    by ignoring them. Responds with a success message upon completion.
-    """
-    # todo: DRY with Tasking.
-    body_unicode = request.body.decode('utf-8')
-    csv_file = StringIO(body_unicode)
-    reader = csv.reader(csv_file, escapechar='\\')
 
-    dynamic = False
-    for i, row in enumerate(reader):
-        # Use the header to determine if we are using a dynamic import.
-        if i == 0:
-            (dynamic, dynamic_id_col, dynamic_sensor_name_col, dynamic_sensor_list_col, dynamic_data_type_col,
-             dynamic_ssid_col, dynamic_vendor_col) = get_dynamic_data(row)
-            continue
-
-        if dynamic:
-            sensor_name = get_dynamic_sensor_name(row, dynamic_sensor_list_col, dynamic_sensor_name_col)
-            sensor_type = SensorType.from_str(row[dynamic_data_type_col])
-
-            rule_name, value, field_name = get_dynamic_values(row, dynamic_id_col, dynamic_ssid_col, dynamic_vendor_col,
-                                                              dynamic_sensor_list_col, sensor_type)
-
-            entry = Whitelist(
-                tag=rule_name,
-                sensor_type=sensor_type.value,
-                field_name=field_name,
-                operation=TaskingOperation.Equal.value,
-                value=value,
-                time_added=timezone.now(),
-            )
-        else:
-            entry = Whitelist(
-                tag=row[0],
-                sensor_type=int(row[1]),
-                field_name=int(row[2]),
-                operation=int(row[3]),
-                value=row[4],
-                time_added=row[5],
-            )
-
-        try:
-            entry.save()
-        except IntegrityError:
-            # Handle duplicate entry
-            pass
+    # body_unicode = request.body.decode('utf-8')
+    # csv_file = StringIO(body_unicode)
+    #
+    # export.import_csv_mint(csv_file, request.user.person)
 
     return HttpResponse({"success": True})
 
@@ -420,3 +404,11 @@ def export_(request: HttpRequest) -> HttpResponse:
     ), response)
 
     return response
+
+
+def refresh_balances(request: HttpRequest) -> HttpResponse:
+    pass
+
+
+def refresh_transactions(request: HttpRequest) -> HttpResponse:
+    pass
