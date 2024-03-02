@@ -38,10 +38,10 @@
         <table style="border-collapse: collapse;">
         {% for tran in transactions %}
             <tr class="transaction">
-                <td><h4>{{ tran.categories}}</h4></td>
-                <td><h4>{{ tran.description }}</h4></td>
-                <td class="{{ tran.amount_class }}"><h4>{{ tran.amount }}</h4></td>
-                <td><h4>{{ tran.date }}</h4></td>
+                <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>
+                <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>
+                <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-headin"g>{{ tran.amount }}</h4></td>
+                <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>
             </tr>
         {% endfor %}
         </table>

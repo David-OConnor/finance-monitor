@@ -320,13 +320,29 @@ img {
 .transaction {
     /*display: flex;*/
     /*border: 2px solid black;*/
-    border: 2px solid black;
+    border: 2px solid #666666;
     /*margin-bottom: 20px;*/
     border-radius: 8px;
     padding-left: 10px;
     /*justify-content: flex-start;*/
     /*gap: 40px;*/
+    /*height: 12px;*/
 }
+
+.transaction-cell {
+    margin-bottom: 0;
+    margin-top: 0;
+    padding-bottom: 0;
+    padding-top: 0;
+}
+
+.tran-heading {
+    margin-bottom: 0;
+    margin-top: 0;
+    padding-bottom: 0;
+    padding-top: 0;
+}
+
 
 .tran_pos {
     color: #2ba929;

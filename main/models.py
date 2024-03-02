@@ -66,6 +66,8 @@ class SubAccountType(Enum):
     STUDENT = 5
     MORTGAGE = 6
     CD = 7
+    MONEY_MARKET = 8
+    IRA = 9
 
     @classmethod
     def from_str(cls, s: str) -> "SubAccountType":
@@ -87,6 +89,10 @@ class SubAccountType(Enum):
             return cls.MORTGAGE
         if "cd" in s:
             return cls.CD
+        if "money market" in s:
+            return cls.MONEY_MARKET
+        if "ira" == s :
+            return cls.IRA
 
         print("Fallthrough in parsing sub account type: ", s)
         return cls.CHECKING
@@ -107,6 +113,12 @@ class TransactionCategory(Enum):
     PAYROLL = 9
     CREDIT_CARD = 10
     FAST_FOOD = 11  # todo: Move up
+    DEBIT = 12
+    SHOPS = 13
+    PAYMENT = 14
+    COFFEE_SHOP = 15
+    TAXI = 16
+    SPORTING_GOODS = 17
 
     @classmethod
     def from_str(cls, s: str) -> "TransactionCategory":
@@ -134,6 +146,18 @@ class TransactionCategory(Enum):
             return cls.CREDIT_CARD
         if "fast food" in s:
             return cls.FAST_FOOD
+        if "debit" == s:
+            return cls.DEBIT
+        if "shops" == s:
+            return cls.SHOPS
+        if "payment" == s:
+            return cls.PAYMENT
+        if "coffee shop" == s:
+            return cls.COFFEE_SHOP
+        if "taxi" == s:
+            return cls.TAXI
+        if "sporting" == s:
+            return cls.SPORTING_GOODS
 
         print("Fallthrough in parsing transaction category: ", s)
         return cls.FOOD_AND_DRINK
@@ -161,6 +185,18 @@ class TransactionCategory(Enum):
             return "Credit card"
         if self == TransactionCategory.FAST_FOOD:
             return "Fast food"
+        if self == TransactionCategory.DEBIT:
+            return "Debit"
+        if self == TransactionCategory.SHOPS:
+            return "Shops"
+        if self == TransactionCategory.PAYMENT:
+            return "Payment"
+        if self == TransactionCategory.COFFEE_SHOP:
+            return "Coffee shop"
+        if self == TransactionCategory.TAXI:
+            return "Taxi"
+        if self == TransactionCategory.SPORTING_GOODS:
+            return "Sporting goods"
 
         print("Fallthrough on cat to string", self)
         return "Fallthrough"
@@ -188,17 +224,26 @@ class TransactionCategory(Enum):
             return "💸⬇️"
         if self == TransactionCategory.FAST_FOOD:
             return "🍔"
+        if self == TransactionCategory.DEBIT:
+            return "💸⬇️"
+        if self == TransactionCategory.SHOPS:
+            return "🛒"
+        if self == TransactionCategory.PAYMENT:
+            return "💸"
+        if self == TransactionCategory.COFFEE_SHOP:
+            return "☕"
+        if self == TransactionCategory.TAXI:
+            return "🚕"
+        if self == TransactionCategory.SPORTING_GOODS:
+            return "⚽"
 
         print("Fallthrough on cat to icon", self)
         return "Fallthrough"
 
 
-
 class Person(Model):
     # If we don't change on_delete, deleting a user will delete the associated person.
-    user = models.OneToOneField(
-        User, related_name="person", on_delete=CASCADE
-    )
+    user = models.OneToOneField(User, related_name="person", on_delete=CASCADE)
     unsuccessful_login_attempts = IntegerField(default=0)
     account_locked = BooleanField(default=False)
 
@@ -220,6 +265,7 @@ class Institution(Model):
 
     class Meta:
         ordering = ["name"]
+
 
 # todo: Personal and account-level snapshots over time, eg for generating graphs.
 
@@ -283,16 +329,24 @@ class SubAccount(Model):
 class Transaction(Model):
     # todo: SubAccout as required, but I'm not sure how using Plaid's API atm.
     # account = ForeignKey(SubAccount, related_name="transactions", on_delete=CASCADE)
-    account = ForeignKey(FinancialAccount, related_name="transactions", on_delete=CASCADE)
+    account = ForeignKey(
+        FinancialAccount, related_name="transactions", on_delete=CASCADE
+    )
     # We generally have 1-2 categories.
     categories = JSONField()  # List of category enums, eg [0, 2]
     amount = FloatField()
     description = TextField()
     date = DateField()  # It appears we don't have datetimes available from plaid
+    # Datetime seems generally missing from Plaid, despite it being more useful.
+    datetime = DateTimeField(null=True, blank=True)
     plaid_id = CharField(max_length=100)
+    currency_code = CharField(max_length=5)  # ISO, eg USD
+    pending = BooleanField(default=False)
 
     def __str__(self):
-        return f"Transaction. {self.description} Amount: {self.amount}, date: {self.date}"
+        return (
+            f"Transaction. {self.description} Amount: {self.amount}, date: {self.date}"
+        )
 
     class Meta:
         ordering = ["date"]

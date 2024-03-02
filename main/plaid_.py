@@ -23,7 +23,14 @@ from plaid.model.item_public_token_exchange_request import (
 from plaid.model.products import Products
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 
-from .models import FinancialAccount, SubAccount, AccountType, SubAccountType, Transaction, TransactionCategory
+from .models import (
+    FinancialAccount,
+    SubAccount,
+    AccountType,
+    SubAccountType,
+    Transaction,
+    TransactionCategory,
+)
 from wallet.settings import PLAID_SECRET, PLAID_CLIENT_ID
 
 import plaid
@@ -126,14 +133,14 @@ def load_transactions(account: FinancialAccount) -> None:
         print("Transaction resp: ", response)
 
         # Add this page of results
-        added.extend(response['added'])
-        modified.extend(response['modified'])
-        removed.extend(response['removed'])
+        added.extend(response["added"])
+        modified.extend(response["modified"])
+        removed.extend(response["removed"])
 
-        has_more = response['has_more']
+        has_more = response["has_more"]
 
         # Update cursor to the next cursor
-        cursor = response['next_cursor']
+        cursor = response["next_cursor"]
 
         print("Cursor: ", cursor)
 
@@ -154,7 +161,10 @@ def load_transactions(account: FinancialAccount) -> None:
             # Note: Other fields like "merchange_name" are available, but aren't used on many transactcions.
             description=tran.name,
             date=tran.date,
+            datetime=tran.datetime,
             plaid_id=tran.transaction_id,
+            currency_code=tran.iso_currency_code,
+            pending=tran.pending,
         )
         tran_db.save()
 

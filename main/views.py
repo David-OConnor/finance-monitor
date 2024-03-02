@@ -23,7 +23,8 @@ from main.models import (
     Person,
     SubAccount,
     AccountType,
-    SubAccountType, TransactionCategory,
+    SubAccountType,
+    TransactionCategory,
 )
 
 import plaid
@@ -59,7 +60,6 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     net_worth = 0.0
 
-
     # Update account info, if we are due for a refresh
     for acc in accounts:
         if (timezone.now() - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
@@ -74,32 +74,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
         net_worth = util.update_net_worth(net_worth, acc)
 
-
-    # We use a separate transactions variable, since we want these grouped together, and sorted by date.
-    # todo: You really need datetime for transactions. How do you get it? Take another pass through, and confirm
-    # todo you're not missing something.
-    # Transactions is pre-formatted.
-    transactions = []
-
-    # todo: Organize sub-accts by category instead of top-level account.
-
-    # todo: Color-code by + or / (g/r)
-
-    for acc in accounts:
-        for tran in acc.transactions.all():
-            cats = [TransactionCategory(cat) for cat in json.loads(tran.categories)]
-            cats = util.cleanup_categories(cats)
-
-            transactions.append({
-                "categories": " | ".join([c.to_icon() for c in cats]),
-                "description": tran.description,
-                # todo: Currency-appropriate symbol.
-                "amount": f"${tran.amount:,.2f}",
-                "amount_class": "tran_pos" if tran.amount > 0. else "tran_neg",  # eg to color green or red.
-                "date": tran.date,
-            })
-
-    transactions.sort(key=lambda t: t["date"], reverse=True)
+    transactions = util.create_transaction_display(accounts)
 
     context = {
         "accounts": accounts,
@@ -199,13 +174,13 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
 def about(request: HttpRequest) -> HttpResponse:
     return render(request, "about.html", {})
 
+
 def privacy(request: HttpRequest) -> HttpResponse:
     return render(request, "privacy.html", {})
 
 
 def terms(request: HttpRequest) -> HttpResponse:
     return render(request, "terms.html", {})
-
 
 
 @receiver(user_login_failed)
@@ -238,7 +213,7 @@ def login_failed_handler(sender, credentials, request, **kwargs):
 
 
 def register(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
@@ -248,11 +223,11 @@ def register(request):
             person.save()
 
             login(request, user)  # Log the user in
-            messages.success(request, 'Registration successful.')
-            return redirect('/dashboard')  # Redirect to a desired URL
+            messages.success(request, "Registration successful.")
+            return redirect("/dashboard")  # Redirect to a desired URL
     else:
         form = UserCreationForm()
-    return render(request, "register.html", {'form': form})
+    return render(request, "register.html", {"form": form})
 
 
 @requires_csrf_token
@@ -333,4 +308,3 @@ def user_logout(request):
     logout(request)
     # Take the user back to the homepage.
     return HttpResponseRedirect("/")
-
