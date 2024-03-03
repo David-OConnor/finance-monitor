@@ -8,12 +8,14 @@
     <div class="home-body">
         {#        <h1>Welcome to Finance Monitor</h1>#}
 
-        <h2>Net worth: {{ net_worth }}</h2>
+        <h2>Net worth: {{ totals.net_worth }}</h2>
 
         <div style="display: flex; align-items: center;">
             <h2 style="margin-right: 32px">Account balances</h2>
             <button id="link-button" class="general-button">➕ Syncing account</button>
             <button id="add-manual-button" class="general-button" onclick="toggleAddManual()">➕ Manual account</button>
+
+            <p>Click an account to edit it</p>
         </div>
 
         {#                <h3>{{ account.institution.name }}</h3>#}
@@ -42,6 +44,10 @@
                 "
             >
 
+                <div style="text-align: center">
+                <h2 style="margin-top: 0; margin-bottom: 18px;">Add a manual account</h2>
+                    </div>
+
                 <div style="display: flex; align-items: center; justify-content: space-between;">
                     <h3>Account name</h3>
                     <input id="add-manual-name" />
@@ -65,7 +71,7 @@
                 </div>
 
                 <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3>Value (Must be updated manually)</h3>
+                    <h3>Currency code</h3>
                     <input id="add-manual-currency-code" value="USD" maxlength="3" />
                 </div>
 
@@ -74,12 +80,14 @@
                     <input id="add-manual-current" type="number" value="0" />
                 </div>
 
+                <div style="display: flex; justify-content: center; margin-top: 18px;">
                 <button
                         type="button"
                         onclick="addAccountManual()"
                         class="general-button" style="width: 140px;"
                 >
                     Add this account</button>
+                </div>
             </form>
         </div>
 
@@ -87,12 +95,17 @@
              style="display: flex; flex-wrap: wrap; border: 1px solid #666666; margin-bottom: 60px;"
         >
 
+            {#         todo: JS#}
             {% if cash_accs|length %}
                 <div class="account-type">
                     <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Cash</h2>
                     {% for acc in cash_accs %}
                         <div style="display: flex; justify-content: space-between">
-                            <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
+                            {% if acc.nickname %}
+                                <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.nickname }}</h4>
+                            {% else %}
+                                <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
+                            {% endif %}
                             <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
                         </div>
                     {% endfor %}
@@ -148,7 +161,19 @@
                 </div>
             {% endif %}
 
-            {% if assets|length %}
+            {% if crypto_accs|length %}
+                <div class="account-type">
+                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Loans</h2>
+                    {% for acc in crypto_accs %}
+                        <div style="display: flex; justify-content: space-between">
+                            <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
+                            <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if asset_accs|length %}
                 <div class="account-type">
                     <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Assets and manual</h2>
                     {% for acc in assets %}
@@ -176,60 +201,60 @@
             </div>
 
             <div style="display: flex; align-items: center;">
-            <h4 style="width: 70px;">Value ></h4>
-            <input
-                    id="transaction-value-filter"
-                    type="number"
-                    value="0"
-                    {#                    style="margin-right: 80px; width: 120px; height: 32px;"#}
-                    style="width: 60px"
-{#                     todo: Same as search change?#}
-                    oninput="updateSearch()"
-            />
+                <h4 style="width: 70px;">Value ></h4>
+                <input
+                        id="transaction-value-filter"
+                        type="number"
+                        value="0"
+                        {#                    style="margin-right: 80px; width: 120px; height: 32px;"#}
+                        style="width: 60px"
+                        {#                     todo: Same as search change?#}
+                        oninput="updateSearch()"
+                />
+            </div>
+
+            {#            Import / export form #}
+            <form
+                    id="import-form"
+                    method="post"
+                    enctype="multipart/form-data"
+                    {#                    collapse vis a/r#}
+                    style="display: flex; align-items: center; visibility: hidden;"
+            >
+                {% csrf_token %}
+                {#                <input#}
+                {#                    style="color: black; background-color: #aaaaaa; height: 38px;"#}
+                {#                    type="file"#}
+                {#                    accept="text/csv"#}
+                {#                />#}
+                <input type="file" name="file" required id="id_file"
+                       style="color: black; background-color: #aaaaaa; height: 38px;">
+                <button type="submit" class="general-button">Import from Mint</button>
+            </form>
+            <button id="import-start" class="general-button">Import ↑</button>
+
+
+            {#            Have a button show the import dialog#}
+            {#            <button id="import" class="general-button">Import from Mint</button>#}
+            <button id="export" class="general-button">Export ↓</button>
         </div>
 
-        {#            Import / export form #}
-        <form
-                id="import-form"
-                method="post"
-                enctype="multipart/form-data"
-                {#                    collapse vis a/r#}
-                style="display: flex; align-items: center; visibility: hidden;"
-        >
-            {% csrf_token %}
-            {#                <input#}
-            {#                    style="color: black; background-color: #aaaaaa; height: 38px;"#}
-            {#                    type="file"#}
-            {#                    accept="text/csv"#}
-            {#                />#}
-            <input type="file" name="file" required id="id_file"
-                   style="color: black; background-color: #aaaaaa; height: 38px;">
-            <button type="submit" class="general-button">Import from Mint</button>
-        </form>
-        <button id="import-start" class="general-button">Import ↑</button>
+        <table id="transactions" style="border-collapse: collapse;">
+            {#            {% for tran in transactions %}#}
+            {#                <tr class="transaction">#}
+            {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>#}
+            {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>#}
+            {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal; color: #444444;">{{ tran.notes }}</h4></td>#}
+            {#                    <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-heading">{{ tran.amount }}</h4></td>#}
+            {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>#}
+            {#                </tr>#}
+            {#            {% endfor %}#}
+        </table>
 
+        {# todo: Load locally. #}
+        <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
 
-        {#            Have a button show the import dialog#}
-        {#            <button id="import" class="general-button">Import from Mint</button>#}
-        <button id="export" class="general-button">Export ↓</button>
-    </div>
-
-    <table id="transactions" style="border-collapse: collapse;">
-        {#            {% for tran in transactions %}#}
-        {#                <tr class="transaction">#}
-        {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>#}
-        {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>#}
-        {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal; color: #444444;">{{ tran.notes }}</h4></td>#}
-        {#                    <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-heading">{{ tran.amount }}</h4></td>#}
-        {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>#}
-        {#                </tr>#}
-        {#            {% endfor %}#}
-    </table>
-
-    {# todo: Load locally. #}
-    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
-
-    <script src="../static/main.js"></script>
+        <script src="../static/main.js"></script>
     </div>
 
     <script>

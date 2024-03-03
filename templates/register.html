@@ -1,7 +1,7 @@
 {% extends 'base.html'  %}
 {% load static %}
 
-{% block head_contents %} Register Wallet {% endblock %}
+{% block head_contents %} <title>Register to Financial Monitor</title>{% endblock %}
 
 {% block contents %}
 
@@ -12,14 +12,12 @@
 
         <form method="post">
             {% csrf_token %}
-            {#    {{ form.as_p }}#}
             <p>
                 <label for="id_username">Username:</label>
                 <input type="text" name="username" maxlength="150" autocapitalize="none" autocomplete="username" autofocus required aria-describedby="id_username_helptext" id="id_username">
 
                 <span class="helptext" id="id_username_helptext">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</span>
             </p>
-
 
             <p>
                 <label for="id_password1">Password:</label>

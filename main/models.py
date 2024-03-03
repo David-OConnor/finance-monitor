@@ -36,7 +36,7 @@ def enum_choices(cls):
 
 @enum_choices
 class SubAccountType(Enum):
-    """These are types as reported by Plaid"""
+    """These are types as reported by Plaid, with some exception"""
 
     CHECKING = 0
     SAVINGS = 1
@@ -48,6 +48,11 @@ class SubAccountType(Enum):
     CD = 7
     MONEY_MARKET = 8
     IRA = 9
+    # These aren't reported by Plaid so far
+    STOCK_MUTUAL_FUND = 10
+    CRYPTO = 11
+    ASSET = 12  # A bit of a catch-all
+
 
     @classmethod
     def from_str(cls, s: str) -> "SubAccountType":
@@ -73,6 +78,12 @@ class SubAccountType(Enum):
             return cls.MONEY_MARKET
         if "ira" == s:
             return cls.IRA
+        if "stock" in s or "mutual" in s or "invest" in s:
+            return cls.STOCK_MUTUAL_FUND
+        if "crypto" in s:
+            return cls.CRYPTO
+        if "asset" in s:
+            return cls.ASSET
 
         print("Fallthrough in parsing sub account type: ", s)
         return cls.CHECKING
@@ -105,7 +116,7 @@ class AccountType(Enum):
 
     @classmethod
     def from_sub_type(cls, sub_type: SubAccountType) -> "AccountType":
-        if sub_type in [SubAccountType.CHECKING, SubAccountType.SAVINGS]:
+        if sub_type in [SubAccountType.CHECKING, SubAccountType.SAVINGS, SubAccountType.CRYPTO, SubAccountType.ASSET]:
             return cls.DEPOSITORY
         if sub_type in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
             return cls.CREDIT
@@ -114,6 +125,7 @@ class AccountType(Enum):
             SubAccountType.CD,
             SubAccountType.MONEY_MARKET,
             SubAccountType.IRA,
+            SubAccountType.STOCK_MUTUAL_FUND
         ]:
             return cls.INVESTMENT
         if sub_type in [SubAccountType.MORTGAGE, SubAccountType.STUDENT]:
@@ -154,6 +166,7 @@ class Institution(Model):
 
 
 class FinancialAccount(Model):
+    """Used by plaid; a Link to a financial institution."""
     person = ForeignKey(Person, related_name="accounts", on_delete=CASCADE)
     institution = ForeignKey(
         Institution, on_delete=CASCADE, related_name="institutions"
@@ -184,6 +197,7 @@ class FinancialAccount(Model):
 
 
 class SubAccount(Model):
+    """These are the linked, or manually-added accounts."""
     # This is similar to Transaction: If Account is null, person must have a value. This is for
     # manual transactions.
     account = ForeignKey(
@@ -204,6 +218,7 @@ class SubAccount(Model):
     plaid_id_persistent = CharField(max_length=100, blank=True, null=True)
     name = CharField(max_length=50)
     name_official = CharField(max_length=100, null=True, blank=True)
+    nickname = CharField(max_length=30, default="")
     type = IntegerField(choices=AccountType.choices())
     sub_type = IntegerField(choices=SubAccountType.choices())
     iso_currency_code = CharField(max_length=5)
@@ -232,8 +247,15 @@ class SubAccount(Model):
         ]:
             pos_val = not pos_val
 
+        if self.account is not None:
+            institution = self.account.institution.name
+        else:
+            institution = ""
+
         return {
             "name": self.name,
+            "nickname": self.nickname,
+            "institution": institution,
             "current": f"{self.current:,.0f}",
             # Note Use current_val if handling this in JS vice template
             # "current_val": self.current,
@@ -241,7 +263,7 @@ class SubAccount(Model):
         }
 
     def __str__(self):
-        return f"Sub account. {self.name}, {self.name_official}, {self.type}, Current: {self.current}, {self.iso_currency_code}"
+        return f"Sub account. {self.name}, ({self.nickname}), {self.name_official}, {self.type}, Current: {self.current}, {self.iso_currency_code}"
 
     class Meta:
         ordering = ["name"]

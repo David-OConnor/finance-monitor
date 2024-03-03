@@ -135,11 +135,24 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     # todo: Delegate this to a fn A/R
     # Organize balances by sub-account
+    # todo: Dict
     cash_accs = []
     investment_accs = []
     crypto_accs = []
     credit_debit_accs = []
     loan_accs = []
+    asset_accs = []
+
+    totals = {
+        "cash": 0,
+        "investment": 0,
+        "crypto": 0,
+        "credit_debit": 0,
+        "loan": 0,
+        "assets": 0,
+        # net_worth: f"{net_worth:,.0f}"
+        "net_worth": net_worth,
+    }
 
     for sub_acc in SubAccount.objects.filter(
             Q(account__person=person) | Q(person=person)
@@ -152,27 +165,33 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
         if t in [SubAccountType.CHECKING, SubAccountType.SAVINGS]:
             cash_accs.append(sub_acc.to_display_dict())
+            totals["cash"] += sub_acc.current
         elif t in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
             credit_debit_accs.append(sub_acc.to_display_dict())
-        elif t in [SubAccountType.T401K, SubAccountType.CD, SubAccountType.MONEY_MARKET, SubAccountType.IRA]:
+            totals["credit_debit"] += sub_acc.current
+        elif t in [SubAccountType.T401K, SubAccountType.CD, SubAccountType.MONEY_MARKET, SubAccountType.IRA, SubAccountType.STOCK_MUTUAL_FUND]:
             investment_accs.append(sub_acc.to_display_dict())
+            totals["investment"] += sub_acc.current
         elif t in [SubAccountType.STUDENT, SubAccountType.MORTGAGE]:
             loan_accs.append(sub_acc.to_display_dict())
+            totals["loan"] += sub_acc.current
+        elif t in [SubAccountType.CRYPTO]:
+            crypto_accs.append(sub_acc.to_display_dict())
+            totals["crypto"] += sub_acc.current
+        elif t in [SubAccountType.ASSET]:
+            asset_accs.append(sub_acc.to_display_dict())
+            totals["asset"] += sub_acc.current
         else:
             print("Fallthrough in sub account type: ", t)
 
-    # These are populated manually by the user.
-    assets = []
+    for (k, v) in totals.items():
+        totals[k] = f"{net_worth:,.0f}"
 
     #  todo: Move this A/R
     if request.method == 'POST':
-        import_form = UploadFileForm(request.POST, request.FILES)
         uploaded_file = request.FILES['file']
         file_data = TextIOWrapper(uploaded_file.file, encoding='utf-8')
-
         export.import_csv_mint(file_data, request.user.person)
-    else:
-        import_form = UploadFileForm()
 
     context = {
         "accounts": accounts,
@@ -181,10 +200,10 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         "crypto_accs:": crypto_accs,
         "credit_debit_accs": credit_debit_accs,
         "loan_accs": loan_accs,
-        "assets": assets,
+        "crypto_accs": crypto_accs,
+        "assets": asset_accs,
         # "transactions": transactions,
-        "net_worth": f"{net_worth:,.0f}",
-        "import_form": import_form,
+        "totals": totals,
     }
 
     return render(request, "../templates/dashboard.html", context)
@@ -332,7 +351,7 @@ def register(request):
             return redirect("/dashboard")  # Redirect to a desired URL
     else:
         form = UserCreationForm()
-    return render(request, "register.html", {"form": form})
+    return render(request, "register.html", {})
 
 
 @requires_csrf_token
