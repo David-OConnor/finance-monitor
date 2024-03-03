@@ -47,7 +47,7 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 from main import plaid_, util
 from main.plaid_ import client, PLAID_PRODUCTS, PLAID_COUNTRY_CODES
 
-ACCOUNT_REFRESH_INTERVAL = 120 * 60  # seconds.
+ACCOUNT_REFRESH_INTERVAL = 4 * 60 * 60  # seconds.
 
 MAX_LOGIN_ATTEMPTS = 5
 

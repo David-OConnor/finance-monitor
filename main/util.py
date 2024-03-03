@@ -144,6 +144,7 @@ def add_tran(tran: Transaction, result: List[Dict[str, str]]) -> None:
         {
             "categories": " | ".join([c.to_icon() for c in cats]),
             "description": description,
+            "notes": tran.notes,
             # todo: Currency-appropriate symbol.
             "amount": f"{tran.amount:,.2f}",
             "amount_class": (

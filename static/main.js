@@ -20,7 +20,11 @@ const FETCH_HEADERS_POST = {
 // Global mutal variables
 let LINK_TOKEN = ""
 let SEARCH_TEXT = ""
+
+// Includes all loaded transactions
 let TRANSACTIONS = []
+let TRANSACTIONS_DISPLAYED = []
+
 
 
 
@@ -109,7 +113,7 @@ function refreshBalances() {
         });
 }
 
-function refreshTransactions() {
+function refreshTransactions(searchText) {
     // todo DRY with balance refresh
 
     // fetch("/refresh-transactions", FETCH_HEADERS_GET)
@@ -123,7 +127,22 @@ function refreshTransactions() {
     let table = document.getElementById("transactions")
     table.replaceChildren();
 
-    for (let tran of TRANSACTIONS) {
+
+    let transactions
+    // todo: Use TRANSACTIONS_DISPLAYED?
+    // Note: This truthy statement catches both an empty string, and an undefined we get on init.
+    if (!searchText) {
+        transactions = TRANSACTIONS
+    } else {
+        transactions = TRANSACTIONS.filter(t => {
+            console.log(t, searchText)
+            return t.description.toLowerCase().includes(searchText) || t.notes.toLowerCase().includes(searchText)
+            // todo: Description search as well
+        })
+    }
+
+
+    for (let tran of transactions) {
         const row = document.createElement("tr")
 
         let col = document.createElement("td")
@@ -187,7 +206,9 @@ function refreshTransactions() {
 }
 
 function updateSearch() {
-    SEARCH_TEXT = document.getElementById("search").value
+    // SEARCH_TEXT = document.getElementById("search").value
+    const searchText = document.getElementById("search").value.toLowerCase()
+    refreshTransactions(searchText)
 }
 
 
@@ -248,6 +269,7 @@ function init() {
         .then(result => result.json())
         .then(r => {
             TRANSACTIONS = r.transactions
+            TRANSACTIONS_DISPLAYED = r.transactions
             refreshTransactions()
         });
 }

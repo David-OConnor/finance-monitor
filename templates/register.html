@@ -5,11 +5,43 @@
 
 {% block contents %}
 
-<h2>Register</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-</form>
+    <div class="home-body", style="justify-content: center">
+        <div style="display: flex; align-items: center; justify-content: center">
+            <h1>Register</h1>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            {#    {{ form.as_p }}#}
+            <p>
+                <label for="id_username">Username:</label>
+                <input type="text" name="username" maxlength="150" autocapitalize="none" autocomplete="username" autofocus required aria-describedby="id_username_helptext" id="id_username">
+
+                <span class="helptext" id="id_username_helptext">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</span>
+            </p>
+
+
+            <p>
+                <label for="id_password1">Password:</label>
+                <input type="password" name="password1" autocomplete="new-password" required aria-describedby="id_password1_helptext" id="id_password1">
+
+                <span class="helptext" id="id_password1_helptext">
+                    <ul>
+{#                        <li>Your password can’t be too similar to your other personal information.</li>#}
+                        <li>Your password must contain at least 8 characters.</li>
+                        <li>Your password can’t be a commonly used password.</li><li>Your password can’t be entirely numeric.</li>
+                    </ul>
+                </span>
+            </p>
+
+            <p>
+                <label for="id_password2">Password confirmation:</label>
+                <input type="password" name="password2" autocomplete="new-password" required aria-describedby="id_password2_helptext" id="id_password2">
+
+                <span class="helptext" id="id_password2_helptext">Enter the same password as before, for verification.</span>
+            </p>
+            <button class="general-button" type="submit">Register</button>
+        </form>
+    </div>
 
 {% endblock %}

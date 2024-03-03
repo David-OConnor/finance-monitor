@@ -102,6 +102,7 @@ class Person(Model):
     user = models.OneToOneField(User, related_name="person", on_delete=CASCADE)
     unsuccessful_login_attempts = IntegerField(default=0)
     account_locked = BooleanField(default=False)
+    email_verified = BooleanField(default=False)
 
     def __str__(self):
         return f"Person. id: {self.id} User: {self.user.username}"
