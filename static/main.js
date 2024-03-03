@@ -21,9 +21,12 @@ const FETCH_HEADERS_POST = {
 let LINK_TOKEN = ""
 let SEARCH_TEXT = ""
 
+// todo: Config object?
+
 // Includes all loaded transactions
 let TRANSACTIONS = []
 let TRANSACTIONS_DISPLAYED = []
+let TRANSACTION_ICONS = true
 
 
 
@@ -113,21 +116,7 @@ function refreshBalances() {
         });
 }
 
-function refreshTransactions(searchText) {
-    // todo DRY with balance refresh
-
-    // fetch("/refresh-transactions", FETCH_HEADERS_GET)
-    //     // Parse JSON if able.
-    //     .then(result => result.json())
-    //     .then(r => {
-    //         if (!r.updated) {
-    //             return
-    //         }
-
-    let table = document.getElementById("transactions")
-    table.replaceChildren();
-
-
+function filterTransactions(searchText) {
     let transactions
     // todo: Use TRANSACTIONS_DISPLAYED?
     // Note: This truthy statement catches both an empty string, and an undefined we get on init.
@@ -135,57 +124,80 @@ function refreshTransactions(searchText) {
         transactions = TRANSACTIONS
     } else {
         transactions = TRANSACTIONS.filter(t => {
-            console.log(t, searchText)
             return t.description.toLowerCase().includes(searchText) || t.notes.toLowerCase().includes(searchText)
             // todo: Description search as well
         })
     }
+    return transactions
+}
 
+function refreshTransactions(searchText) {
+    let transactions = filterTransactions(searchText)
+
+    let table = document.getElementById("transactions")
+    table.replaceChildren();
+
+    // todo: We don't need to recreate the TH each time.
+    const head = document.createElement("th")
+    let col = createEl("td", {"class": "transaction-cell"}, {})
+
+    let div = createEl("div", {}, {display: "flex", alignItems: "center"}, "")
+    let h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal"}, "Icons")
+
+    // todo: Store to the DB
+    let check = createEl("input", {type: "checkbox"}, {}, "")
+    if (TRANSACTION_ICONS) {
+        check.setAttribute("checked", null)
+    }
+
+    // check.setAttribute("checked", TRANSACTION_ICONS)
+    check.addEventListener("click", _ => {
+        TRANSACTION_ICONS = !TRANSACTION_ICONS
+        refreshTransactions(searchText) // todo: Dangerous potentially re infinite recursions, but seems to be OK.
+    })
+    console.log("Refreshing transactions.")
+
+    div.appendChild(h)
+    div.appendChild(check)
+    col.appendChild(div)
+
+    head.appendChild(col)
+    table.appendChild(head)
 
     for (let tran of transactions) {
         const row = document.createElement("tr")
 
-        let col = document.createElement("td")
-        col.textContent = tran.categories
+        col = document.createElement("td")
+
+        if (TRANSACTION_ICONS) {
+            col.textContent = tran.categories_icon
+        } else {
+            col.textContent = tran.categories
+        }
         row.appendChild(col)
 
         // todo: Fn.
-        col = document.createElement("td")
-        col.classList.add("transaction-cell")
-        let h = document.createElement("h4")
-        h.classList.add("tran-heading")
-        h.textContent = tran.description
-        h.style.fontWeight = "normal"
+
+        col = createEl("td", {class: "transaction-cell"}, {})
+        h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal"}, tran.description)
         col.appendChild(h)
 
         row.appendChild(col)
 
-        col = document.createElement("td")
-        col.classList.add("transaction-cell")
-        h = document.createElement("h4")
-        h.classList.add("tran-heading")
-        h.textContent = tran.notes
-        h.style.fontWeight = "normal"
-        h.style.color = "#444444"
+        col = createEl("td", {class: "transaction-cell"}, {})
+        h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal", color: "#444444"}, tran.notes)
         col.appendChild(h)
 
         row.appendChild(col)
 
-        col = document.createElement("td")
-        col.classList.add("transaction-cell")
-        h = document.createElement("h4")
-        h.classList.add("tran-heading")
-        h.textContent = tran.amount
-        h.classList.add(tran.amount_class)
+        col = createEl("td", {class: "transaction-cell"}, {})
+        h = createEl("h4", {class: "tran-heading " +  tran.amount_class}, {}, tran.amount)
         col.appendChild(h)
 
         row.appendChild(col)
 
-        col = document.createElement("td")
-        col.classList.add("transaction-cell")
-        h = document.createElement("h4")
-        h.classList.add("tran-heading")
-        h.textContent = tran.date_display
+        col = createEl("td", {class: "transaction-cell"}, {})
+        h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
         col.appendChild(h)
 
         row.appendChild(col)
@@ -276,3 +288,26 @@ function init() {
 
 init()
 
+// todo: util.js
+function createEl(tag, attributes, style, text) {
+    // Create and return an element with given attributes and style.
+    let el = document.createElement(tag)
+
+    if (attributes) {
+        for (const [attr, val] of Object.entries(attributes)) {
+            el.setAttribute(attr, val)
+        }
+    }
+
+    if (style) {
+        for (const [attr, val] of Object.entries(style)) {
+            el.style[attr] = val
+        }
+    }
+
+    if (text) {
+        el.textContent = text
+    }
+
+    return el
+}

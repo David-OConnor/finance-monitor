@@ -1,11 +1,7 @@
 # Misc / utility functions
-import json
-from datetime import date
 from typing import List, Dict, Iterable
 
-
-from main.models import AccountType, FinancialAccount, Person, Transaction
-from main.transaction_cats import TransactionCategory
+from main.models import AccountType, FinancialAccount, Person
 
 
 def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
@@ -25,137 +21,6 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
     return net_worth
 
 
-def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCategory]:
-    """Simplify a category list if multiple related are listed together by the API.
-    Return the result, due to Python's sloppy mutation-in-place."""
-    cats = list(set(cats))  # Remove duplicates.
-
-    if (
-        TransactionCategory.TRAVEL in cats
-        and TransactionCategory.AIRLINES_AND_AVIATION_SERVICES in cats
-    ):
-        cats.remove(TransactionCategory.TRAVEL)
-
-    if TransactionCategory.TRANSFER in cats and TransactionCategory.DEPOSIT in cats:
-        cats.remove(TransactionCategory.TRANSFER)
-
-    if TransactionCategory.TRANSFER in cats and TransactionCategory.DEBIT in cats:
-        cats.remove(TransactionCategory.TRANSFER)
-
-    if TransactionCategory.TRANSFER in cats and TransactionCategory.PAYROLL in cats:
-        cats.remove(TransactionCategory.PAYROLL)
-
-    if (
-        TransactionCategory.RESTAURANTS in cats
-        and TransactionCategory.FOOD_AND_DRINK in cats
-    ):
-        cats.remove(TransactionCategory.FOOD_AND_DRINK)
-
-    if (
-        TransactionCategory.RESTAURANTS in cats
-        and TransactionCategory.COFFEE_SHOP in cats
-    ):
-        cats.remove(TransactionCategory.RESTAURANTS)
-
-    if (
-        TransactionCategory.FAST_FOOD in cats
-        and TransactionCategory.FOOD_AND_DRINK in cats
-    ):
-        cats.remove(TransactionCategory.FOOD_AND_DRINK)
-
-    if (
-        TransactionCategory.RESTAURANTS in cats
-        and TransactionCategory.FAST_FOOD in cats
-    ):
-        cats.remove(TransactionCategory.RESTAURANTS)
-
-    if (
-        TransactionCategory.GYMS_AND_FITNESS_CENTERS in cats
-        and TransactionCategory.RECREATION in cats
-    ):
-        cats.remove(TransactionCategory.RECREATION)
-
-    # Lots of bogus food+drink cats inserted by Plaid.
-    if (
-        TransactionCategory.FOOD_AND_DRINK in cats
-        and TransactionCategory.CREDIT_CARD in cats
-    ):
-        cats.remove(TransactionCategory.FOOD_AND_DRINK)
-
-    if (
-        TransactionCategory.PAYMENT in cats
-        and TransactionCategory.CREDIT_CARD in cats
-    ):
-        cats.remove(TransactionCategory.PAYMENT)
-
-    if (
-        TransactionCategory.FOOD_AND_DRINK in cats
-        and TransactionCategory.TRANSFER in cats
-    ):
-        cats.remove(TransactionCategory.FOOD_AND_DRINK)
-
-    if (
-        TransactionCategory.FOOD_AND_DRINK in cats
-        and TransactionCategory.SHOPS in cats
-    ):
-        cats.remove(TransactionCategory.SHOPS)
-
-    if (
-        TransactionCategory.FOOD_AND_DRINK in cats
-        and TransactionCategory.TRAVEL in cats
-    ):
-        cats.remove(TransactionCategory.FOOD_AND_DRINK)
-
-    if (
-        TransactionCategory.TAXI in cats
-        and TransactionCategory.TRAVEL in cats
-    ):
-        cats.remove(TransactionCategory.TRAVEL)
-
-    if len(cats) > 1:
-        print(">1 len categories: \n", cats)
-
-    return cats
-
-
-def add_tran(tran: Transaction, result: List[Dict[str, str]]) -> None:
-    """Helper function"""
-    cats = [TransactionCategory(cat) for cat in json.loads(tran.categories)]
-    cats = cleanup_categories(cats)
-
-    # Only display the year if not the present one.
-    if tran.date.year == date.today().year:
-        if tran.datetime is not None:
-            date_display = tran.datetime.strftime("%m/%d %H:%M")
-        else:
-            date_display = tran.date.strftime("%m/%d")
-    else:
-        if tran.datetime is not None:
-            date_display = tran.datetime.strftime("%m/%d%y %H:%M")
-        else:
-            date_display = tran.date.strftime("%m/%d/%y")
-
-    description = tran.description
-    if tran.pending:
-        # todo: Separate element so you can make it faded, or otherwise a custom style or cell.
-        description += " (pending)"
-
-    result.append(
-        {
-            "categories": " | ".join([c.to_icon() for c in cats]),
-            "description": description,
-            "notes": tran.notes,
-            # todo: Currency-appropriate symbol.
-            "amount": f"{tran.amount:,.2f}",
-            "amount_class": (
-                "tran_pos" if tran.amount > 0.0 else "tran_neg"
-            ),  # eg to color green or red.
-            "date_display": date_display,
-            "date": tran.date,  # Used for sorting.
-        }
-    )
-
-
 def create_transaction_display(accounts: Iterable[FinancialAccount], person: Person) -> List[Dict[str, str]]:
     """Create a set of transactions, formatted for display on the Dashboard table. These
     are combined from all sub-accounts."""
@@ -169,11 +34,11 @@ def create_transaction_display(accounts: Iterable[FinancialAccount], person: Per
     # todo: Sort out amounts/pagination etc
 
     for tran in person.transactions_without_account.all()[:30]:
-        add_tran(tran, result)
+        result.append(tran.to_display_dict())
 
     for acc in accounts:
         for tran in acc.transactions.all()[:30]:
-            add_tran(tran, result)
+            result.append(tran.to_display_dict())
 
     result.sort(key=lambda t: t["date"], reverse=True)
 

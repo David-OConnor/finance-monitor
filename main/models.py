@@ -1,4 +1,7 @@
+import json
+from datetime import date
 from enum import Enum
+from typing import Dict
 
 from django.db import models
 from django.contrib.auth.models import Group, User
@@ -16,6 +19,8 @@ from django.db.models import (
     BooleanField,
     ForeignKey,
 )
+
+from main.transaction_cats import TransactionCategory, cleanup_categories
 
 
 def enum_choices(cls):
@@ -176,6 +181,13 @@ class SubAccount(Model):
     ignored = BooleanField(default=False)
     # todo: Mask?
 
+    def to_display_dict(self) -> Dict[str, str]:
+        """For use in the web page."""
+        return {
+            "name": self.name,
+            "current": f"{self.current:,.0f}",
+        }
+
     def __str__(self):
         return f"Sub account. {self.name}, {self.name_official}, {self.type}, Current: {self.current}"
 
@@ -207,6 +219,44 @@ class Transaction(Model):
     pending = BooleanField(default=False)
     # Ie, entered by the user.
     notes = CharField(max_length=200, default="")
+
+    def to_display_dict(self) -> Dict[str, str]:
+        """For use in the web page."""
+
+        cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
+        cats = cleanup_categories(cats)
+
+        # Only display the year if not the present one.
+        if self.date.year == date.today().year:
+            if self.datetime is not None:
+                date_display = self.datetime.strftime("%m/%d %H:%M")
+            else:
+                date_display = self.date.strftime("%m/%d")
+        else:
+            if self.datetime is not None:
+                date_display = self.datetime.strftime("%m/%d%y %H:%M")
+            else:
+                date_display = self.date.strftime("%m/%d/%y")
+
+        description = self.description
+        if self.pending:
+            # todo: Separate element so you can make it faded, or otherwise a custom style or cell.
+            description += " (pending)"
+
+        return  {
+            "id": self.id,  # DB primary key.
+            "categories": " | ".join([c.to_str() for c in cats]),
+            "categories_icon": " | ".join([c.to_icon() for c in cats]),
+            "description": description,
+            "notes": self.notes,
+            # todo: Currency-appropriate symbol.
+            "amount": f"{self.amount:,.2f}",
+            "amount_class": (
+                "tran_pos" if self.amount > 0.0 else "tran_neg"
+            ),  # eg to color green or red.
+            "date_display": date_display,
+            "date": self.date,  # Used for sorting.
+        }
 
     def __str__(self):
         return (

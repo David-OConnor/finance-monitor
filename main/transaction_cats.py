@@ -2,8 +2,17 @@
 from enum import Enum
 from typing import List
 
-from main.models import enum_choices
 
+# todo: C+P from main.models due ot circular import concern
+def enum_choices(cls):
+    """Required to make Python enums work with Django integer fields"""
+
+    @classmethod
+    def choices(cls_):
+        return [(key.value, key.name) for key in cls_]
+
+    cls.choices = choices
+    return cls
 
 @enum_choices
 class TransactionCategory(Enum):
@@ -259,3 +268,96 @@ def category_override(descrip: str, categories: List[TransactionCategory]) -> Li
         categories = [TransactionCategory.FOOD_AND_DRINK]
 
     return categories
+
+
+def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCategory]:
+    """Simplify a category list if multiple related are listed together by the API.
+    Return the result, due to Python's sloppy mutation-in-place."""
+    cats = list(set(cats))  # Remove duplicates.
+
+    if (
+        TransactionCategory.TRAVEL in cats
+        and TransactionCategory.AIRLINES_AND_AVIATION_SERVICES in cats
+    ):
+        cats.remove(TransactionCategory.TRAVEL)
+
+    if TransactionCategory.TRANSFER in cats and TransactionCategory.DEPOSIT in cats:
+        cats.remove(TransactionCategory.TRANSFER)
+
+    if TransactionCategory.TRANSFER in cats and TransactionCategory.DEBIT in cats:
+        cats.remove(TransactionCategory.TRANSFER)
+
+    if TransactionCategory.TRANSFER in cats and TransactionCategory.PAYROLL in cats:
+        cats.remove(TransactionCategory.PAYROLL)
+
+    if (
+        TransactionCategory.RESTAURANTS in cats
+        and TransactionCategory.FOOD_AND_DRINK in cats
+    ):
+        cats.remove(TransactionCategory.FOOD_AND_DRINK)
+
+    if (
+        TransactionCategory.RESTAURANTS in cats
+        and TransactionCategory.COFFEE_SHOP in cats
+    ):
+        cats.remove(TransactionCategory.RESTAURANTS)
+
+    if (
+        TransactionCategory.FAST_FOOD in cats
+        and TransactionCategory.FOOD_AND_DRINK in cats
+    ):
+        cats.remove(TransactionCategory.FOOD_AND_DRINK)
+
+    if (
+        TransactionCategory.RESTAURANTS in cats
+        and TransactionCategory.FAST_FOOD in cats
+    ):
+        cats.remove(TransactionCategory.RESTAURANTS)
+
+    if (
+        TransactionCategory.GYMS_AND_FITNESS_CENTERS in cats
+        and TransactionCategory.RECREATION in cats
+    ):
+        cats.remove(TransactionCategory.RECREATION)
+
+    # Lots of bogus food+drink cats inserted by Plaid.
+    if (
+        TransactionCategory.FOOD_AND_DRINK in cats
+        and TransactionCategory.CREDIT_CARD in cats
+    ):
+        cats.remove(TransactionCategory.FOOD_AND_DRINK)
+
+    if (
+        TransactionCategory.PAYMENT in cats
+        and TransactionCategory.CREDIT_CARD in cats
+    ):
+        cats.remove(TransactionCategory.PAYMENT)
+
+    if (
+        TransactionCategory.FOOD_AND_DRINK in cats
+        and TransactionCategory.TRANSFER in cats
+    ):
+        cats.remove(TransactionCategory.FOOD_AND_DRINK)
+
+    if (
+        TransactionCategory.FOOD_AND_DRINK in cats
+        and TransactionCategory.SHOPS in cats
+    ):
+        cats.remove(TransactionCategory.SHOPS)
+
+    if (
+        TransactionCategory.FOOD_AND_DRINK in cats
+        and TransactionCategory.TRAVEL in cats
+    ):
+        cats.remove(TransactionCategory.FOOD_AND_DRINK)
+
+    if (
+        TransactionCategory.TAXI in cats
+        and TransactionCategory.TRAVEL in cats
+    ):
+        cats.remove(TransactionCategory.TRAVEL)
+
+    if len(cats) > 1:
+        print(">1 len categories: \n", cats)
+
+    return cats

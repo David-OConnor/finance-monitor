@@ -111,13 +111,13 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         t = SubAccountType(sub_acc.sub_type)
 
         if t in [SubAccountType.CHECKING, SubAccountType.SAVINGS]:
-            cash_accs.append(sub_acc)
+            cash_accs.append(sub_acc.to_display_dict())
         elif t in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
-            credit_debit_accs.append(sub_acc)
+            credit_debit_accs.append(sub_acc.to_display_dict())
         elif t in [SubAccountType.T401K, SubAccountType.CD, SubAccountType.MONEY_MARKET, SubAccountType.IRA]:
-            investment_accs.append(sub_acc)
+            investment_accs.append(sub_acc.to_display_dict())
         elif t in [SubAccountType.STUDENT, SubAccountType.MORTGAGE]:
-            loan_accs.append(sub_acc)
+            loan_accs.append(sub_acc.to_display_dict())
         else:
             print("Fallthrough in sub account type: ", t)
 
