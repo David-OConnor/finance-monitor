@@ -59,9 +59,25 @@ def landing(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+def load_transactions(request: HttpRequest) -> HttpResponse:
+    """Load transactions. Return them as JSON. This is a POST request."""
+    person = request.user.person
+    accounts = person.accounts.all()
+
+    body_unicode = request.body.decode('utf-8')
+    print("Body of transactions: ", body_unicode)
+    # todo: Use pages or last index A/R.
+
+    transactions = {
+        "transactions": util.create_transaction_display(accounts, person)
+    }
+
+    return HttpResponse(json.dumps(transactions), content_type="application/json")
+
+
+@login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
     person = request.user.person
-
     accounts = person.accounts.all()
 
     net_worth = 0.0
@@ -110,7 +126,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     # These are populated manually by the user.
     assets = []
 
-    transactions = util.create_transaction_display(accounts, person)
+    # transactions = util.create_transaction_display(accounts, person)
 
     #  todo: Move this A/R
     if request.method == 'POST':
@@ -120,7 +136,6 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
         export.import_csv_mint(file_data, request.user.person)
     else:
-        print("NOT POST")
         import_form = UploadFileForm()
 
     context = {
@@ -131,7 +146,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         "credit_debit_accs": credit_debit_accs,
         "loan_accs": loan_accs,
         "assets": assets,
-        "transactions": transactions,
+        # "transactions": transactions,
         "net_worth": f"{net_worth:,.0f}",
         "import_form": import_form,
     }

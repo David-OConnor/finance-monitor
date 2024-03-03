@@ -199,6 +199,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 ADMINS = (("admin", "contact@finance-monitor.com"),)
 MANAGERS = ADMINS
 
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "quals"  # todo: What should this be?
+
 if DEPLOYED:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True

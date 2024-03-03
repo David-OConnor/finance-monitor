@@ -150,7 +150,7 @@ def add_tran(tran: Transaction, result: List[Dict[str, str]]) -> None:
                 "tran_pos" if tran.amount > 0.0 else "tran_neg"
             ),  # eg to color green or red.
             "date_display": date_display,
-            "date": tran.date,
+            "date": tran.date,  # Used for sorting.
         }
     )
 
@@ -175,4 +175,8 @@ def create_transaction_display(accounts: Iterable[FinancialAccount], person: Per
             add_tran(tran, result)
 
     result.sort(key=lambda t: t["date"], reverse=True)
+
+    for tran in result:
+        tran.pop("date")  # Remove the non-display date after sorting.
+
     return result

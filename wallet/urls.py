@@ -36,4 +36,5 @@ urlpatterns = [
     path("refresh-transactions", views.refresh_transactions),
     path("export", views.export_),
     path("import", views.import_),
+    path("load-transactions", views.load_transactions),
 ]

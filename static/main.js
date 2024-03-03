@@ -17,7 +17,10 @@ const FETCH_HEADERS_POST = {
     },
 }
 
+// Global mutal variables
 let LINK_TOKEN = ""
+let SEARCH_TEXT = ""
+let TRANSACTIONS = []
 
 
 
@@ -94,33 +97,98 @@ function getPublicToken() {
 
 function refreshBalances() {
     fetch("/refresh-alances", FETCH_HEADERS_GET)
-    // Parse JSON if able.
-    .then(result => result.json())
-    .then(r => {
-        if (!r.updated) {
-            return
-        }
+        // Parse JSON if able.
+        .then(result => result.json())
+        .then(r => {
+            if (!r.updated) {
+                return
+            }
 
-        let div = document.getElementById("balances")
-        div.innerHTML = ""
-    });
+            let div = document.getElementById("balances")
+            div.innerHTML = ""
+        });
 }
 
-function refreshTransactions() {
+function refreshTransactions(transactions) {
     // todo DRY with balance refresh
 
-    fetch("/refresh-transactions", FETCH_HEADERS_GET)
-    // Parse JSON if able.
-    .then(result => result.json())
-    .then(r => {
-        if (!r.updated) {
-            return
-        }
+    // fetch("/refresh-transactions", FETCH_HEADERS_GET)
+    //     // Parse JSON if able.
+    //     .then(result => result.json())
+    //     .then(r => {
+    //         if (!r.updated) {
+    //             return
+    //         }
 
-        let div = document.getElementById("transaction-section")
-        div.innerHTML = ""
+    let table = document.getElementById("transactions")
+    table.replaceChildren();
 
-    });
+
+    for (let tran of transactions) {
+        const row = document.createElement("tr")
+
+        let col = document.createElement("td")
+        col.textContent = tran.categories
+        row.appendChild(col)
+
+        // todo: Fn.
+        col = document.createElement("td")
+        col.classList.add("transaction-cell")
+        let h = document.createElement("h4")
+        h.classList.add("tran-heading")
+        h.textContent = tran.description
+        h.style.fontWeight = "normal"
+        col.appendChild(h)
+
+        row.appendChild(col)
+
+        col = document.createElement("td")
+        col.classList.add("transaction-cell")
+        h = document.createElement("h4")
+        h.classList.add("tran-heading")
+        h.textContent = tran.notes
+        h.style.fontWeight = "normal"
+        h.style.color = "#444444"
+        col.appendChild(h)
+
+        row.appendChild(col)
+
+        col = document.createElement("td")
+        col.classList.add("transaction-cell")
+        h = document.createElement("h4")
+        h.classList.add("tran-heading")
+        h.textContent = tran.amount
+        h.classList.add(tran.amount_class)
+        col.appendChild(h)
+
+        row.appendChild(col)
+
+        col = document.createElement("td")
+        col.classList.add("transaction-cell")
+        h = document.createElement("h4")
+        h.classList.add("tran-heading")
+        h.textContent = tran.date_display
+        col.appendChild(h)
+
+        row.appendChild(col)
+
+        table.appendChild(row)
+    }
+    // {% for tran in transactions %}
+    // <tr class="transaction">
+    //     <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>
+    //     <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>
+    //     <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal; color: #444444;">{{ tran.notes }}</h4></td>
+    //     <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-heading">{{ tran.amount }}</h4></td>
+    //     <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>
+    // </tr>
+    // {% endfor %}
+
+    // });
+}
+
+function updateSearch() {
+    SEARCH_TEXT = document.getElementById("search").value
 }
 
 
@@ -141,25 +209,48 @@ function getCrsfToken() {
     return cookieValue;
 }
 
+function init() {
+    // We run this on page load
+    document.getElementById("link-button").addEventListener("click", _ => {
+        fetch("/create-link-token", FETCH_HEADERS_GET)
+            // Parse JSON if able.
+            .then(result => result.json())
+            .then(r => {
+                LINK_TOKEN = r.link_token
+                console.log("Link token set: ", LINK_TOKEN)
+                getPublicToken()
+            });
+    });
 
+    document.getElementById('export').addEventListener('click', function() {
+        window.location.href = '/export'
+    })
 
-document.getElementById("link-button").addEventListener("click", _ => {
-    fetch("/create-link-token", FETCH_HEADERS_GET)
+    document.getElementById('export').addEventListener('click', function() {
+        window.location.href = '/export'
+    })
+
+    const importStart = document.getElementById('import-start')
+    importStart.addEventListener('click', function() {
+        // importStart.
+        const importForm = document.getElementById("import-form")
+        if (importForm.style.visibility === "hidden") {
+            importForm.style.visibility = "visible"
+        } else {
+            importForm.style.visibility = "hidden"
+        }
+
+    })
+
+    // Load transactions from the backend.
+    // fetch("/load-transactions", FETCH_HEADERS_POST)
+    fetch("/load-transactions", { body: JSON.stringify({}), ...FETCH_HEADERS_POST })
         // Parse JSON if able.
         .then(result => result.json())
         .then(r => {
-            LINK_TOKEN = r.link_token
-            console.log("Link token set: ", LINK_TOKEN)
-            getPublicToken()
+            refreshTransactions(r.transactions)
         });
-});
+}
 
-document.getElementById('export').addEventListener('click', function() {
-    window.location.href = '/export'
-})
-
-document.getElementById('export').addEventListener('click', function() {
-    console.log("WHAT")
-    window.location.href = '/export'
-})
+init()
 
