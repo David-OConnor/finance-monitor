@@ -21,6 +21,8 @@ const FETCH_HEADERS_POST = {
 let LINK_TOKEN = ""
 let SEARCH_TEXT = ""
 
+const PAGE_SIZE = 60
+
 // todo: Config object?
 
 // Includes all loaded transactions
@@ -124,8 +126,9 @@ function filterTransactions(searchText) {
         transactions = TRANSACTIONS
     } else {
         transactions = TRANSACTIONS.filter(t => {
-            return t.description.toLowerCase().includes(searchText) || t.notes.toLowerCase().includes(searchText)
-            // todo: Description search as well
+            return t.description.toLowerCase().includes(searchText) ||
+                t.notes.toLowerCase().includes(searchText) ||
+                t.categories.toLowerCase().includes(searchText)
         })
     }
     return transactions
@@ -137,12 +140,14 @@ function refreshTransactions(searchText) {
     let table = document.getElementById("transactions")
     table.replaceChildren();
 
+    // todo: thead and tbody els?
+
     // todo: We don't need to recreate the TH each time.
-    const head = document.createElement("th")
-    let col = createEl("td", {"class": "transaction-cell"}, {})
+    const head = createEl("tr", {}, {height: "40px", borderBottom: "2px solid black"}, "")
+    let col = createEl("th", {"class": "transaction-cell"}, {}, "")
 
     let div = createEl("div", {}, {display: "flex", alignItems: "center"}, "")
-    let h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal"}, "Icons")
+    let h = createEl("h4", {class: "tran-heading"}, {}, "Icons")
 
     // todo: Store to the DB
     let check = createEl("input", {type: "checkbox"}, {}, "")
@@ -162,6 +167,20 @@ function refreshTransactions(searchText) {
     col.appendChild(div)
 
     head.appendChild(col)
+
+    // todo: Populate other headers A/R
+    col = createEl("th", {}, {}, "")
+    head.appendChild(col)
+
+    col = createEl("th", {}, {}, "")
+    head.appendChild(col)
+
+    col = createEl("th", {}, {}, "")
+    head.appendChild(col)
+
+    col = createEl("th", {}, {}, "")
+    head.appendChild(col)
+
     table.appendChild(head)
 
     for (let tran of transactions) {
@@ -241,6 +260,36 @@ function getCrsfToken() {
     return cookieValue;
 }
 
+function addAccountManual() {
+    // We use this when submitting a new manual account
+    // document.getElementById("add-account-manaul").addEventListener("click", _ => {
+    //                 <input id="add-manual-name" />
+    //
+    //                 <select id="add-manual-type" style="border: 1px solid black; height: 32px; width: 156px;">
+    //
+    //                 <input id="add-manual-current" type="number" value="0" />
+
+    // todo: Validate no blank account name
+    data = {
+        name: document.getElementById("add-manual-name").value,
+        sub_type: parseInt(document.getElementById("add-manual-type").value),
+        current: parseInt(document.getElementById("add-manual-current").value),
+        iso_currency_code: document.getElementById("add-manual-currency-code").value,
+    }
+
+    fetch("/add-account-manual", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
+        .then(result => result.json())
+        .then(r => {
+            console.log(r)
+            // todo: Handle a failure.
+        });
+
+    let form = document.getElementById("add-manual-form")
+    let btn = document.getElementById("add-manual-button")
+    form.style.visibility = "collapse"
+    btn.textContent = "➕ Add a manual account"
+}
+
 function init() {
     // We run this on page load
     document.getElementById("link-button").addEventListener("click", _ => {
@@ -274,6 +323,7 @@ function init() {
 
     })
 
+    console.log("Loading transactions...")
     // Load transactions from the backend.
     // fetch("/load-transactions", FETCH_HEADERS_POST)
     fetch("/load-transactions", { body: JSON.stringify({}), ...FETCH_HEADERS_POST })
@@ -310,4 +360,19 @@ function createEl(tag, attributes, style, text) {
     }
 
     return el
+}
+
+function toggleAddManual() {
+    let form = document.getElementById("add-manual-form")
+    let btn = document.getElementById("add-manual-button")
+
+    if (form.style.visibility === "visible") {
+        form.style.visibility = "collapse"
+        btn.textContent = "➕ Add a manual account"
+    } else {
+        form.style.visibility = "visible"
+        btn.textContent = "(Cancel adding this account)"
+    }
+
+
 }

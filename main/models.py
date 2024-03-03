@@ -35,30 +35,6 @@ def enum_choices(cls):
 
 
 @enum_choices
-class AccountType(Enum):
-    """These are types as reported by Plaid"""
-
-    DEPOSITORY = 1
-    INVESTMENT = 2
-    LOAN = 3
-    CREDIT = 4
-
-    @classmethod
-    def from_str(cls, s: str) -> "AccountType":
-        s = s.lower()
-
-        if "depos" in s:
-            return cls.DEPOSITORY
-        if "invest" in s:
-            return cls.INVESTMENT
-        if "loan" in s:
-            return cls.LOAN
-
-        print("Fallthrough in parsing account type: ", s)
-        return cls.DEPOSITORY
-
-
-@enum_choices
 class SubAccountType(Enum):
     """These are types as reported by Plaid"""
 
@@ -100,6 +76,46 @@ class SubAccountType(Enum):
 
         print("Fallthrough in parsing sub account type: ", s)
         return cls.CHECKING
+
+
+@enum_choices
+class AccountType(Enum):
+    """These are types as reported by Plaid"""
+
+    DEPOSITORY = 1
+    INVESTMENT = 2
+    LOAN = 3
+    CREDIT = 4
+
+    @classmethod
+    def from_str(cls, s: str) -> "AccountType":
+        s = s.lower()
+
+        if "depos" in s:
+            return cls.DEPOSITORY
+        if "invest" in s:
+            return cls.INVESTMENT
+        if "loan" in s:
+            return cls.LOAN
+        if "credit" in s:
+            return cls.CREDIT
+
+        print("Fallthrough in parsing account type: ", s)
+        return cls.DEPOSITORY
+
+    @classmethod
+    def from_sub_type(cls, sub_type: SubAccountType) -> "AccountType":
+        if sub_type in [SubAccountType.CHECKING, SubAccountType.SAVINGS]:
+            return cls.DEPOSITORY
+        if sub_type in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
+            return cls.CREDIT
+        if sub_type in [SubAccountType.T401K, SubAccountType.CD, SubAccountType.MONEY_MARKET, SubAccountType.IRA]:
+            return cls.INVESTMENT
+        if sub_type in [SubAccountType.MORTGAGE, SubAccountType.STUDENT]:
+            return cls.LOAN
+
+        print("Fallthrough in account type from sub", sub_type)
+        return cls.DEPOSITORY
 
 
 class Person(Model):
@@ -163,10 +179,15 @@ class FinancialAccount(Model):
 
 
 class SubAccount(Model):
+    # This is similar to Transaction: If Account is null, person must have a value. This is for
+    # manual transactions.
     account = ForeignKey(
-        FinancialAccount, related_name="sub_accounts", on_delete=CASCADE
+        FinancialAccount, related_name="sub_accounts", null=True, blank=True, on_delete=SET_NULL
     )
-    plaid_id = CharField(max_length=100)
+    person = ForeignKey(
+        Person, related_name="subaccounts_manual", null=True, blank=True, on_delete=SET_NULL
+    )
+    plaid_id = CharField(max_length=100, blank=True, null=True)
     plaid_id_persistent = CharField(max_length=100, blank=True, null=True)
     name = CharField(max_length=50)
     name_official = CharField(max_length=100, null=True, blank=True)
@@ -183,13 +204,26 @@ class SubAccount(Model):
 
     def to_display_dict(self) -> Dict[str, str]:
         """For use in the web page."""
+
+        pos_val = self.current > 0.
+
+        # Invert the value if a negative account type.
+        # if AccountType(self.type) in [AccountType.LOAN, AccountType.CREDIT]:
+        #     pos_val = not pos_val
+
+        if SubAccountType(self.sub_type) in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD, SubAccountType.STUDENT, SubAccountType.MORTGAGE]:
+            pos_val = not pos_val
+
         return {
             "name": self.name,
             "current": f"{self.current:,.0f}",
+            # Note Use current_val if handling this in JS vice template
+            # "current_val": self.current,
+            "current_class": "tran_pos" if pos_val else "tran_neg"
         }
 
     def __str__(self):
-        return f"Sub account. {self.name}, {self.name_official}, {self.type}, Current: {self.current}"
+        return f"Sub account. {self.name}, {self.name_official}, {self.type}, Current: {self.current}, {self.iso_currency_code}"
 
     class Meta:
         ordering = ["name"]
@@ -214,7 +248,7 @@ class Transaction(Model):
     date = DateField()  # It appears we don't have datetimes available from plaid
     # Datetime seems generally missing from Plaid, despite it being more useful.
     datetime = DateTimeField(null=True, blank=True)
-    plaid_id = CharField(max_length=100)
+    plaid_id = CharField(max_length=100, null=True, blank=True)
     currency_code = CharField(max_length=5)  # ISO, eg USD
     pending = BooleanField(default=False)
     # Ie, entered by the user.
@@ -243,7 +277,7 @@ class Transaction(Model):
             # todo: Separate element so you can make it faded, or otherwise a custom style or cell.
             description += " (pending)"
 
-        return  {
+        return {
             "id": self.id,  # DB primary key.
             "categories": " | ".join([c.to_str() for c in cats]),
             "categories_icon": " | ".join([c.to_icon() for c in cats]),

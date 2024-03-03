@@ -1,5 +1,7 @@
 # Misc / utility functions
-from typing import List, Dict, Iterable
+from typing import List, Dict, Iterable, Optional
+
+from django.db.models import Q
 
 from main.models import AccountType, FinancialAccount, Person
 
@@ -21,7 +23,11 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
     return net_worth
 
 
-def create_transaction_display(accounts: Iterable[FinancialAccount], person: Person) -> List[Dict[str, str]]:
+def create_transaction_display(
+        accounts: Iterable[FinancialAccount],
+        person: Person,
+        search_text: Optional[str],
+) -> List[Dict[str, str]]:
     """Create a set of transactions, formatted for display on the Dashboard table. These
     are combined from all sub-accounts."""
 
@@ -33,11 +39,22 @@ def create_transaction_display(accounts: Iterable[FinancialAccount], person: Per
 
     # todo: Sort out amounts/pagination etc
 
-    for tran in person.transactions_without_account.all()[:30]:
+    count = 60  # todo temp
+
+    trans_no_account = person.transactions_without_account.all()[:count]
+
+    if search_text:
+        print("SEARCH TEXT", search_text)
+        trans_no_account = trans_no_account.filter(
+            #  todo: Categories A/R
+            Q(description__icontains=search_text) | Q(notes__icontains=search_text)
+        )
+
+    for tran in trans_no_account:
         result.append(tran.to_display_dict())
 
     for acc in accounts:
-        for tran in acc.transactions.all()[:30]:
+        for tran in acc.transactions.all()[:count]:
             result.append(tran.to_display_dict())
 
     result.sort(key=lambda t: t["date"], reverse=True)

@@ -64,15 +64,52 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     person = request.user.person
     accounts = person.accounts.all()
 
-    body_unicode = request.body.decode('utf-8')
-    print("Body of transactions: ", body_unicode)
+    body = json.loads(request.body.decode('utf-8'))
+    print("Body of transactions: ", body)
     # todo: Use pages or last index A/R.
 
+    search_text = body.get("search_text")
+    categories = body.get("categories")
+    start = body.get("start")
+    end = body.get("end")
+
     transactions = {
-        "transactions": util.create_transaction_display(accounts, person)
+        "transactions": util.create_transaction_display(accounts, person, search_text)
     }
 
     return HttpResponse(json.dumps(transactions), content_type="application/json")
+
+
+@login_required
+def add_account_manual(request: HttpRequest) -> HttpResponse:
+    """Add a manual account, with information populated by the user."""
+    data = json.loads(request.body.decode('utf-8'))
+    print("Body of adding manual accounts: ", data)
+    # todo: Use pages or last index A/R.
+
+    sub_type = SubAccountType(data["sub_type"])
+
+    account_type = AccountType.from_sub_type(sub_type)
+
+    account = SubAccount(
+        person=request.user.person,
+        name=data["name"],
+        type=account_type.value,
+        sub_type=sub_type.value,
+        iso_currency_code=data["iso_currency_code"].upper(),
+        current=data["current"],
+    )
+
+    print("Adding account: ", account)
+
+    success = True
+    try:
+        account.save()
+    except IntegrityError:
+        print("Integrity error on saving a manual account")
+        success = False
+
+    return HttpResponse(json.dumps({"success": success}), content_type="application/json")
 
 
 @login_required

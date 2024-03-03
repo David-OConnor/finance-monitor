@@ -54,7 +54,6 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
             amount=amount,
             description=description,
             date=date,
-            plaid_id="",  # N/A
             currency_code="USD",  # todo: Allow the user to select this A/R.
             notes=row[8],
         )
