@@ -38,7 +38,7 @@ PLAID_MODE = PlaidMode.SANDBOX
 
 if DEPLOYED:
     DEBUG = False
-    DEBUG = True # todo temp!!
+    DEBUG = True  # todo temp!!
     # SECURITY WARNING: keep the secret key used in production secret!
     SECRET_KEY = os.environ["SECRET_KEY"]
     PLAID_CLIENT_ID = os.environ["PLAID_CLIENT_ID"]
@@ -72,7 +72,12 @@ else:
 
         # SECURITY WARNING: don't run with debug turned on in production!
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "financial-monitor-783ae5ca6965.herokuapp.com", "financial-monitor.com"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "financial-monitor-783ae5ca6965.herokuapp.com",
+    "financial-monitor.com",
+]
 
 # Application definition
 

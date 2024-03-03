@@ -14,6 +14,7 @@ def enum_choices(cls):
     cls.choices = choices
     return cls
 
+
 @enum_choices
 class TransactionCategory(Enum):
     """These are types as reported by Plaid"""
@@ -234,7 +235,7 @@ class TransactionCategory(Enum):
         if self == TransactionCategory.MORTGAGE_AND_RENT:
             return "🏠"
         if self == TransactionCategory.CAR:
-            return "Car"
+            return "🚗"
         if self == TransactionCategory.HOME_AND_GARDEN:
             return "🏡"
         if self == TransactionCategory.MEDICAL:
@@ -256,7 +257,9 @@ class TransactionCategory(Enum):
         return "Fallthrough"
 
 
-def category_override(descrip: str, categories: List[TransactionCategory]) -> List[TransactionCategory]:
+def category_override(
+    descrip: str, categories: List[TransactionCategory]
+) -> List[TransactionCategory]:
     """Manual category overrides, based on observation."""
     descrip = descrip.lower()
     # Some category overrides. Separate function A/R
@@ -264,7 +267,13 @@ def category_override(descrip: str, categories: List[TransactionCategory]) -> Li
         categories = [TransactionCategory.COFFEE_SHOP]
 
     # Prevents a restaurant style logo
-    if "trader joe" in descrip or "whole foods" in descrip or "aldi" in descrip or "food lion" in descrip or "wegman" in descrip:
+    if (
+        "trader joe" in descrip
+        or "whole foods" in descrip
+        or "aldi" in descrip
+        or "food lion" in descrip
+        or "wegman" in descrip
+    ):
         categories = [TransactionCategory.FOOD_AND_DRINK]
 
     return categories
@@ -327,10 +336,7 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
     ):
         cats.remove(TransactionCategory.FOOD_AND_DRINK)
 
-    if (
-        TransactionCategory.PAYMENT in cats
-        and TransactionCategory.CREDIT_CARD in cats
-    ):
+    if TransactionCategory.PAYMENT in cats and TransactionCategory.CREDIT_CARD in cats:
         cats.remove(TransactionCategory.PAYMENT)
 
     if (
@@ -339,10 +345,7 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
     ):
         cats.remove(TransactionCategory.FOOD_AND_DRINK)
 
-    if (
-        TransactionCategory.FOOD_AND_DRINK in cats
-        and TransactionCategory.SHOPS in cats
-    ):
+    if TransactionCategory.FOOD_AND_DRINK in cats and TransactionCategory.SHOPS in cats:
         cats.remove(TransactionCategory.SHOPS)
 
     if (
@@ -351,10 +354,7 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
     ):
         cats.remove(TransactionCategory.FOOD_AND_DRINK)
 
-    if (
-        TransactionCategory.TAXI in cats
-        and TransactionCategory.TRAVEL in cats
-    ):
+    if TransactionCategory.TAXI in cats and TransactionCategory.TRAVEL in cats:
         cats.remove(TransactionCategory.TRAVEL)
 
     if len(cats) > 1:

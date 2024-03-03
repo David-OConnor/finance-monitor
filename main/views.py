@@ -141,7 +141,10 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     credit_debit_accs = []
     loan_accs = []
 
-    for sub_acc in SubAccount.objects.filter(account__person=person):
+    for sub_acc in SubAccount.objects.filter(
+            Q(account__person=person) | Q(person=person)
+    ):
+
         if sub_acc.ignored:
             continue
 
@@ -158,12 +161,8 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         else:
             print("Fallthrough in sub account type: ", t)
 
-    print(credit_debit_accs, "CDA")
-
     # These are populated manually by the user.
     assets = []
-
-    # transactions = util.create_transaction_display(accounts, person)
 
     #  todo: Move this A/R
     if request.method == 'POST':
@@ -199,7 +198,7 @@ def create_link_token(request_: HttpRequest) -> HttpResponse:
     try:
         request = LinkTokenCreateRequest(
             products=PLAID_PRODUCTS,
-            client_name="Plaid Quickstart",
+            client_name="Finance Monitor",
             country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
             # redirect_uri=PLAID_REDIRECT_URI,
             language="en",

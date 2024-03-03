@@ -74,8 +74,18 @@ def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str
 
     # Write the header
     writer.writerow(
-        ["Date", "Description", "Original Description", "Amount", "Transaction Type", "Category", "Account Name",
-         "Labels", "Notes"])
+        [
+            "Date",
+            "Description",
+            "Original Description",
+            "Amount",
+            "Transaction Type",
+            "Category",
+            "Account Name",
+            "Labels",
+            "Notes",
+        ]
+    )
 
     for transaction in transactions:
         # Convert the amount to a positive number and determine the transaction type
@@ -86,22 +96,27 @@ def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str
             amount = transaction.amount
             transaction_type = "credit"
 
-        categories = [TransactionCategory(cat).to_str() for cat in json.loads(transaction.categories)]
+        categories = [
+            TransactionCategory(cat).to_str()
+            for cat in json.loads(transaction.categories)
+        ]
         category = ", ".join(categories)
 
         # Writing the row according to Mint's CSV format
         # Assuming `transaction.description` maps to both "Description" and "Original Description" as per Mint's format
-        writer.writerow([
-            transaction.date,
-            transaction.description,
-            "",  # "Original description"
-            amount,
-            transaction_type,
-            category,
-            "",  # Account Name is left empty assuming it's not available in the Transaction object
-            "",  # Labels are skipped as per the provided code snippet
-            transaction.notes
-        ])
+        writer.writerow(
+            [
+                transaction.date,
+                transaction.description,
+                "",  # "Original description"
+                amount,
+                transaction_type,
+                category,
+                "",  # Account Name is left empty assuming it's not available in the Transaction object
+                "",  # Labels are skipped as per the provided code snippet
+                transaction.notes,
+            ]
+        )
 
     # Return the CSV data as a string
     return output.getvalue()

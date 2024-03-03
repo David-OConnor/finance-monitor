@@ -71,7 +71,7 @@ class SubAccountType(Enum):
             return cls.CD
         if "money market" in s:
             return cls.MONEY_MARKET
-        if "ira" == s :
+        if "ira" == s:
             return cls.IRA
 
         print("Fallthrough in parsing sub account type: ", s)
@@ -109,7 +109,12 @@ class AccountType(Enum):
             return cls.DEPOSITORY
         if sub_type in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
             return cls.CREDIT
-        if sub_type in [SubAccountType.T401K, SubAccountType.CD, SubAccountType.MONEY_MARKET, SubAccountType.IRA]:
+        if sub_type in [
+            SubAccountType.T401K,
+            SubAccountType.CD,
+            SubAccountType.MONEY_MARKET,
+            SubAccountType.IRA,
+        ]:
             return cls.INVESTMENT
         if sub_type in [SubAccountType.MORTGAGE, SubAccountType.STUDENT]:
             return cls.LOAN
@@ -182,10 +187,18 @@ class SubAccount(Model):
     # This is similar to Transaction: If Account is null, person must have a value. This is for
     # manual transactions.
     account = ForeignKey(
-        FinancialAccount, related_name="sub_accounts", null=True, blank=True, on_delete=SET_NULL
+        FinancialAccount,
+        related_name="sub_accounts",
+        null=True,
+        blank=True,
+        on_delete=SET_NULL,
     )
     person = ForeignKey(
-        Person, related_name="subaccounts_manual", null=True, blank=True, on_delete=SET_NULL
+        Person,
+        related_name="subaccounts_manual",
+        null=True,
+        blank=True,
+        on_delete=SET_NULL,
     )
     plaid_id = CharField(max_length=100, blank=True, null=True)
     plaid_id_persistent = CharField(max_length=100, blank=True, null=True)
@@ -205,13 +218,18 @@ class SubAccount(Model):
     def to_display_dict(self) -> Dict[str, str]:
         """For use in the web page."""
 
-        pos_val = self.current > 0.
+        pos_val = self.current > 0.0
 
         # Invert the value if a negative account type.
         # if AccountType(self.type) in [AccountType.LOAN, AccountType.CREDIT]:
         #     pos_val = not pos_val
 
-        if SubAccountType(self.sub_type) in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD, SubAccountType.STUDENT, SubAccountType.MORTGAGE]:
+        if SubAccountType(self.sub_type) in [
+            SubAccountType.DEBIT_CARD,
+            SubAccountType.CREDIT_CARD,
+            SubAccountType.STUDENT,
+            SubAccountType.MORTGAGE,
+        ]:
             pos_val = not pos_val
 
         return {
@@ -219,7 +237,7 @@ class SubAccount(Model):
             "current": f"{self.current:,.0f}",
             # Note Use current_val if handling this in JS vice template
             # "current_val": self.current,
-            "current_class": "tran_pos" if pos_val else "tran_neg"
+            "current_class": "tran_pos" if pos_val else "tran_neg",
         }
 
     def __str__(self):
@@ -227,6 +245,7 @@ class SubAccount(Model):
 
     class Meta:
         ordering = ["name"]
+        unique_together = [["account", "plaid_id"], ["account", "name"]]
 
 
 class Transaction(Model):
@@ -234,11 +253,19 @@ class Transaction(Model):
     # account can be blank or null, if the transaction is imported, or manual.
     # todo: Allow the user to assign this to an account.
     account = ForeignKey(
-        FinancialAccount, related_name="transactions", null=True, blank=True, on_delete=SET_NULL
+        FinancialAccount,
+        related_name="transactions",
+        null=True,
+        blank=True,
+        on_delete=SET_NULL,
     )
     # We use Person for imports, and manually-added transactions.
     person = ForeignKey(
-        Person, related_name="transactions_without_account", null=True, blank=True, on_delete=SET_NULL
+        Person,
+        related_name="transactions_without_account",
+        null=True,
+        blank=True,
+        on_delete=SET_NULL,
     )
     # We generally have 1-2 categories.
     # todo: Consider just u sing a Textfield here; you're not using the wrapping json object
@@ -303,7 +330,9 @@ class Transaction(Model):
         # How does unique together work with float?
         unique_together = ["date", "description", "amount"]
 
+
 # todo: More refined snapshot, including all accounts.
+
 
 class NetWorthSnapshot(Model):
     person = ForeignKey(Person, related_name="net_worth_snapshots", on_delete=CASCADE)

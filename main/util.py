@@ -24,9 +24,9 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
 
 
 def create_transaction_display(
-        accounts: Iterable[FinancialAccount],
-        person: Person,
-        search_text: Optional[str],
+    accounts: Iterable[FinancialAccount],
+    person: Person,
+    search_text: Optional[str],
 ) -> List[Dict[str, str]]:
     """Create a set of transactions, formatted for display on the Dashboard table. These
     are combined from all sub-accounts."""
@@ -39,7 +39,7 @@ def create_transaction_display(
 
     # todo: Sort out amounts/pagination etc
 
-    count = 60  # todo temp
+    count = 80  # todo temp
 
     trans_no_account = person.transactions_without_account.all()[:count]
 
@@ -47,7 +47,8 @@ def create_transaction_display(
         print("SEARCH TEXT", search_text)
         trans_no_account = trans_no_account.filter(
             #  todo: Categories A/R
-            Q(description__icontains=search_text) | Q(notes__icontains=search_text)
+            Q(description__icontains=search_text)
+            | Q(notes__icontains=search_text)
         )
 
     for tran in trans_no_account:

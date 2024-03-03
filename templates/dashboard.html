@@ -12,8 +12,8 @@
 
         <div style="display: flex; align-items: center;">
             <h2 style="margin-right: 32px">Account balances</h2>
-            <button id="link-button" class="general-button">➕ Add a syncing account</button>
-            <button id="add-manual-button" class="general-button" onclick="toggleAddManual()">➕ Add a manual account</button>
+            <button id="link-button" class="general-button">➕ Syncing account</button>
+            <button id="add-manual-button" class="general-button" onclick="toggleAddManual()">➕ Manual account</button>
         </div>
 
         {#                <h3>{{ account.institution.name }}</h3>#}
@@ -165,55 +165,71 @@
             <h2 style="margin-right: 32px;">Transactions</h2>
             {# Required to show borders?#}
 
-            <span>🔍</span>
+            <div style="display: flex; align-items: center;">
+                <span>🔍</span>
+                <input
+                        id="search"
+                        placeholder=""
+                        style="margin-right: 80px; width: 120px;"
+                        oninput="updateSearch()"
+                />
+            </div>
+
+            <div style="display: flex; align-items: center;">
+            <h4 style="width: 70px;">Value ></h4>
             <input
-                    id="search"
-                    placeholder=""
-                    style="margin-right: 80px; width: 120px; height: 32px;"
+                    id="transaction-value-filter"
+                    type="number"
+                    value="0"
+                    {#                    style="margin-right: 80px; width: 120px; height: 32px;"#}
+                    style="width: 60px"
+{#                     todo: Same as search change?#}
                     oninput="updateSearch()"
             />
-
-            <form
-                    id="import-form"
-                    method="post"
-                    enctype="multipart/form-data"
-                    {#                    collapse vis a/r#}
-                    style="display: flex; align-items: center; visibility: hidden;"
-            >
-                {% csrf_token %}
-                {#                <input#}
-                {#                    style="color: black; background-color: #aaaaaa; height: 38px;"#}
-                {#                    type="file"#}
-                {#                    accept="text/csv"#}
-                {#                />#}
-                <input type="file" name="file" required id="id_file"
-                       style="color: black; background-color: #aaaaaa; height: 38px;">
-                <button type="submit" class="general-button">Import from Mint</button>
-            </form>
-            <button id="import-start" class="general-button">Import ↑</button>
-
-
-            {#            Have a button show the import dialog#}
-            {#            <button id="import" class="general-button">Import from Mint</button>#}
-            <button id="export" class="general-button">Export ↓</button>
         </div>
 
-        <table id="transactions" style="border-collapse: collapse;">
-            {#            {% for tran in transactions %}#}
-            {#                <tr class="transaction">#}
-            {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>#}
-            {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>#}
-            {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal; color: #444444;">{{ tran.notes }}</h4></td>#}
-            {#                    <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-heading">{{ tran.amount }}</h4></td>#}
-            {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>#}
-            {#                </tr>#}
-            {#            {% endfor %}#}
-        </table>
+        {#            Import / export form #}
+        <form
+                id="import-form"
+                method="post"
+                enctype="multipart/form-data"
+                {#                    collapse vis a/r#}
+                style="display: flex; align-items: center; visibility: hidden;"
+        >
+            {% csrf_token %}
+            {#                <input#}
+            {#                    style="color: black; background-color: #aaaaaa; height: 38px;"#}
+            {#                    type="file"#}
+            {#                    accept="text/csv"#}
+            {#                />#}
+            <input type="file" name="file" required id="id_file"
+                   style="color: black; background-color: #aaaaaa; height: 38px;">
+            <button type="submit" class="general-button">Import from Mint</button>
+        </form>
+        <button id="import-start" class="general-button">Import ↑</button>
 
-        {# todo: Load locally. #}
-        <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
 
-        <script src="../static/main.js"></script>
+        {#            Have a button show the import dialog#}
+        {#            <button id="import" class="general-button">Import from Mint</button>#}
+        <button id="export" class="general-button">Export ↓</button>
+    </div>
+
+    <table id="transactions" style="border-collapse: collapse;">
+        {#            {% for tran in transactions %}#}
+        {#                <tr class="transaction">#}
+        {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>#}
+        {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>#}
+        {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal; color: #444444;">{{ tran.notes }}</h4></td>#}
+        {#                    <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-heading">{{ tran.amount }}</h4></td>#}
+        {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>#}
+        {#                </tr>#}
+        {#            {% endfor %}#}
+    </table>
+
+    {# todo: Load locally. #}
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+
+    <script src="../static/main.js"></script>
     </div>
 
     <script>

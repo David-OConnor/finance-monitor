@@ -118,7 +118,7 @@ function refreshBalances() {
         });
 }
 
-function filterTransactions(searchText) {
+function filterTransactions(searchText, valueThresh) {
     let transactions
     // todo: Use TRANSACTIONS_DISPLAYED?
     // Note: This truthy statement catches both an empty string, and an undefined we get on init.
@@ -131,11 +131,16 @@ function filterTransactions(searchText) {
                 t.categories.toLowerCase().includes(searchText)
         })
     }
+
+    if (valueThresh) {
+        transactions = transactions.filter(t => Math.abs(t.amount) >= valueThresh)
+    }
+
     return transactions
 }
 
-function refreshTransactions(searchText) {
-    let transactions = filterTransactions(searchText)
+function refreshTransactions(searchText, valueThresh) {
+    let transactions = filterTransactions(searchText, valueThresh)
 
     let table = document.getElementById("transactions")
     table.replaceChildren();
@@ -158,7 +163,7 @@ function refreshTransactions(searchText) {
     // check.setAttribute("checked", TRANSACTION_ICONS)
     check.addEventListener("click", _ => {
         TRANSACTION_ICONS = !TRANSACTION_ICONS
-        refreshTransactions(searchText) // todo: Dangerous potentially re infinite recursions, but seems to be OK.
+        refreshTransactions(searchText, valueThresh) // todo: Dangerous potentially re infinite recursions, but seems to be OK.
     })
     console.log("Refreshing transactions.")
 
@@ -239,7 +244,16 @@ function refreshTransactions(searchText) {
 function updateSearch() {
     // SEARCH_TEXT = document.getElementById("search").value
     const searchText = document.getElementById("search").value.toLowerCase()
-    refreshTransactions(searchText)
+
+    // todo: Enforce integer value.
+    let valueThresh = document.getElementById("transaction-value-filter").value
+    // Remove non-integer values
+
+    // todo: number field here is actually interfering, returning an empty string if invalid;
+    // so, we can't just ignore chars.
+
+    valueThresh = parseInt(valueThresh.replace(/\D+/g, ''))
+    refreshTransactions(searchText, valueThresh)
 }
 
 
@@ -270,7 +284,7 @@ function addAccountManual() {
     //                 <input id="add-manual-current" type="number" value="0" />
 
     // todo: Validate no blank account name
-    data = {
+    const data = {
         name: document.getElementById("add-manual-name").value,
         sub_type: parseInt(document.getElementById("add-manual-type").value),
         current: parseInt(document.getElementById("add-manual-current").value),
@@ -287,7 +301,7 @@ function addAccountManual() {
     let form = document.getElementById("add-manual-form")
     let btn = document.getElementById("add-manual-button")
     form.style.visibility = "collapse"
-    btn.textContent = "➕ Add a manual account"
+    btn.textContent = "➕ Manual account"
 }
 
 function init() {
@@ -368,7 +382,7 @@ function toggleAddManual() {
 
     if (form.style.visibility === "visible") {
         form.style.visibility = "collapse"
-        btn.textContent = "➕ Add a manual account"
+        btn.textContent = "➕ Manual account"
     } else {
         form.style.visibility = "visible"
         btn.textContent = "(Cancel adding this account)"
