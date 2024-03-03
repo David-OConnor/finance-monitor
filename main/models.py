@@ -217,3 +217,10 @@ class Transaction(Model):
         # Unique together here prevents duplicates, eg from importing a file multiple times.
         # How does unique together work with float?
         unique_together = ["date", "description", "amount"]
+
+# todo: More refined snapshot, including all accounts.
+
+class NetWorthSnapshot(Model):
+    person = ForeignKey(Person, related_name="net_worth_snapshots", on_delete=CASCADE)
+    datetime = DateTimeField()
+    value = FloatField()

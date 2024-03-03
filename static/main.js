@@ -109,7 +109,7 @@ function refreshBalances() {
         });
 }
 
-function refreshTransactions(transactions) {
+function refreshTransactions() {
     // todo DRY with balance refresh
 
     // fetch("/refresh-transactions", FETCH_HEADERS_GET)
@@ -123,8 +123,7 @@ function refreshTransactions(transactions) {
     let table = document.getElementById("transactions")
     table.replaceChildren();
 
-
-    for (let tran of transactions) {
+    for (let tran of TRANSACTIONS) {
         const row = document.createElement("tr")
 
         let col = document.createElement("td")
@@ -248,7 +247,8 @@ function init() {
         // Parse JSON if able.
         .then(result => result.json())
         .then(r => {
-            refreshTransactions(r.transactions)
+            TRANSACTIONS = r.transactions
+            refreshTransactions()
         });
 }
 
