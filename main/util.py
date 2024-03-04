@@ -61,6 +61,6 @@ def create_transaction_display(
     result.sort(key=lambda t: t["date"], reverse=True)
 
     for tran in result:
-        tran.pop("date")  # Remove the non-display date after sorting.
+        tran["date"] = tran["date"].isoformat()
 
     return result

@@ -154,6 +154,8 @@ function refreshTransactions(searchText, valueThresh) {
     let div = createEl("div", {}, {display: "flex", alignItems: "center"}, "")
     let h = createEl("h4", {class: "tran-heading"}, {}, "Icons")
 
+    // todo: form to add a new transaction.
+
     // todo: Store to the DB
     let check = createEl("input", {type: "checkbox"}, {}, "")
     if (TRANSACTION_ICONS) {

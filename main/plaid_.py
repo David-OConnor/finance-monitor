@@ -32,21 +32,26 @@ from .models import (
     Transaction,
 )
 from .transaction_cats import TransactionCategory
-from wallet.settings import PLAID_SECRET, PLAID_CLIENT_ID
+from wallet.settings import PLAID_SECRET, PLAID_CLIENT_ID, PLAID_MODE, PlaidMode
 
 import plaid
 from plaid.api import plaid_api
 
-BASE_URL = "https://www.plaid.com/api"
+#  must be one of [
+#  "assets",  "auth", "balance", "identity", "identity_match", "investments", "investments_auth", "liabilities", "payment_initiation",
+#  "identity_verification", "transactions", "credit_details", "income", "income_verification", "deposit_switch",
+#  "standing_orders", "transfer", "employment", "recurring_transactions", "signal", "statements", "processor_payments", "processor_identity",
 
+# Todo: SO confused about this, eg https://dashboard.plaid.com/overview/request-products
 PLAID_PRODUCTS = [
     Products(p)
     for p in [
-        "assets",
-        # "balance",
+        # "assets",  # todo: Not auth currently. Do we need it?
+        # "balance",  # todo: Not supported as an initial product?
         "transactions",
         "investments",
-        # "recurring_transactions",
+        "liabilities",
+        # "recurring_transactions", # todo: Not supported as an initial product?
     ]
 ]
 
@@ -58,8 +63,18 @@ PLAID_REDIRECT_URI = "http://localhost:8080/"  # todo
 # 'Production'
 # 'Development'
 # 'Sandbox'
+if PLAID_MODE == PlaidMode.SANDBOX:
+    host = plaid.Environment.Sandbox
+elif PLAID_MODE == PlaidMode.DEV:
+    host = plaid.Environment.Development
+elif PLAID_MODE == PlaidMode.PRODUCTION:
+    host = plaid.Environment.Production
+else:
+    print("Fallthorugh on plaid mode")
+    host = plaid.Environment.Sandbox
+
 configuration = plaid.Configuration(
-    host=plaid.Environment.Sandbox,
+    host=host,
     api_key={
         "clientId": PLAID_CLIENT_ID,
         "secret": PLAID_SECRET,
@@ -83,6 +98,8 @@ def get_balance_data(access_token: str) -> AccountBase:
 def refresh_account_balances(account: FinancialAccount):
     """Update account information in the database."""
     balance_data = get_balance_data(account.access_token)
+
+    print("Balance data loaded: ", balance_data)
 
     # todo:  Handle  sub-acct entries in DB that have missing data.
     for sub_loaded in balance_data:
@@ -240,26 +257,3 @@ def _get_investment_holdings(access_token: str) -> (dict, dict):
     print(f"security: {securities}")
 
     return holdings, securities
-
-
-def _load_accounts(access_token: str):
-    url = BASE_URL + "accounts/get"
-
-    access_token = "asdf"
-
-    request = AccountsGetRequest(access_token=access_token)
-    response = client.accounts_get(request)
-    accounts = response["accounts"]
-
-    print("ACCOUNTS", accounts)
-
-    resp = requests.get(
-        url,
-        params={
-            "client_id": PLAID_CLIENT_ID,
-            "secret": PLAID_SECRET,
-            "access_token": access_token,
-            # "options": {},
-            # "account_ids": [],
-        },
-    )

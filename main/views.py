@@ -121,6 +121,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     # Update account info, if we are due for a refresh
     for acc in accounts:
+        print("Account: ", acc)
         if (timezone.now() - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
             plaid_.refresh_account_balances(acc)
             plaid_.load_transactions(acc)
@@ -174,7 +175,15 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         elif t in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
             credit_debit_accs.append(sub_acc.to_display_dict())
             totals["credit_debit"] -= sub_acc.current
-        elif t in [SubAccountType.T401K, SubAccountType.CD, SubAccountType.MONEY_MARKET, SubAccountType.IRA, SubAccountType.STOCK_MUTUAL_FUND]:
+        elif t in [
+            SubAccountType.T401K,
+            SubAccountType.CD,
+            SubAccountType.MONEY_MARKET,
+            SubAccountType.IRA,
+            SubAccountType.MUTUAL_FUND,
+            SubAccountType.BROKERAGE,
+            SubAccountType.ROTH,
+        ]:
             investment_accs.append(sub_acc.to_display_dict())
             totals["investment"] += sub_acc.current
         elif t in [SubAccountType.STUDENT, SubAccountType.MORTGAGE]:
@@ -195,8 +204,8 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     for (k, v) in totals.items():
         totals_display[k + "_class"] = "tran_pos" if v > 0.0 else "tran_neg"
-        totals_display[k] = f"{v:,.0f}"
-
+        # A bit of a hack to keep this value consistent with the sub-account values.
+        totals_display[k] = f"{v:,.0f}".replace("-", "")
 
     #  todo: Move this A/R
     if request.method == 'POST':
@@ -204,14 +213,16 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         file_data = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         export.import_csv_mint(file_data, request.user.person)
 
+    print("CRYPTO ACCS", crypto_accs)
+    print("cash_accs", investment_accs)
+
     context = {
         "accounts": accounts,
         "cash_accs": cash_accs,
         "investment_accs": investment_accs,
-        "crypto_accs:": crypto_accs,
+        "crypto_accs": crypto_accs,
         "credit_debit_accs": credit_debit_accs,
         "loan_accs": loan_accs,
-        "crypto_accs": crypto_accs,
         "assets": asset_accs,
         # "transactions": transactions,
         "totals": totals_display,
@@ -264,7 +275,40 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     public_token = data["public_token"]
     metadata = data["metadata"]
 
-    print("\nMetadata received: ", metadata)
+    # Example metadata: {
+    # 'status': None,
+    # 'link_session_id': '973847c4-be0b-4619-b241-f48fbcf16949',
+    # 'institution': {
+    #   'name': 'Interactive Brokers - US',
+    #   'institution_id': 'ins_116530'
+    # },
+    # 'accounts': [
+        # {
+        # 'id': 'prvM1kM78eH1Ejw5OyDzI4k01joBm8H3Nyn7Q',
+        # 'name': "David A O'Connor",
+        # 'mask': '4029',
+        # 'type': 'investment',
+        # 'subtype': 'brokerage',
+        # 'verification_status': None,
+        # 'class_type': None
+        # }
+    # ],
+    # 'account': {
+    #   'id': 'prvM1kM78eH1Ejw5OyDzI4k01joBm8H3Nyn7Q',
+    #   'name': "David A O'Connor",
+    #   'mask': '4029',
+    #   'type': 'investment',
+    #   'subtype': 'brokerage',
+    #   'verification_status': None,
+    #   'class_type': None
+    # },
+    # 'account_id': 'prvM1kM78eH1Ejw5OyDzI4k01joBm8H3Nyn7Q',
+    # 'transfer_status': None,
+    # 'wallet': None,
+    # 'public_token': 'public-development-0cce98fd-c5e1-424b-ae33-b9ea92332522'
+    # }
+
+    print("\nMetadata received during token exchange (account link): ", metadata)
 
     request = ItemPublicTokenExchangeRequest(public_token=public_token)
 
@@ -291,6 +335,8 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         item_id=item_id,
         last_refreshed=timezone.now(),
     )
+    # todo: We can add subaccounts here if we wish, using metadata["accounts"].
+    # todo: Sub-keys
 
     try:
         account_added.save()

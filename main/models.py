@@ -48,10 +48,11 @@ class SubAccountType(Enum):
     CD = 7
     MONEY_MARKET = 8
     IRA = 9
-    # These aren't reported by Plaid so far
-    STOCK_MUTUAL_FUND = 10
+    MUTUAL_FUND = 10
     CRYPTO = 11
     ASSET = 12  # A bit of a catch-all
+    BROKERAGE = 13
+    ROTH = 14
 
 
     @classmethod
@@ -78,14 +79,18 @@ class SubAccountType(Enum):
             return cls.MONEY_MARKET
         if "ira" == s:
             return cls.IRA
-        if "stock" in s or "mutual" in s or "invest" in s:
-            return cls.STOCK_MUTUAL_FUND
+        if "mutual" in s:
+            return cls.MUTUAL_FUND
         if "crypto" in s:
             return cls.CRYPTO
         if "asset" in s:
             return cls.ASSET
+        if "broker" in s or "stock" in s:
+            return cls.BROKERAGE
+        if "roth" in s:
+            return cls.ROTH
 
-        print("Fallthrough in parsing sub account type: ", s)
+        print(f"\nFallthrough in parsing sub account type: {s}\n")
         return cls.CHECKING
 
 
@@ -125,7 +130,9 @@ class AccountType(Enum):
             SubAccountType.CD,
             SubAccountType.MONEY_MARKET,
             SubAccountType.IRA,
-            SubAccountType.STOCK_MUTUAL_FUND
+            SubAccountType.MUTUAL_FUND,
+            SubAccountType.BROKERAGE,
+            SubAccountType.ROTH,
         ]:
             return cls.INVESTMENT
         if sub_type in [SubAccountType.MORTGAGE, SubAccountType.STUDENT]:
@@ -141,6 +148,7 @@ class Person(Model):
     unsuccessful_login_attempts = IntegerField(default=0)
     account_locked = BooleanField(default=False)
     email_verified = BooleanField(default=False)
+    subscribed = BooleanField(default=False)
 
     def __str__(self):
         return f"Person. id: {self.id} User: {self.user.username}"
@@ -217,7 +225,7 @@ class SubAccount(Model):
     plaid_id = CharField(max_length=100, blank=True, null=True)
     plaid_id_persistent = CharField(max_length=100, blank=True, null=True)
     name = CharField(max_length=50)
-    name_official = CharField(max_length=100, null=True, blank=True)
+    name_official = CharField(max_length=100, default="")
     nickname = CharField(max_length=30, default="")
     type = IntegerField(choices=AccountType.choices())
     sub_type = IntegerField(choices=SubAccountType.choices())
@@ -254,6 +262,8 @@ class SubAccount(Model):
 
         return {
             "name": self.name,
+            # todo: Consider a "name_display" that is based on if nick, and name_official are avail.
+            "name_official": self.name_official,
             "nickname": self.nickname,
             "institution": institution,
             "current": f"{self.current:,.0f}",
