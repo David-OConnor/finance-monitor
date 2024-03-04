@@ -99,6 +99,7 @@
             {% if cash_accs|length %}
                 <div class="account-type">
                     <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Cash</h2>
+                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{ totals.cash_class }}">{{ totals.cash }}</h2>
                     {% for acc in cash_accs %}
                         <div style="display: flex; justify-content: space-between">
                             {% if acc.nickname %}
@@ -116,6 +117,7 @@
             {% if investment_accs|length %}
                 <div class="account-type">
                     <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Investments</h2>
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{ totals.investment_class }}">{{ totals.investment }}</h2>
                     {% for acc in investment_accs %}
                         <div style="display: flex; justify-content: space-between">
                             <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
@@ -128,6 +130,7 @@
             {% if crypto_accs|length %}
                 <div class="account-type">
                     <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Crypto</h2>
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{ totals.crypto_class }}">{{ totals.crypto }}</h2>
                     {% for acc in crypto_accs %}
                         <div style="display: flex; justify-content: space-between">
                             <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
@@ -140,6 +143,7 @@
             {% if credit_debit_accs|length %}
                 <div class="account-type">
                     <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Credit and debit</h2>
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{  totals.credit_debit_class}}">{{ totals.credit_debit }}</h2>
                     {% for acc in credit_debit_accs %}
                         <div style="display: flex; justify-content: space-between">
                             <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
@@ -152,6 +156,7 @@
             {% if loan_accs|length %}
                 <div class="account-type">
                     <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Loans</h2>
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{ totals.loans_class }}">{{ totals.loans }}</h2>
                     {% for acc in loan_accs %}
                         <div style="display: flex; justify-content: space-between">
                             <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
@@ -163,7 +168,8 @@
 
             {% if crypto_accs|length %}
                 <div class="account-type">
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Loans</h2>
+                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Crypto</h2>
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{  totals.crypto}}">{{ totals.crypto }}</h2>
                     {% for acc in crypto_accs %}
                         <div style="display: flex; justify-content: space-between">
                             <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
@@ -176,6 +182,7 @@
             {% if asset_accs|length %}
                 <div class="account-type">
                     <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Assets and manual</h2>
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{  totals.assets_class}}">{{ totals.assets }}</h2>
                     {% for acc in assets %}
                         <div style="display: flex; justify-content: space-between">
                             <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>

@@ -148,7 +148,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         "investment": 0,
         "crypto": 0,
         "credit_debit": 0,
-        "loan": 0,
+        "loans": 0,
         "assets": 0,
         # net_worth: f"{net_worth:,.0f}"
         "net_worth": net_worth,
@@ -163,18 +163,23 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
         t = SubAccountType(sub_acc.sub_type)
 
+        # todo: Integer math and DB storage; not floating point.
+
+        # todo: Consistency with use of minus signs on debgs. Currently reverse behavior on cat
+        # total and per-accoutn for loads, CC+Debit
+
         if t in [SubAccountType.CHECKING, SubAccountType.SAVINGS]:
             cash_accs.append(sub_acc.to_display_dict())
             totals["cash"] += sub_acc.current
         elif t in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
             credit_debit_accs.append(sub_acc.to_display_dict())
-            totals["credit_debit"] += sub_acc.current
+            totals["credit_debit"] -= sub_acc.current
         elif t in [SubAccountType.T401K, SubAccountType.CD, SubAccountType.MONEY_MARKET, SubAccountType.IRA, SubAccountType.STOCK_MUTUAL_FUND]:
             investment_accs.append(sub_acc.to_display_dict())
             totals["investment"] += sub_acc.current
         elif t in [SubAccountType.STUDENT, SubAccountType.MORTGAGE]:
             loan_accs.append(sub_acc.to_display_dict())
-            totals["loan"] += sub_acc.current
+            totals["loans"] -= sub_acc.current
         elif t in [SubAccountType.CRYPTO]:
             crypto_accs.append(sub_acc.to_display_dict())
             totals["crypto"] += sub_acc.current
@@ -184,8 +189,14 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         else:
             print("Fallthrough in sub account type: ", t)
 
+    # Apply a class for color-coding in the template.
+
+    totals_display = {}  # Avoids adding keys while iterating.
+
     for (k, v) in totals.items():
-        totals[k] = f"{net_worth:,.0f}"
+        totals_display[k + "_class"] = "tran_pos" if v > 0.0 else "tran_neg"
+        totals_display[k] = f"{v:,.0f}"
+
 
     #  todo: Move this A/R
     if request.method == 'POST':
@@ -203,7 +214,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         "crypto_accs": crypto_accs,
         "assets": asset_accs,
         # "transactions": transactions,
-        "totals": totals,
+        "totals": totals_display,
     }
 
     return render(request, "../templates/dashboard.html", context)
