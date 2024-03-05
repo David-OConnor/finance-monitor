@@ -64,20 +64,49 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     person = request.user.person
     accounts = person.accounts.all()
 
-    body = json.loads(request.body.decode('utf-8'))
-    print("Body of transactions: ", body)
+    data = json.loads(request.body.decode('utf-8'))
+    print("Body of transactions: ", data)
     # todo: Use pages or last index A/R.
 
-    search_text = body.get("search_text")
-    categories = body.get("categories")
-    start = body.get("start")
-    end = body.get("end")
+    search_text = data.get("search_text")
+    categories = data.get("categories")
+    start = data.get("start")
+    end = data.get("end")
 
     transactions = {
         "transactions": util.create_transaction_display(accounts, person, search_text)
     }
 
     return HttpResponse(json.dumps(transactions), content_type="application/json")
+
+
+@login_required
+def edit_transactions(request: HttpRequest) -> HttpResponse:
+    """Edit transactions."""
+    person = request.user.person
+
+    data = json.loads(request.body.decode('utf-8'))
+    print("Body of transaction edit: ", data)
+
+    result = {"success": True}
+
+    for tran in data.get("transactions", []):
+        print("Tran: ", tran)
+
+        model, updated = Transaction.objects.update_or_create(
+            id=tran["id"],
+            defaults={
+                "notes": tran["notes"],
+                "date": tran["date"],
+            }
+        )
+
+
+    # transactions = {
+    #     "transactions": util.create_transaction_display(accounts, person, search_text)
+    # }
+
+    return HttpResponse(json.dumps(result), content_type="application/json")
 
 
 @login_required

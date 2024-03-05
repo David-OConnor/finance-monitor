@@ -31,8 +31,8 @@ let TRANSACTIONS = []
 let TRANSACTIONS_DISPLAYED = []
 let TRANSACTION_ICONS = true
 let EDIT_MODE = false
-
-
+// We use an object vice map for serialization.
+let TRANSACTIONS_UPDATED = {}
 
 
 function getPublicToken() {
@@ -177,6 +177,7 @@ function refreshTransactions() {
 
     // head.appendChild(col)
 
+
     for (let tran of transactions) {
         const row = document.createElement("tr")
 
@@ -197,9 +198,18 @@ function refreshTransactions() {
 
         col = createEl("td", {class: "transaction-cell"}, {})
         if (EDIT_MODE) {
-            h = createEl("input", {value: tran.notes}, {marginRight: "30px"}, "")
+            h = createEl("input", {id: "edit-notes:" + tran.id, value: tran.notes}, {marginRight: "30px"}, "")
+
+            h.addEventListener("input", e => {
+                let updated = {
+                    ...tran,
+                    notes: e.target.value
+                }
+                // todo: DRY!
+                TRANSACTIONS_UPDATED[String(tran.id)] = updated
+            })
         } else {
-            h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal", color: "#444444"}, tran.notes)
+            h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal", color: "#444444", marginRight: "60px"}, tran.notes)
         }
 
         col.appendChild(h)
@@ -208,7 +218,8 @@ function refreshTransactions() {
 
         col = createEl("td", {class: "transaction-cell"}, {})
         if (EDIT_MODE) {
-            h = createEl("input", {value: tran.amount}, {width: "80px", textAlign: "right", marginRight: "30px"}, "")
+            h = createEl("input", {id: "edit-amount:" + tran.id, value: tran.amount},
+                {width: "80px", textAlign: "right", marginRight: "30px"}, "")
         } else {
             h = createEl("h4", {class: "tran-heading " +  tran.amount_class}, {}, tran.amount)
         }
@@ -219,7 +230,16 @@ function refreshTransactions() {
 
         col = createEl("td", {class: "transaction-cell"}, {})
         if (EDIT_MODE) {
-            h = createEl("input", {type: "date", value: tran.date}, {width: "120px"}, "")
+            h = createEl("input", {id: "edit-date:" + tran.id,type: "date", value: tran.date}, {width: "120px"}, "")
+
+            h.addEventListener("input", e => {
+                let updated = {
+                    ...tran,
+                    date: e.target.value
+                }
+                // todo: DRY!
+                TRANSACTIONS_UPDATED[String(tran.id)] = updated
+            })
         } else {
             h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
         }
@@ -305,6 +325,51 @@ function addAccountManual() {
     btn.textContent = "➕ Manual account"
 }
 
+function setupEditTranButton() {
+    let btn = document.getElementById("edit-transactions");
+
+    btn.addEventListener("click", _ => {
+        if (EDIT_MODE) {
+            // Save transactions on click
+
+            const data = {
+                // Discard keys; we mainly use them for updating internally here.
+                transactions: Object.values(TRANSACTIONS_UPDATED)
+            }
+
+            // Save transactions to the database.
+            fetch("/edit-transactions", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("Transaction save failed")
+                    }
+                });
+
+            // Update transactions in place, so a refresh isn't required.
+            for (let tran of Object.values(TRANSACTIONS_UPDATED)) {
+                console.log(tran.notes, "N")
+                TRANSACTIONS = [
+                    ...TRANSACTIONS.filter(t => t.id !== tran.id),
+                    tran,
+                ]
+            }
+
+            TRANSACTIONS_UPDATED = {}
+
+            refreshTransactions()  // Overkill; just to taek out of edit mode. todo: SPlit refreshTransactions.
+            EDIT_MODE = false
+            btn.textContent = "Edit transactions"
+        } else {
+            // Enable editing on click.
+            refreshTransactions()  // Overkill; just to taek out of edit mode. todo: SPlit refreshTransactions.
+            EDIT_MODE = true
+            btn.textContent = "Save transactions"
+        }
+        refreshTransactions()
+    })
+}
+
 function init() {
     // We run this on page load
     document.getElementById("link-button").addEventListener("click", _ => {
@@ -346,7 +411,7 @@ function init() {
         .then(result => result.json())
         .then(r => {
             TRANSACTIONS = r.transactions
-            TRANSACTIONS_DISPLAYED = r.transactions
+            // TRANSACTIONS_DISPLAYED = r.transactions
             refreshTransactions()
         });
 
@@ -356,10 +421,7 @@ function init() {
         refreshTransactions() // todo: Dangerous potentially re infinite recursions, but seems to be OK.
     })
 
-    document.getElementById("edit-transactions").addEventListener("click", _ => {
-        EDIT_MODE = !EDIT_MODE
-        refreshTransactions()
-    })
+    setupEditTranButton()
 }
 
 init()

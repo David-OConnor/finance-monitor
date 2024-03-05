@@ -4,6 +4,7 @@ This module contains interacdtions with Plaid's API
 
 import json
 from enum import Enum, auto
+from typing import Optional
 
 import requests
 import pydantic
@@ -11,6 +12,7 @@ import pydantic
 from django.utils import timezone
 
 import plaid
+from plaid import ApiException
 from plaid.model.account_base import AccountBase
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
 from plaid.model.accounts_get_request import AccountsGetRequest
@@ -47,7 +49,7 @@ PLAID_PRODUCTS = [
     Products(p)
     for p in [
         # "assets",  # todo: Not auth currently. Do we need it?
-        "balances",
+        # "balance",
         "transactions",
         "investments",
         "liabilities",
@@ -86,11 +88,17 @@ api_client = plaid.ApiClient(configuration)
 client = plaid_api.PlaidApi(api_client)
 
 
-def get_balance_data(access_token: str) -> AccountBase:
+def get_balance_data(access_token: str) -> Optional[AccountBase]:
     """Pull real-time balance information for each account associated
     with the access token. This returns sub-accounts, currently as a dict."""
     request = AccountsBalanceGetRequest(access_token=access_token)
-    response = client.accounts_balance_get(request)
+
+    try:
+        response = client.accounts_balance_get(request)
+    except ApiException as e:
+        print("API exception; unable to access this account: ", e)
+        return None
+
 
     return response["accounts"]
 
@@ -98,6 +106,8 @@ def get_balance_data(access_token: str) -> AccountBase:
 def refresh_account_balances(account: FinancialAccount):
     """Update account information in the database."""
     balance_data = get_balance_data(account.access_token)
+    if balance_data is None:
+        return
 
     print("Balance data loaded: ", balance_data)
 

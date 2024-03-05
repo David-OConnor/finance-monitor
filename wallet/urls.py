@@ -38,4 +38,5 @@ urlpatterns = [
     # path("import", views.import_),
     path("load-transactions", views.load_transactions),
     path("add-account-manual", views.add_account_manual),
+    path("edit-transactions", views.edit_transactions),
 ]
