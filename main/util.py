@@ -3,23 +3,36 @@ from typing import List, Dict, Iterable, Optional
 
 from django.db.models import Q
 
-from main.models import AccountType, FinancialAccount, Person
+from main.models import AccountType, FinancialAccount, Person, SubAccount
+
+
+def unw_helper(net_worth: float, sub_acc: SubAccount) -> float:
+    if not sub_acc.ignored and sub_acc.current is not None:
+        sign = 1
+
+        if AccountType(sub_acc.type) in [
+            AccountType.LOAN,
+            AccountType.CREDIT,
+        ]:
+            sign *= -1
+
+        net_worth += sign * sub_acc.current
+    return net_worth
 
 
 def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
     # Update net worth in place, based on this account's sub-accounts.
     # In Python, this means we must return the new value
-    for sub_acc_model in account.sub_accounts.all():
-        if not sub_acc_model.ignored and sub_acc_model.current is not None:
-            sign = 1
+    for sub_acc in account.sub_accounts.all():
+        net_worth = unw_helper(net_worth, sub_acc)
 
-            if AccountType(sub_acc_model.type) in [
-                AccountType.LOAN,
-                AccountType.CREDIT,
-            ]:
-                sign *= -1
+    return net_worth
 
-            net_worth += sign * sub_acc_model.current
+
+def update_net_worth_manual_accs(net_worth: float, person: Person) -> float:
+    for sub_acc in person.subaccounts_manual.all():
+        net_worth = unw_helper(net_worth, sub_acc)
+
     return net_worth
 
 

@@ -50,6 +50,9 @@ class TransactionCategory(Enum):
     FEES = 28
     TAXES = 29
     BUSINESS_SERVICES = 30
+    CASH_AND_CHECKS = 31
+    GIFT = 32
+    EDUCATION = 33
 
     @classmethod
     def from_str(cls, s: str) -> "TransactionCategory":
@@ -118,6 +121,12 @@ class TransactionCategory(Enum):
             return cls.TAXES
         if "business" in s:
             return cls.BUSINESS_SERVICES
+        if "cash" in s or "check" in s:
+            return cls.CASH_AND_CHECKS
+        if "gift" in s:
+            return cls.GIFT
+        if "eduation" in s:
+            return cls.EDUCATION
 
         print("Fallthrough in parsing transaction category: ", s)
         return cls.UNCATEGORIZED
@@ -185,6 +194,12 @@ class TransactionCategory(Enum):
             return "Taxes"
         if self == TransactionCategory.BUSINESS_SERVICES:
             return "Business services"
+        if self == TransactionCategory.CASH_AND_CHECKS:
+            return "Cash and checks"
+        if self == TransactionCategory.GIFTS:
+            return "Gifts"
+        if self == TransactionCategory.EDUCATION:
+            return "Education"
 
         print("Fallthrough on cat to string", self)
         return "Fallthrough"
@@ -252,6 +267,13 @@ class TransactionCategory(Enum):
             return "🏛️💵 "
         if self == TransactionCategory.BUSINESS_SERVICES:
             return "📈"
+        if self == TransactionCategory.CASH_AND_CHECKS:
+            return "💵"
+        if self == TransactionCategory.GIFTS:
+            return "🎁"
+        if self == TransactionCategory.EDUCATION:
+            return "🎓"
+
 
         print("Fallthrough on cat to icon", self)
         return "Fallthrough"

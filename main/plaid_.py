@@ -47,7 +47,7 @@ PLAID_PRODUCTS = [
     Products(p)
     for p in [
         # "assets",  # todo: Not auth currently. Do we need it?
-        # "balance",  # todo: Not supported as an initial product?
+        "balances",
         "transactions",
         "investments",
         "liabilities",

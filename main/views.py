@@ -123,16 +123,17 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     for acc in accounts:
         print("Account: ", acc)
         if (timezone.now() - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
+            print("Refreshing account data...")
+
             plaid_.refresh_account_balances(acc)
             plaid_.load_transactions(acc)
-
-            print("Refreshing account data...")
-            # todo: Function?
-
         else:
             print("Not refreshing account data")
 
         net_worth = util.update_net_worth(net_worth, acc)
+        print(net_worth, "NW")
+
+    net_worth = util.update_net_worth_manual_accs(net_worth, person)
 
     # todo: Delegate this to a fn A/R
     # Organize balances by sub-account
@@ -212,9 +213,6 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         uploaded_file = request.FILES['file']
         file_data = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         export.import_csv_mint(file_data, request.user.person)
-
-    print("CRYPTO ACCS", crypto_accs)
-    print("cash_accs", investment_accs)
 
     context = {
         "accounts": accounts,
