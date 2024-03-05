@@ -360,7 +360,11 @@ class Transaction(Model):
         ordering = ["-date"]
         # Unique together here prevents duplicates, eg from importing a file multiple times.
         # How does unique together work with float?
-        unique_together = ["date", "description", "amount"]
+        unique_together = [
+            ["date", "description", "amount", "account"],
+            ["date", "description", "amount", "person"],
+        ]
+
 
 
 # todo: More refined snapshot, including all accounts.

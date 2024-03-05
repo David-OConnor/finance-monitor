@@ -240,7 +240,23 @@
             <button id="export" class="general-button">Export ↓</button>
         </div>
 
-        <table id="transactions" style="border-collapse: collapse;">
+        <table style="border-collapse: collapse;">
+            <thead>
+            <tr style="height: 40px; border-bottom: 2px solid black;">
+                <th>
+                    <div style="display: flex; align-items: center;">
+                        <h4 class="tran-heading">Icons</h4>
+                        <input id="icon-checkbox" type="checkbox" checked />
+
+                    </div>
+                </th>
+                <th><button id="edit-transactions" class="button-small">Edit transactions</button></th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody id="transaction-tbody"></tbody>
             {#            {% for tran in transactions %}#}
             {#                <tr class="transaction">#}
             {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>#}

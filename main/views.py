@@ -109,6 +109,7 @@ def add_account_manual(request: HttpRequest) -> HttpResponse:
         print("Integrity error on saving a manual account")
         success = False
 
+    # return HttpResponseRedirect("/dashboard")
     return HttpResponse(json.dumps({"success": success}), content_type="application/json")
 
 
@@ -213,6 +214,8 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         uploaded_file = request.FILES['file']
         file_data = TextIOWrapper(uploaded_file.file, encoding='utf-8')
         export.import_csv_mint(file_data, request.user.person)
+
+        return HttpResponseRedirect("/dashboard")
 
     context = {
         "accounts": accounts,
@@ -494,17 +497,20 @@ class UploadFileForm(forms.Form):
     file = forms.FileField()
 
 
-@login_required
-def import_(request: HttpRequest) -> HttpResponse:
-    # todo: A/R
-
-
-    # body_unicode = request.body.decode('utf-8')
-    # csv_file = StringIO(body_unicode)
-    #
-    # export.import_csv_mint(csv_file, request.user.person)
-
-    return HttpResponse({"success": True})
+# @login_required
+# def import_(request: HttpRequest) -> HttpResponse:
+#     # todo: A/R
+#
+#
+#     # body_unicode = request.body.decode('utf-8')
+#     # csv_file = StringIO(body_unicode)
+#     #
+#     # export.import_csv_mint(csv_file, request.user.person)
+#
+#     print("IMPORT")
+#     # todo?
+#     # return HttpResponse({"success": True})
+#     return HttpResponseRedirect("/dashboard")
 
 
 @login_required

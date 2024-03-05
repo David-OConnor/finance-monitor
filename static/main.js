@@ -20,6 +20,7 @@ const FETCH_HEADERS_POST = {
 // Global mutal variables
 let LINK_TOKEN = ""
 let SEARCH_TEXT = ""
+let VALUE_THRESH = 0
 
 const PAGE_SIZE = 60
 
@@ -29,6 +30,7 @@ const PAGE_SIZE = 60
 let TRANSACTIONS = []
 let TRANSACTIONS_DISPLAYED = []
 let TRANSACTION_ICONS = true
+let EDIT_MODE = false
 
 
 
@@ -118,7 +120,10 @@ function refreshBalances() {
         });
 }
 
-function filterTransactions(searchText, valueThresh) {
+function filterTransactions() {
+    const searchText = SEARCH_TEXT
+    const valueThresh = VALUE_THRESH
+
     let transactions
     // todo: Use TRANSACTIONS_DISPLAYED?
     // Note: This truthy statement catches both an empty string, and an undefined we get on init.
@@ -139,61 +144,43 @@ function filterTransactions(searchText, valueThresh) {
     return transactions
 }
 
-function refreshTransactions(searchText, valueThresh) {
-    let transactions = filterTransactions(searchText, valueThresh)
+function refreshTransactions() {
+    let transactions = filterTransactions()
 
-    let table = document.getElementById("transactions")
-    table.replaceChildren();
+    let tbody = document.getElementById("transaction-tbody")
+    tbody.replaceChildren();
 
     // todo: thead and tbody els?
-
-    // todo: We don't need to recreate the TH each time.
-    const head = createEl("tr", {}, {height: "40px", borderBottom: "2px solid black"}, "")
-    let col = createEl("th", {"class": "transaction-cell"}, {}, "")
-
-    let div = createEl("div", {}, {display: "flex", alignItems: "center"}, "")
-    let h = createEl("h4", {class: "tran-heading"}, {}, "Icons")
+    //
+    // // todo: We don't need to recreate the TH each time.
+    // const head = createEl("tr", {}, {height: "40px", borderBottom: "2px solid black"}, "")
+    // let col = createEl("th", {"class": "transaction-cell"}, {}, "")
+    //
+    // let div = createEl("div", {}, {display: "flex", alignItems: "center"}, "")
+    // let h = createEl("h4", {class: "tran-heading"}, {}, "Icons")
 
     // todo: form to add a new transaction.
 
-    // todo: Store to the DB
-    let check = createEl("input", {type: "checkbox"}, {}, "")
-    if (TRANSACTION_ICONS) {
-        check.setAttribute("checked", null)
-    }
+    // // todo: Store to the DB
+    // let check = createEl("input", {type: "checkbox"}, {}, "")
+    // if (TRANSACTION_ICONS) {
+    //     check.setAttribute("checked", null)
+    // }
 
     // check.setAttribute("checked", TRANSACTION_ICONS)
-    check.addEventListener("click", _ => {
-        TRANSACTION_ICONS = !TRANSACTION_ICONS
-        refreshTransactions(searchText, valueThresh) // todo: Dangerous potentially re infinite recursions, but seems to be OK.
-    })
+
     console.log("Refreshing transactions.")
 
-    div.appendChild(h)
-    div.appendChild(check)
-    col.appendChild(div)
+    // div.appendChild(h)
+    // div.appendChild(check)
+    // col.appendChild(div)
 
-    head.appendChild(col)
-
-    // todo: Populate other headers A/R
-    col = createEl("th", {}, {}, "")
-    head.appendChild(col)
-
-    col = createEl("th", {}, {}, "")
-    head.appendChild(col)
-
-    col = createEl("th", {}, {}, "")
-    head.appendChild(col)
-
-    col = createEl("th", {}, {}, "")
-    head.appendChild(col)
-
-    table.appendChild(head)
+    // head.appendChild(col)
 
     for (let tran of transactions) {
         const row = document.createElement("tr")
 
-        col = document.createElement("td")
+        let col = document.createElement("td")
 
         if (TRANSACTION_ICONS) {
             col.textContent = tran.categories_icon
@@ -202,33 +189,45 @@ function refreshTransactions(searchText, valueThresh) {
         }
         row.appendChild(col)
 
-        // todo: Fn.
-
         col = createEl("td", {class: "transaction-cell"}, {})
-        h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal"}, tran.description)
+        let h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal"}, tran.description)
         col.appendChild(h)
 
         row.appendChild(col)
 
         col = createEl("td", {class: "transaction-cell"}, {})
-        h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal", color: "#444444"}, tran.notes)
+        if (EDIT_MODE) {
+            h = createEl("input", {value: tran.notes}, {marginRight: "30px"}, "")
+        } else {
+            h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal", color: "#444444"}, tran.notes)
+        }
+
         col.appendChild(h)
 
         row.appendChild(col)
 
         col = createEl("td", {class: "transaction-cell"}, {})
-        h = createEl("h4", {class: "tran-heading " +  tran.amount_class}, {}, tran.amount)
+        if (EDIT_MODE) {
+            h = createEl("input", {value: tran.amount}, {width: "80px", textAlign: "right", marginRight: "30px"}, "")
+        } else {
+            h = createEl("h4", {class: "tran-heading " +  tran.amount_class}, {}, tran.amount)
+        }
+
         col.appendChild(h)
 
         row.appendChild(col)
 
         col = createEl("td", {class: "transaction-cell"}, {})
-        h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
+        if (EDIT_MODE) {
+            h = createEl("input", {type: "date", value: tran.date}, {width: "120px"}, "")
+        } else {
+            h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
+        }
         col.appendChild(h)
 
         row.appendChild(col)
 
-        table.appendChild(row)
+        tbody.appendChild(row)
     }
     // {% for tran in transactions %}
     // <tr class="transaction">
@@ -254,8 +253,8 @@ function updateSearch() {
     // todo: number field here is actually interfering, returning an empty string if invalid;
     // so, we can't just ignore chars.
 
-    valueThresh = parseInt(valueThresh.replace(/\D+/g, ''))
-    refreshTransactions(searchText, valueThresh)
+    VALUE_THRESH = parseInt(valueThresh.replace(/\D+/g, ''))
+    refreshTransactions()
 }
 
 
@@ -350,6 +349,17 @@ function init() {
             TRANSACTIONS_DISPLAYED = r.transactions
             refreshTransactions()
         });
+
+    let check = document.getElementById("icon-checkbox")
+    check.addEventListener("click", _ => {
+        TRANSACTION_ICONS = !TRANSACTION_ICONS
+        refreshTransactions() // todo: Dangerous potentially re infinite recursions, but seems to be OK.
+    })
+
+    document.getElementById("edit-transactions").addEventListener("click", _ => {
+        EDIT_MODE = !EDIT_MODE
+        refreshTransactions()
+    })
 }
 
 init()
@@ -389,6 +399,5 @@ function toggleAddManual() {
         form.style.visibility = "visible"
         btn.textContent = "(Cancel adding this account)"
     }
-
 
 }

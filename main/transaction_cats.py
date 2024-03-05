@@ -125,7 +125,7 @@ class TransactionCategory(Enum):
             return cls.CASH_AND_CHECKS
         if "gift" in s:
             return cls.GIFT
-        if "eduation" in s:
+        if "education" in s:
             return cls.EDUCATION
 
         print("Fallthrough in parsing transaction category: ", s)

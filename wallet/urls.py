@@ -35,7 +35,7 @@ urlpatterns = [
     path("refresh-balances", views.refresh_balances),
     path("refresh-transactions", views.refresh_transactions),
     path("export", views.export_),
-    path("import", views.import_),
+    # path("import", views.import_),
     path("load-transactions", views.load_transactions),
     path("add-account-manual", views.add_account_manual),
 ]

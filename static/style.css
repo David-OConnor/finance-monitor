@@ -128,7 +128,23 @@ img {
     margin-bottom: 4px;  /* Useful when flex-wrapped, eg on mobile. */
     color: #3d3d3d;
     cursor: pointer;
-    /*height: 32px;*/
+}
+
+.button-small {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    /*width: 200px;*/
+    background-color: #c9e4ea;
+    border: 2px solid #222222;
+    padding: 14px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 4px;  /* Useful when flex-wrapped, eg on mobile. */
+    color: #3d3d3d;
+    cursor: pointer;
+    height: 28px;
 }
 
 @media (min-width: 600px) {
