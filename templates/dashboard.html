@@ -12,10 +12,12 @@
 
         <div style="display: flex; align-items: center;">
             <h2 style="margin-right: 32px">Account balances</h2>
-            <button id="link-button" class="general-button">➕ Syncing account</button>
-            <button id="add-manual-button" class="general-button" onclick="toggleAddManual()">➕ Manual account</button>
 
-            <p>Click an account to edit it</p>
+            <button id="link-button" class="button-general">➕ Syncing account</button>
+            <button id="add-manual-button" class="button-general" onclick="toggleAddManual()">➕ Manual account</button>
+            <button id="edit-accounts" class="button-general">✎ Edit</button>
+{#            <p>Click an account to edit it</p>#}
+
         </div>
 
         {#                <h3>{{ account.institution.name }}</h3>#}
@@ -89,7 +91,7 @@
                     <button
                             type="button"
                             onclick="addAccountManual()"
-                            class="general-button" style="width: 140px;"
+                            class="button-general" style="width: 140px;"
                     >
                         Add this account</button>
                 </div>
@@ -230,14 +232,14 @@
                 {#                />#}
                 <input type="file" name="file" required id="id_file"
                        style="color: black; background-color: #aaaaaa; height: 38px;">
-                <button type="submit" class="general-button">Import from Mint</button>
+                <button type="submit" class="button-general">Import from Mint</button>
             </form>
-            <button id="import-start" class="general-button">Import ↑</button>
+            <button id="import-start" class="button-general">Import ↑</button>
 
 
             {#            Have a button show the import dialog#}
             {#            <button id="import" class="general-button">Import from Mint</button>#}
-            <button id="export" class="general-button">Export ↓</button>
+            <button id="export" class="button-general">Export ↓</button>
         </div>
 
         <table style="border-collapse: collapse;">
@@ -251,7 +253,7 @@
                 </th>
                 <th><button id="edit-transactions" class="button-small">Edit transactions</button></th>
 {#                Notes#}
-                <th></th>
+                <th style="text-align: left">Notes</th>
                 <th></th>
                 <th></th>
             </tr>

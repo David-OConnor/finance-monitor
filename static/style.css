@@ -114,7 +114,7 @@ img {
     /*align-items: stretch;*/
 }
 
-.general-button {
+.button-general {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -148,7 +148,7 @@ img {
 }
 
 @media (min-width: 600px) {
-    .general-button {
+    .button-general {
         /*height: 50px;*/
     }
 }
@@ -162,7 +162,7 @@ img {
     justify-content: center;
 }
 
-.general-button:hover {
+.button-general:hover {
     /*background-color: #a1afe1;*/
     border-color: #58af55;
 }

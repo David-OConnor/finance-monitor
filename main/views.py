@@ -83,17 +83,12 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
 @login_required
 def edit_transactions(request: HttpRequest) -> HttpResponse:
     """Edit transactions."""
-    person = request.user.person
-
     data = json.loads(request.body.decode('utf-8'))
-    print("Body of transaction edit: ", data)
 
     result = {"success": True}
 
     for tran in data.get("transactions", []):
-        print("Tran: ", tran)
-
-        model, updated = Transaction.objects.update_or_create(
+        _, _ = Transaction.objects.update_or_create(
             id=tran["id"],
             defaults={
                 "notes": tran["notes"],
@@ -101,10 +96,25 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
             }
         )
 
+    return HttpResponse(json.dumps(result), content_type="application/json")
 
-    # transactions = {
-    #     "transactions": util.create_transaction_display(accounts, person, search_text)
-    # }
+
+@login_required
+def edit_accounts(request: HttpRequest) -> HttpResponse:
+    """Edit accounts. Notably, account nicknames, and everything about manual accounts."""
+    data = json.loads(request.body.decode('utf-8'))
+    print("Body of account edit: ", data)
+
+    result = {"success": True}
+
+    for acc in data.get("accounts", []):
+        _, _ = SubAccount.objects.update_or_create(
+            id=tran["id"],
+            defaults={
+                "notes": tran["notes"],
+                "date": tran["date"],
+            }
+        )
 
     return HttpResponse(json.dumps(result), content_type="application/json")
 

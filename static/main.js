@@ -30,9 +30,12 @@ const PAGE_SIZE = 60
 let TRANSACTIONS = []
 let TRANSACTIONS_DISPLAYED = []
 let TRANSACTION_ICONS = true
-let EDIT_MODE = false
-// We use an object vice map for serialization.
+let EDIT_MODE_TRAN = false
+let EDIT_MODE_ACC = false
+
+// We use an object vice map for serialization compatibility.
 let TRANSACTIONS_UPDATED = {}
+let ACCOUNTS_UPDATED = {}
 
 
 function getPublicToken() {
@@ -141,6 +144,8 @@ function filterTransactions() {
         transactions = transactions.filter(t => Math.abs(t.amount) >= valueThresh)
     }
 
+    transactions.sort((b, a) => new Date(a.date) - new Date(b.date))
+
     return transactions
 }
 
@@ -197,7 +202,7 @@ function refreshTransactions() {
         row.appendChild(col)
 
         col = createEl("td", {class: "transaction-cell"}, {})
-        if (EDIT_MODE) {
+        if (EDIT_MODE_TRAN) {
             h = createEl("input", {id: "edit-notes:" + tran.id, value: tran.notes}, {marginRight: "30px"}, "")
 
             h.addEventListener("input", e => {
@@ -217,7 +222,7 @@ function refreshTransactions() {
         row.appendChild(col)
 
         col = createEl("td", {class: "transaction-cell"}, {})
-        if (EDIT_MODE) {
+        if (EDIT_MODE_TRAN) {
             h = createEl("input", {id: "edit-amount:" + tran.id, value: tran.amount},
                 {width: "80px", textAlign: "right", marginRight: "30px"}, "")
         } else {
@@ -229,7 +234,7 @@ function refreshTransactions() {
         row.appendChild(col)
 
         col = createEl("td", {class: "transaction-cell"}, {})
-        if (EDIT_MODE) {
+        if (EDIT_MODE_TRAN) {
             h = createEl("input", {id: "edit-date:" + tran.id,type: "date", value: tran.date}, {width: "120px"}, "")
 
             h.addEventListener("input", e => {
@@ -329,7 +334,7 @@ function setupEditTranButton() {
     let btn = document.getElementById("edit-transactions");
 
     btn.addEventListener("click", _ => {
-        if (EDIT_MODE) {
+        if (EDIT_MODE_TRAN) {
             // Save transactions on click
 
             const data = {
@@ -348,7 +353,8 @@ function setupEditTranButton() {
 
             // Update transactions in place, so a refresh isn't required.
             for (let tran of Object.values(TRANSACTIONS_UPDATED)) {
-                console.log(tran.notes, "N")
+                let date = new Date(tran.date)
+                tran.date_display = (date.getUTCMonth() + 1) % 12 + "/" + date.getUTCDate()
                 TRANSACTIONS = [
                     ...TRANSACTIONS.filter(t => t.id !== tran.id),
                     tran,
@@ -358,13 +364,61 @@ function setupEditTranButton() {
             TRANSACTIONS_UPDATED = {}
 
             refreshTransactions()  // Overkill; just to taek out of edit mode. todo: SPlit refreshTransactions.
-            EDIT_MODE = false
+            EDIT_MODE_TRAN = false
             btn.textContent = "Edit transactions"
         } else {
             // Enable editing on click.
             refreshTransactions()  // Overkill; just to taek out of edit mode. todo: SPlit refreshTransactions.
-            EDIT_MODE = true
+            EDIT_MODE_TRAN = true
             btn.textContent = "Save transactions"
+        }
+        refreshTransactions()
+    })
+}
+
+// todo: DRY with tran edit setup
+function setupEditAccsButton() {
+    let btn = document.getElementById("edit-accounts");
+
+    btn.addEventListener("click", _ => {
+        if (EDIT_MODE_ACC) {
+            // Save transactions on click
+
+            const data = {
+                // Discard keys; we mainly use them for updating internally here.
+                accounts: Object.values(ACCOUNTS_UPDATED)
+            }
+
+            // Save transactions to the database.
+            fetch("/edit-accounts", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("Account edits save failed")
+                    }
+                });
+
+            // todo: As long as we're using the template, consider a page refresh.
+
+            // Update accounts in place, so a refresh isn't required.
+            // todo: A/R
+            // for (let acc of Object.values(ACCOUNTS_UPDATED)) {
+            //     TRANSACTIONS = [
+            //         ...TRANSACTIONS.filter(t => t.id !== acc.id),
+            //         acc,
+            //     ]
+            // }
+
+            ACCOUNTS_UPDATED = {}
+
+            // todo: Refresh accounts.
+            EDIT_MODE_ACC = false
+            btn.textContent = "Edit accounts"
+        } else {
+            // todo: Refresh accounts.
+            // Enable editing on click.
+            EDIT_MODE_ACC = true
+            btn.textContent = "Save accounts"
         }
         refreshTransactions()
     })
@@ -422,6 +476,7 @@ function init() {
     })
 
     setupEditTranButton()
+    setupEditAccsButton()
 }
 
 init()
