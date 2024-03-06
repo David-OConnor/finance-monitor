@@ -158,7 +158,6 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     person = request.user.person
     accounts = person.accounts.all()
 
-    print("A")
     # We add synced sub accounts below.
     sub_accs = [sub_acc.serialize() for sub_acc in person.subaccounts_manual.all()]
 
@@ -171,6 +170,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
             plaid_.refresh_account_balances(acc)
             plaid_.load_transactions(acc)
+            acc.last_refreshed = timezone.now()
         else:
             print("Not refreshing account data")
 
@@ -261,8 +261,6 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         return HttpResponseRedirect("/dashboard")
 
     transactions = util.create_transaction_display(accounts, person, "")
-
-    print(sub_accs, "SA")
 
     context = {
         # "accounts": accounts,

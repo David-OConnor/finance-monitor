@@ -138,7 +138,7 @@ function filterTransactions() {
         transactions = TRANSACTIONS.filter(t => {
             return t.description.toLowerCase().includes(searchText) ||
                 t.notes.toLowerCase().includes(searchText) ||
-                t.categories.toLowerCase().includes(searchText)
+                t.categories_text.join().toLowerCase().includes(searchText)
         })
     }
 
@@ -151,7 +151,14 @@ function filterTransactions() {
     return transactions
 }
 
+function refreshAccounts() {
+    //[Re]populate the accounts table based on state.
+}
+
 function refreshTransactions() {
+    //[Re]populate the transactions table based on state.
+    console.log("Refreshing transactions...")
+
     let transactions = filterTransactions()
 
     let tbody = document.getElementById("transaction-tbody")
@@ -175,8 +182,6 @@ function refreshTransactions() {
     // }
 
     // check.setAttribute("checked", TRANSACTION_ICONS)
-
-    console.log("Refreshing transactions.")
 
     // div.appendChild(h)
     // div.appendChild(check)
@@ -270,8 +275,7 @@ function refreshTransactions() {
 }
 
 function updateSearch() {
-    // SEARCH_TEXT = document.getElementById("search").value
-    const searchText = document.getElementById("search").value.toLowerCase()
+    SEARCH_TEXT = document.getElementById("search").value.toLowerCase()
 
     // todo: Enforce integer value.
     let valueThresh = document.getElementById("transaction-value-filter").value
@@ -570,6 +574,9 @@ function init() {
     //         refreshTransactions()
     //     });
 
+    refreshAccounts()
+    refreshTransactions()
+
     let check = document.getElementById("icon-checkbox")
     check.addEventListener("click", _ => {
         TRANSACTION_ICONS = !TRANSACTION_ICONS
@@ -577,7 +584,7 @@ function init() {
     })
 
     setupEditTranButton()
-    setupEditAccsButton()
+    // setupEditAccsButton()
 
     // // todo: Temp here. Move appropriately
     // let acc = {

@@ -359,6 +359,9 @@ class Transaction(Model):
             "categories_icon": [
                 TransactionCategory(c).to_icon() for c in json.loads(self.categories)
             ],
+            "categories_text": [
+                TransactionCategory(c).to_str() for c in json.loads(self.categories)
+            ],
             "description": description,
             "notes": self.notes,
             # todo: Currency-appropriate symbol.
