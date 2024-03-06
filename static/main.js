@@ -27,8 +27,10 @@ const PAGE_SIZE = 60
 // todo: Config object?
 
 // Includes all loaded transactions
-let TRANSACTIONS = []
-let TRANSACTIONS_DISPLAYED = []
+// let TRANSACTIONS = [] // Loaded from template initially
+// let ACCOUNTS = [] // Loaded from temp templatme initially.
+
+// let TRANSACTIONS_DISPLAYED = []
 let TRANSACTION_ICONS = true
 let EDIT_MODE_TRAN = false
 let EDIT_MODE_ACC = false
@@ -557,17 +559,16 @@ function init() {
 
     })
 
-    console.log("Loading transactions...")
-    // Load transactions from the backend.
-    // fetch("/load-transactions", FETCH_HEADERS_POST)
-    fetch("/load-transactions", { body: JSON.stringify({}), ...FETCH_HEADERS_POST })
-        // Parse JSON if able.
-        .then(result => result.json())
-        .then(r => {
-            TRANSACTIONS = r.transactions
-            // TRANSACTIONS_DISPLAYED = r.transactions
-            refreshTransactions()
-        });
+    // // Load transactions from the backend.
+    // // fetch("/load-transactions", FETCH_HEADERS_POST)
+    // fetch("/load-transactions", { body: JSON.stringify({}), ...FETCH_HEADERS_POST })
+    //     // Parse JSON if able.
+    //     .then(result => result.json())
+    //     .then(r => {
+    //         TRANSACTIONS = r.transactions
+    //         // TRANSACTIONS_DISPLAYED = r.transactions
+    //         refreshTransactions()
+    //     });
 
     let check = document.getElementById("icon-checkbox")
     check.addEventListener("click", _ => {

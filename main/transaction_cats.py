@@ -274,7 +274,6 @@ class TransactionCategory(Enum):
         if self == TransactionCategory.EDUCATION:
             return "🎓"
 
-
         print("Fallthrough on cat to icon", self)
         return "Fallthrough"
 

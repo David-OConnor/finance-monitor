@@ -64,8 +64,7 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     person = request.user.person
     accounts = person.accounts.all()
 
-    data = json.loads(request.body.decode('utf-8'))
-    print("Body of transactions: ", data)
+    data = json.loads(request.body.decode("utf-8"))
     # todo: Use pages or last index A/R.
 
     search_text = data.get("search_text")
@@ -83,7 +82,7 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
 @login_required
 def edit_transactions(request: HttpRequest) -> HttpResponse:
     """Edit transactions."""
-    data = json.loads(request.body.decode('utf-8'))
+    data = json.loads(request.body.decode("utf-8"))
 
     result = {"success": True}
 
@@ -93,7 +92,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
             defaults={
                 "notes": tran["notes"],
                 "date": tran["date"],
-            }
+            },
         )
 
     return HttpResponse(json.dumps(result), content_type="application/json")
@@ -102,7 +101,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
 @login_required
 def edit_accounts(request: HttpRequest) -> HttpResponse:
     """Edit accounts. Notably, account nicknames, and everything about manual accounts."""
-    data = json.loads(request.body.decode('utf-8'))
+    data = json.loads(request.body.decode("utf-8"))
     print("Body of account edit: ", data)
 
     result = {"success": True}
@@ -113,7 +112,7 @@ def edit_accounts(request: HttpRequest) -> HttpResponse:
             defaults={
                 "notes": tran["notes"],
                 "date": tran["date"],
-            }
+            },
         )
 
     return HttpResponse(json.dumps(result), content_type="application/json")
@@ -122,7 +121,7 @@ def edit_accounts(request: HttpRequest) -> HttpResponse:
 @login_required
 def add_account_manual(request: HttpRequest) -> HttpResponse:
     """Add a manual account, with information populated by the user."""
-    data = json.loads(request.body.decode('utf-8'))
+    data = json.loads(request.body.decode("utf-8"))
     print("Body of adding manual accounts: ", data)
     # todo: Use pages or last index A/R.
 
@@ -149,7 +148,9 @@ def add_account_manual(request: HttpRequest) -> HttpResponse:
         success = False
 
     # return HttpResponseRedirect("/dashboard")
-    return HttpResponse(json.dumps({"success": success}), content_type="application/json")
+    return HttpResponse(
+        json.dumps({"success": success}), content_type="application/json"
+    )
 
 
 @login_required
@@ -157,8 +158,9 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     person = request.user.person
     accounts = person.accounts.all()
 
+    print("A")
     # We add synced sub accounts below.
-    sub_accs = [sub_acc.serialize() for sub_acc in person.subaccounts_manual]
+    sub_accs = [sub_acc.serialize() for sub_acc in person.subaccounts_manual.all()]
 
     net_worth = 0.0
 
@@ -200,7 +202,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     }
 
     for sub_acc in SubAccount.objects.filter(
-            Q(account__person=person) | Q(person=person)
+        Q(account__person=person) | Q(person=person)
     ):
         if sub_acc.ignored:
             continue
@@ -245,20 +247,22 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     totals_display = {}  # Avoids adding keys while iterating.
 
-    for (k, v) in totals.items():
+    for k, v in totals.items():
         totals_display[k + "_class"] = "tran_pos" if v > 0.0 else "tran_neg"
         # A bit of a hack to keep this value consistent with the sub-account values.
         totals_display[k] = f"{v:,.0f}".replace("-", "")
 
     #  todo: Move this A/R
-    if request.method == 'POST':
-        uploaded_file = request.FILES['file']
-        file_data = TextIOWrapper(uploaded_file.file, encoding='utf-8')
+    if request.method == "POST":
+        uploaded_file = request.FILES["file"]
+        file_data = TextIOWrapper(uploaded_file.file, encoding="utf-8")
         export.import_csv_mint(file_data, request.user.person)
 
         return HttpResponseRedirect("/dashboard")
 
     transactions = util.create_transaction_display(accounts, person, "")
+
+    print(sub_accs, "SA")
 
     context = {
         # "accounts": accounts,
@@ -270,7 +274,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         # "assets": asset_accs,
         # "transactions": transactions,
         "totals": totals_display,
-        "sub_accs": sub_accs,
+        "sub_accs": json.dumps(sub_accs),
         "transactions": transactions,
     }
 
@@ -329,15 +333,15 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     #   'institution_id': 'ins_116530'
     # },
     # 'accounts': [
-        # {
-        # 'id': 'prvM1kM78eH1Ejw5OyDzI4k01joBm8H3Nyn7Q',
-        # 'name': "David A O'Connor",
-        # 'mask': '4029',
-        # 'type': 'investment',
-        # 'subtype': 'brokerage',
-        # 'verification_status': None,
-        # 'class_type': None
-        # }
+    # {
+    # 'id': 'prvM1kM78eH1Ejw5OyDzI4k01joBm8H3Nyn7Q',
+    # 'name': "David A O'Connor",
+    # 'mask': '4029',
+    # 'type': 'investment',
+    # 'subtype': 'brokerage',
+    # 'verification_status': None,
+    # 'class_type': None
+    # }
     # ],
     # 'account': {
     #   'id': 'prvM1kM78eH1Ejw5OyDzI4k01joBm8H3Nyn7Q',
@@ -567,9 +571,12 @@ def export_(request: HttpRequest) -> HttpResponse:
     )
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
-    export.export_csv(Transaction.objects.filter(
-        Q(account__person=request.user.person) | Q(person=request.user.person)
-    ), response)
+    export.export_csv(
+        Transaction.objects.filter(
+            Q(account__person=request.user.person) | Q(person=request.user.person)
+        ),
+        response,
+    )
 
     return response
 

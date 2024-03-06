@@ -99,7 +99,6 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
         print("API exception; unable to access this account: ", e)
         return None
 
-
     return response["accounts"]
 
 

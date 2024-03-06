@@ -72,8 +72,8 @@ def create_transaction_display(
             result.append(tran.serialize())
 
     result.sort(key=lambda t: t["date"], reverse=True)
-
-    for tran in result:
-        tran["date"] = tran["date"].isoformat()
+    #
+    # for tran in result:
+    #     tran["date"] = tran["date"].isoformat()
 
     return result

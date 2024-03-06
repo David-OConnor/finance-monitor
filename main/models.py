@@ -54,7 +54,6 @@ class SubAccountType(Enum):
     BROKERAGE = 13
     ROTH = 14
 
-
     @classmethod
     def from_str(cls, s: str) -> "SubAccountType":
         s = s.lower()
@@ -121,7 +120,12 @@ class AccountType(Enum):
 
     @classmethod
     def from_sub_type(cls, sub_type: SubAccountType) -> "AccountType":
-        if sub_type in [SubAccountType.CHECKING, SubAccountType.SAVINGS, SubAccountType.CRYPTO, SubAccountType.ASSET]:
+        if sub_type in [
+            SubAccountType.CHECKING,
+            SubAccountType.SAVINGS,
+            SubAccountType.CRYPTO,
+            SubAccountType.ASSET,
+        ]:
             return cls.DEPOSITORY
         if sub_type in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
             return cls.CREDIT
@@ -175,6 +179,7 @@ class Institution(Model):
 
 class FinancialAccount(Model):
     """Used by plaid; a Link to a financial institution."""
+
     person = ForeignKey(Person, related_name="accounts", on_delete=CASCADE)
     institution = ForeignKey(
         Institution, on_delete=CASCADE, related_name="institutions"
@@ -206,6 +211,7 @@ class FinancialAccount(Model):
 
 class SubAccount(Model):
     """These are the linked, or manually-added accounts."""
+
     # This is similar to Transaction: If Account is null, person must have a value. This is for
     # manual transactions.
     account = ForeignKey(
@@ -347,17 +353,23 @@ class Transaction(Model):
         # todo: Modify to serialize values vice displayl.
         return {
             "id": self.id,  # DB primary key.
-            "categories": " | ".join([c.to_str() for c in cats]),
-            "categories_icon": " | ".join([c.to_icon() for c in cats]),
+            "categories": json.loads(self.categories),
+            # "categories": " | ".join([c.to_str() for c in cats]),
+            # "categories_icon": " | ".join([c.to_icon() for c in cats]),
+            "categories_icon": [
+                TransactionCategory(c).to_icon() for c in json.loads(self.categories)
+            ],
             "description": description,
             "notes": self.notes,
             # todo: Currency-appropriate symbol.
-            "amount": f"{self.amount:,.2f}",
+            # "amount": f"{self.amount:,.2f}",
+            "amount": self.amount,
+            # todo: DO we want this?
             "amount_class": (
                 "tran_pos" if self.amount > 0.0 else "tran_neg"
             ),  # eg to color green or red.
+            "date": self.date.isoformat(),
             "date_display": date_display,
-            "date": self.date,  # Used for sorting.
         }
 
     def __str__(self):
@@ -373,7 +385,6 @@ class Transaction(Model):
             ["date", "description", "amount", "account"],
             ["date", "description", "amount", "person"],
         ]
-
 
 
 # todo: More refined snapshot, including all accounts.
