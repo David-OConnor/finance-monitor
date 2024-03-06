@@ -506,13 +506,19 @@ function setupAccForm(acc) {
     form.appendChild(d)
 
     d = createEl("div", {}, {display: "flex", justifyContent: "center", marginTop: 18})
-    let btn = createEl("button", {type: "button", class: "button-general"}, {width: 140}, "Save")
+    let btnSave = createEl("button", {type: "button", class: "button-general"}, {width: 140}, "Save")
+    let btnCancel = createEl("button", {type: "button", class: "button-general"}, {width: 140}, "Cancel")
 
-    btn.addEventListener("click", _ => {
+    btnSave.addEventListener("click", _ => {
         // todo
     })
 
-    d.appendChild(btn)
+    btnCancel.addEventListener("click", _ => {
+        // todo
+    })
+
+    d.appendChild(btnSave)
+    d.appendChild(btnCancel)
     form.appendChild(d)
 
     console.log(form, "FORM")

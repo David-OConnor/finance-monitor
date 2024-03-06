@@ -65,11 +65,11 @@ def create_transaction_display(
         )
 
     for tran in trans_no_account:
-        result.append(tran.to_display_dict())
+        result.append(tran.serialize())
 
     for acc in accounts:
         for tran in acc.transactions.all()[:count]:
-            result.append(tran.to_display_dict())
+            result.append(tran.serialize())
 
     result.sort(key=lambda t: t["date"], reverse=True)
 

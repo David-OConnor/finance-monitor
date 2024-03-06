@@ -238,7 +238,7 @@ class SubAccount(Model):
     ignored = BooleanField(default=False)
     # todo: Mask?
 
-    def to_display_dict(self) -> Dict[str, str]:
+    def serialize(self) -> Dict[str, str]:
         """For use in the web page."""
 
         pos_val = self.current > 0.0
@@ -262,15 +262,21 @@ class SubAccount(Model):
 
         return {
             "id": self.id,
+            "institution": institution,
             "name": self.name,
-            # todo: Consider a "name_display" that is based on if nick, and name_official are avail.
             "name_official": self.name_official,
             "nickname": self.nickname,
-            "institution": institution,
-            "current": f"{self.current:,.0f}",
+            "type": self.type,
+            "sub_type": self.sub_type,
+            "iso_currency_code": self.iso_currency_code,
+            # todo: Consider a "name_display" that is based on if nick, and name_official are avail.
+            # "current": f"{self.current:,.0f}",
+            "current": self.current,
+            "ignored": self.ignored,
+            "manual": self.person is not None,
             # Note Use current_val if handling this in JS vice template
             # "current_val": self.current,
-            "current_class": "tran_pos" if pos_val else "tran_neg",
+            # "current_class": "tran_pos" if pos_val else "tran_neg",
         }
 
     def __str__(self):
@@ -315,7 +321,7 @@ class Transaction(Model):
     notes = CharField(max_length=200, default="")
 
     # todo: Change this to be a serializer.
-    def to_display_dict(self) -> Dict[str, str]:
+    def serialize(self) -> Dict[str, str]:
         """For use in the web page."""
 
         cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
@@ -338,6 +344,7 @@ class Transaction(Model):
             # todo: Separate element so you can make it faded, or otherwise a custom style or cell.
             description += " (pending)"
 
+        # todo: Modify to serialize values vice displayl.
         return {
             "id": self.id,  # DB primary key.
             "categories": " | ".join([c.to_str() for c in cats]),

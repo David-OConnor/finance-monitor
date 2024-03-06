@@ -157,7 +157,8 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     person = request.user.person
     accounts = person.accounts.all()
 
-    sub_accs_sync = []
+    # We add synced sub accounts below.
+    sub_accs = [sub_acc.serialize() for sub_acc in person.subaccounts_manual]
 
     net_worth = 0.0
 
@@ -172,7 +173,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
             print("Not refreshing account data")
 
         for sub in acc.sub_accounts.all():
-            sub_accs_sync.append(sub)
+            sub_accs.append(sub.serialize())
 
         net_worth = util.update_net_worth(net_worth, acc)
 
@@ -180,12 +181,12 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     # Organize balances by sub-account
     # todo: Dict
-    cash_accs = []
-    investment_accs = []
-    crypto_accs = []
-    credit_debit_accs = []
-    loan_accs = []
-    asset_accs = []
+    # cash_accs = []
+    # investment_accs = []
+    # crypto_accs = []
+    # credit_debit_accs = []
+    # loan_accs = []
+    # asset_accs = []
 
     totals = {
         "cash": 0,
@@ -212,10 +213,10 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         # total and per-accoutn for loads, CC+Debit
 
         if t in [SubAccountType.CHECKING, SubAccountType.SAVINGS]:
-            cash_accs.append(sub_acc.to_display_dict())
+            # cash_accs.append(sub_acc.serialize())
             totals["cash"] += sub_acc.current
         elif t in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
-            credit_debit_accs.append(sub_acc.to_display_dict())
+            # credit_debit_accs.append(sub_acc.serialize())
             totals["credit_debit"] -= sub_acc.current
         elif t in [
             SubAccountType.T401K,
@@ -226,16 +227,16 @@ def dashboard(request: HttpRequest) -> HttpResponse:
             SubAccountType.BROKERAGE,
             SubAccountType.ROTH,
         ]:
-            investment_accs.append(sub_acc.to_display_dict())
+            # investment_accs.append(sub_acc.serialize())
             totals["investment"] += sub_acc.current
         elif t in [SubAccountType.STUDENT, SubAccountType.MORTGAGE]:
-            loan_accs.append(sub_acc.to_display_dict())
+            # loan_accs.append(sub_acc.serialize())
             totals["loans"] -= sub_acc.current
         elif t in [SubAccountType.CRYPTO]:
-            crypto_accs.append(sub_acc.to_display_dict())
+            # crypto_accs.append(sub_acc.serialize())
             totals["crypto"] += sub_acc.current
         elif t in [SubAccountType.ASSET]:
-            asset_accs.append(sub_acc.to_display_dict())
+            # asset_accs.append(sub_acc.serialize())
             totals["asset"] += sub_acc.current
         else:
             print("Fallthrough in sub account type: ", t)
@@ -257,18 +258,20 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
         return HttpResponseRedirect("/dashboard")
 
+    transactions = util.create_transaction_display(accounts, person, "")
+
     context = {
-        "accounts": accounts,
-        "cash_accs": cash_accs,
-        "investment_accs": investment_accs,
-        "crypto_accs": crypto_accs,
-        "credit_debit_accs": credit_debit_accs,
-        "loan_accs": loan_accs,
-        "assets": asset_accs,
+        # "accounts": accounts,
+        # "cash_accs": cash_accs,
+        # "investment_accs": investment_accs,
+        # "crypto_accs": crypto_accs,
+        # "credit_debit_accs": credit_debit_accs,
+        # "loan_accs": loan_accs,
+        # "assets": asset_accs,
         # "transactions": transactions,
         "totals": totals_display,
-        "sub_accs_manual": person.subaccounts_manual,
-        "sub_accs_sync": sub_accs_sync,
+        "sub_accs": sub_accs,
+        "transactions": transactions,
     }
 
     return render(request, "../templates/dashboard.html", context)
