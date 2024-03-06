@@ -168,13 +168,23 @@ function filterTransactions() {
     return transactions
 }
 
+function formatNumber(number, decimals) {
+    // Format a currency value with commas, and either 2, or 0 decimals.
+    let options = decimals ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } :
+        { minimumFractionDigits: 0, maximumFractionDigits: 0 }
+  return new Intl.NumberFormat('en-US', options).format(number);
+}
+
 function createAccRow(name, value) {
     // Helper function when creating the account display.
     let div = createEl("div", {}, {display: "flex", justifyContent: "space-between"})
     let h_a = createEl("h4", {class: "acct-hdg"}, {marginRight: "26px"}, name)
 
     const valClass = value > 0 ? "tran_pos" : "tran_neg"
-    let h_b = createEl("h4", {class: "acct-hdg " + valClass}, {}, value)
+
+    // Format with a comma, and no decimal places
+    const valueFormatted = formatNumber(value, false)
+    let h_b = createEl("h4", {class: "acct-hdg " + valClass}, {}, valueFormatted)
 
     div.appendChild(h_a)
     div.appendChild(h_b)
@@ -184,7 +194,6 @@ function createAccRow(name, value) {
 function refreshAccounts() {
     //[Re]populate the accounts table based on state.
     console.log("Refreshing accounts...")
-    console.log("Accounts: ", ACCOUNTS)
 
     let section = document.getElementById("accounts")
 
@@ -201,7 +210,7 @@ function refreshAccounts() {
     //
     // }
 
-    let div, h1, h2, class_
+    let div, h1, h2, class_, totalFormatted, total
 
     for (let accs of [
         [acc_cash, "Cash"],
@@ -215,7 +224,14 @@ function refreshAccounts() {
             div = createEl("div", {class: "account-type"})
             h1 = createEl("h2", {}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, accs[1])
             class_ = "tran_pos" // todo
-            h2 = createEl("h2", {class: class_}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, 69) // total todo
+
+            // note: We also calcualte this server side
+            let total = 0.
+            for (let acc of accs[0]) {
+                total += acc.current
+            }
+            totalFormatted = formatNumber(total, false)
+            h2 = createEl("h2", {class: class_}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, totalFormatted) // total todo
 
             div.appendChild(h1)
             div.appendChild(h2)
