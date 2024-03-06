@@ -39,6 +39,23 @@ let EDIT_MODE_ACC = false
 let TRANSACTIONS_UPDATED = {}
 let ACCOUNTS_UPDATED = {}
 
+// See models.py
+const ACC_TYPE_CHECKING = 0
+const ACC_TYPE_SAVINGS = 1
+const ACC_TYPE_DEBIT = 2
+const ACC_TYPE_CREDIT = 3
+const ACC_TYPE_401K = 4
+const ACC_TYPE_STUDENT = 5
+const ACC_TYPE_MORTGAGE = 6
+const ACC_TYPE_CD = 7
+const ACC_TYPE_MONEY_MARKET = 8
+const ACC_TYPE_IRA = 9
+const ACC_TYPE_MUTUAL_FUND = 10
+const ACC_TYPE_CRYPTO = 11
+const ACC_TYPE_ASSET = 12
+const ACC_TYPE_BROKERAGE = 13
+const ACC_TYPE_ROTH = 14
+
 
 function getPublicToken() {
     // Launches a Plaid-controlled window to link to an account, using an already-retrieved link token.
@@ -111,19 +128,19 @@ function getPublicToken() {
     handler.open();
 }
 
-function refreshBalances() {
-    fetch("/refresh-alances", FETCH_HEADERS_GET)
-        // Parse JSON if able.
-        .then(result => result.json())
-        .then(r => {
-            if (!r.updated) {
-                return
-            }
-
-            let div = document.getElementById("balances")
-            div.innerHTML = ""
-        });
-}
+// function refreshBalances() {
+//     fetch("/refresh-alances", FETCH_HEADERS_GET)
+//         // Parse JSON if able.
+//         .then(result => result.json())
+//         .then(r => {
+//             if (!r.updated) {
+//                 return
+//             }
+//
+//             let div = document.getElementById("balances")
+//             div.innerHTML = ""
+//         });
+// }
 
 function filterTransactions() {
     const searchText = SEARCH_TEXT
@@ -151,8 +168,64 @@ function filterTransactions() {
     return transactions
 }
 
+function createAccRow(name, value) {
+    // Helper function when creating the account display.
+    let div = createEl("div", {}, {display: "flex", justifyContent: "space-between"})
+    let h_a = createEl("h4", {class: "acct-hdg"}, {marginRight: "26px"}, name)
+
+    const valClass = value > 0 ? "tran_pos" : "tran_neg"
+    let h_b = createEl("h4", {class: "acct-hdg " + valClass}, {}, value)
+
+    div.appendChild(h_a)
+    div.appendChild(h_b)
+    return div
+}
+
 function refreshAccounts() {
     //[Re]populate the accounts table based on state.
+    console.log("Refreshing accounts...")
+    console.log("Accounts: ", ACCOUNTS)
+
+    let section = document.getElementById("accounts")
+
+    const acc_cash = ACCOUNTS.filter(acc => [ACC_TYPE_CHECKING, ACC_TYPE_SAVINGS].includes(acc.sub_type))
+    const acc_investment = ACCOUNTS.filter(acc => [ACC_TYPE_MUTUAL_FUND, ACC_TYPE_401K, ACC_TYPE_CD, ACC_TYPE_MONEY_MARKET,
+        ACC_TYPE_BROKERAGE, ACC_TYPE_ROTH].includes(acc.sub_type))
+
+    const acc_credit = ACCOUNTS.filter(acc => [ACC_TYPE_CREDIT, ACC_TYPE_DEBIT].includes(acc.sub_type))
+    const acc_loan = ACCOUNTS.filter(acc => [ACC_TYPE_STUDENT, ACC_TYPE_MORTGAGE].includes(acc.sub_type))
+    const acc_crypto = ACCOUNTS.filter(acc => [ACC_TYPE_CRYPTO].includes(acc.sub_type))
+    const acc_assets = ACCOUNTS.filter(acc => [ACC_TYPE_ASSET].includes(acc.sub_type))
+
+    // for (let acc of ACCOUNTS) {
+    //
+    // }
+
+    let div, h1, h2, class_
+
+    for (let accs of [
+        [acc_cash, "Cash"],
+        [acc_investment, "Investment"],
+        [acc_credit, "Credit"],
+        [acc_loan, "Loan"],
+        [acc_crypto, "Crypto"],
+        [acc_assets, "Assets"],
+    ]) {
+        if (accs[0].length > 0) {
+            div = createEl("div", {class: "account-type"})
+            h1 = createEl("h2", {}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, accs[1])
+            class_ = "tran_pos" // todo
+            h2 = createEl("h2", {class: class_}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, 69) // total todo
+
+            div.appendChild(h1)
+            div.appendChild(h2)
+        }
+
+        for (let acc of accs[0]) {
+            div.appendChild(createAccRow(acc.name + " " + acc.name_official, acc.current))
+        }
+        section.appendChild(div)
+    }
 }
 
 function refreshTransactions() {
@@ -163,32 +236,6 @@ function refreshTransactions() {
 
     let tbody = document.getElementById("transaction-tbody")
     tbody.replaceChildren();
-
-    // todo: thead and tbody els?
-    //
-    // // todo: We don't need to recreate the TH each time.
-    // const head = createEl("tr", {}, {height: "40px", borderBottom: "2px solid black"}, "")
-    // let col = createEl("th", {"class": "transaction-cell"}, {}, "")
-    //
-    // let div = createEl("div", {}, {display: "flex", alignItems: "center"}, "")
-    // let h = createEl("h4", {class: "tran-heading"}, {}, "Icons")
-
-    // todo: form to add a new transaction.
-
-    // // todo: Store to the DB
-    // let check = createEl("input", {type: "checkbox"}, {}, "")
-    // if (TRANSACTION_ICONS) {
-    //     check.setAttribute("checked", null)
-    // }
-
-    // check.setAttribute("checked", TRANSACTION_ICONS)
-
-    // div.appendChild(h)
-    // div.appendChild(check)
-    // col.appendChild(div)
-
-    // head.appendChild(col)
-
 
     for (let tran of transactions) {
         const row = document.createElement("tr")
@@ -445,7 +492,7 @@ function setupAccForm(acc) {
     let d, h, ip
 
     d = createEl("div", {}, {textAlign: "center"})
-    h = createEl("h2", {}, {marginTop: 0, marginBottom: 18}, "Edit an account")
+    h = createEl("h2", {}, {marginTop: 0, marginBottom: "18px"}, "Edit an account")
     d.appendChild(h)
     form.appendChild(d)
 
@@ -457,7 +504,7 @@ function setupAccForm(acc) {
     // form.appendChild(d)
 
     d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
-    h = createEl("h3", {}, {marginTop: 0, marginBottom: 18}, "Account name")
+    h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Account name")
     ip = createEl("input", { value: acc.name })
 
     ip.addEventListener("change", e => {
@@ -474,31 +521,31 @@ function setupAccForm(acc) {
 
 
 
-                // <div style="display: flex; align-items: center; justify-content: space-between;">
-                //     <h3>Type</h3>
-                //     {#                    todo: DRY #}
-                //     <select id="add-manual-type" style="border: 1px solid black; height: 32px; width: 156px;">
-                //         <option value="0">Checking</option>
-                //         <option value="1">Savings</option>
-                //         <option value="2">Debit card</option>
-                //         <option value="3">Credit card</option>
-                //         <option value="4">401K</option>
-                //         <option value="5">Student</option>
-                //         <option value="6">Mortgage</option>
-                //         <option value="7">CD</option>
-                //         <option value="8">Money market</option>
-                //         <option value="9">IRA</option>
-                //         <option value="10">Mutual fund</option>
-                //         <option value="11">Crypto</option>
-                //         <option value="12">Asset (misc)</option>
-                //         <option value="13">Brokerage</option>
-                //         <option value="14">Roth</option>
-                //     </select>
-                // </div>
+    // <div style="display: flex; align-items: center; justify-content: space-between;">
+    //     <h3>Type</h3>
+    //     {#                    todo: DRY #}
+    //     <select id="add-manual-type" style="border: 1px solid black; height: 32px; width: 156px;">
+    //         <option value="0">Checking</option>
+    //         <option value="1">Savings</option>
+    //         <option value="2">Debit card</option>
+    //         <option value="3">Credit card</option>
+    //         <option value="4">401K</option>
+    //         <option value="5">Student</option>
+    //         <option value="6">Mortgage</option>
+    //         <option value="7">CD</option>
+    //         <option value="8">Money market</option>
+    //         <option value="9">IRA</option>
+    //         <option value="10">Mutual fund</option>
+    //         <option value="11">Crypto</option>
+    //         <option value="12">Asset (misc)</option>
+    //         <option value="13">Brokerage</option>
+    //         <option value="14">Roth</option>
+    //     </select>
+    // </div>
 
 
-        d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
-    h = createEl("h3", {}, {marginTop: 0, marginBottom: 18}, "Currency code")
+    d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
+    h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Currency code")
     ip = createEl("input", {value: acc.iso_currency_code, maxLength: "3"})
     d.appendChild(h)
     d.appendChild(ip)
@@ -511,9 +558,9 @@ function setupAccForm(acc) {
     d.appendChild(ip)
     form.appendChild(d)
 
-    d = createEl("div", {}, {display: "flex", justifyContent: "center", marginTop: 18})
-    let btnSave = createEl("button", {type: "button", class: "button-general"}, {width: 140}, "Save")
-    let btnCancel = createEl("button", {type: "button", class: "button-general"}, {width: 140}, "Cancel")
+    d = createEl("div", {}, {display: "flex", justifyContent: "center", marginTop: "18px"})
+    let btnSave = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "Save")
+    let btnCancel = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "Cancel")
 
     btnSave.addEventListener("click", _ => {
         // todo
