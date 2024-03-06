@@ -157,11 +157,12 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     person = request.user.person
     accounts = person.accounts.all()
 
+    sub_accs_sync = []
+
     net_worth = 0.0
 
     # Update account info, if we are due for a refresh
     for acc in accounts:
-        print("Account: ", acc)
         if (timezone.now() - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
             print("Refreshing account data...")
 
@@ -170,12 +171,13 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         else:
             print("Not refreshing account data")
 
+        for sub in acc.sub_accounts.all():
+            sub_accs_sync.append(sub)
+
         net_worth = util.update_net_worth(net_worth, acc)
-        print(net_worth, "NW")
 
     net_worth = util.update_net_worth_manual_accs(net_worth, person)
 
-    # todo: Delegate this to a fn A/R
     # Organize balances by sub-account
     # todo: Dict
     cash_accs = []
@@ -199,7 +201,6 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     for sub_acc in SubAccount.objects.filter(
             Q(account__person=person) | Q(person=person)
     ):
-
         if sub_acc.ignored:
             continue
 
@@ -266,6 +267,8 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         "assets": asset_accs,
         # "transactions": transactions,
         "totals": totals_display,
+        "sub_accs_manual": person.subaccounts_manual,
+        "sub_accs_sync": sub_accs_sync,
     }
 
     return render(request, "../templates/dashboard.html", context)

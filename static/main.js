@@ -195,15 +195,15 @@ function refreshTransactions() {
         }
         row.appendChild(col)
 
-        col = createEl("td", {class: "transaction-cell"}, {})
+        col = createEl("td", {class: "transaction-cell"})
         let h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal"}, tran.description)
         col.appendChild(h)
 
         row.appendChild(col)
 
-        col = createEl("td", {class: "transaction-cell"}, {})
+        col = createEl("td", {class: "transaction-cell"})
         if (EDIT_MODE_TRAN) {
-            h = createEl("input", {id: "edit-notes:" + tran.id, value: tran.notes}, {marginRight: "30px"}, "")
+            h = createEl("input", {id: "edit-notes:" + tran.id, value: tran.notes}, {marginRight: "30px"})
 
             h.addEventListener("input", e => {
                 let updated = {
@@ -221,7 +221,7 @@ function refreshTransactions() {
 
         row.appendChild(col)
 
-        col = createEl("td", {class: "transaction-cell"}, {})
+        col = createEl("td", {class: "transaction-cell"})
         if (EDIT_MODE_TRAN) {
             h = createEl("input", {id: "edit-amount:" + tran.id, value: tran.amount},
                 {width: "80px", textAlign: "right", marginRight: "30px"}, "")
@@ -233,9 +233,9 @@ function refreshTransactions() {
 
         row.appendChild(col)
 
-        col = createEl("td", {class: "transaction-cell"}, {})
+        col = createEl("td", {class: "transaction-cell"})
         if (EDIT_MODE_TRAN) {
-            h = createEl("input", {id: "edit-date:" + tran.id,type: "date", value: tran.date}, {width: "120px"}, "")
+            h = createEl("input", {id: "edit-date:" + tran.id,type: "date", value: tran.date}, {width: "120px"})
 
             h.addEventListener("input", e => {
                 let updated = {
@@ -379,6 +379,8 @@ function setupEditTranButton() {
 // todo: DRY with tran edit setup
 function setupEditAccsButton() {
     let btn = document.getElementById("edit-accounts");
+    let section = document.getElementById("edit-accs-section")
+
 
     btn.addEventListener("click", _ => {
         if (EDIT_MODE_ACC) {
@@ -415,6 +417,8 @@ function setupEditAccsButton() {
             EDIT_MODE_ACC = false
             btn.textContent = "Edit accounts"
         } else {
+            section.replaceChildren()
+
             // todo: Refresh accounts.
             // Enable editing on click.
             EDIT_MODE_ACC = true
@@ -422,6 +426,92 @@ function setupEditAccsButton() {
         }
         refreshTransactions()
     })
+}
+
+// todo; Account an account type.
+function setupAccForm(acc) {
+    // Setup the form for adding and editing accounts.
+    let form = document.getElementById("account-form")
+    form.replaceChildren()
+
+    let d, h, ip
+
+    d = createEl("div", {}, {textAlign: "center"})
+    h = createEl("h2", {}, {marginTop: 0, marginBottom: 18}, "Edit an account")
+    d.appendChild(h)
+    form.appendChild(d)
+
+    d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
+    h = createEl("h3", {value: acc.name}, {marginTop: 0, marginBottom: 18}, "Account name")
+    ip = createEl("input")
+
+    ip.addEventListener("change", e => {
+        let updated = {
+            ...acc,
+            name: e.target.value
+        }
+        ACCOUNTS_UPDATED[acc.id] = updated
+    })
+
+    d.appendChild(h)
+    d.appendChild(ip)
+    form.appendChild(d)
+
+
+
+                // <div style="display: flex; align-items: center; justify-content: space-between;">
+                //     <h3>Type</h3>
+                //     {#                    todo: DRY #}
+                //     <select id="add-manual-type" style="border: 1px solid black; height: 32px; width: 156px;">
+                //         <option value="0">Checking</option>
+                //         <option value="1">Savings</option>
+                //         <option value="2">Debit card</option>
+                //         <option value="3">Credit card</option>
+                //         <option value="4">401K</option>
+                //         <option value="5">Student</option>
+                //         <option value="6">Mortgage</option>
+                //         <option value="7">CD</option>
+                //         <option value="8">Money market</option>
+                //         <option value="9">IRA</option>
+                //         <option value="10">Mutual fund</option>
+                //         <option value="11">Crypto</option>
+                //         <option value="12">Asset (misc)</option>
+                //         <option value="13">Brokerage</option>
+                //         <option value="14">Roth</option>
+                //     </select>
+                // </div>
+
+
+        d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
+    h = createEl("h3", {}, {marginTop: 0, marginBottom: 18}, "Currency code")
+    ip = createEl("input", {value: acc.iso_currency_code, maxLength: "3"})
+    d.appendChild(h)
+    d.appendChild(ip)
+    form.appendChild(d)
+
+    d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
+    h = createEl("h3", {}, {}, "Value")
+    ip = createEl("input", {type: "number", value: acc.current})
+    d.appendChild(h)
+    d.appendChild(ip)
+    form.appendChild(d)
+
+
+                // <div style="display: flex; align-items: center; justify-content: space-between;">
+                //     <h3>Value (Must be updated manually)</h3>
+                //     <input id="add-manual-current" type="number" value="0" />
+                // </div>
+                //
+                // <div style="display: flex; justify-content: center; margin-top: 18px;">
+                //     <button
+                //             type="button"
+                //             onClick="addAccountManual()"
+                //             className="button-general" style="width: 140px;"
+                //     >
+                //         Add this account</button>
+                // </div>
+
+    console.log(form, "FORM")
 }
 
 function init() {
@@ -477,6 +567,16 @@ function init() {
 
     setupEditTranButton()
     setupEditAccsButton()
+
+    // // todo: Temp here. Move appropriately
+    // let acc = {
+    //     id: 0,
+    //     name: "test_acc",
+    //     type: 3,
+    //     iso_currency_code: "GBP",
+    //     current: 335,
+    // }
+    // setupAccForm(acc)
 }
 
 init()

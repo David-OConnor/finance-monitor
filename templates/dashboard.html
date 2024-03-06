@@ -9,6 +9,68 @@
         {#        <h1>Welcome to Finance Monitor</h1>#}
 
         <h2>Net worth: {{ totals.net_worth }}</h2>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <h3>Currency code</h3>
+            <input id="add-manual-currency-code" value="USD" maxlength="3" />
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <h3>Value (Must be updated manually)</h3>
+            <input id="add-manual-current" type="number" value="0" />
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-top: 18px;">
+            <button
+                    type="button"
+                    onclick="addAccountManual()"
+                    class="button-general" style="width: 140px;"
+            >
+                Add this account</button>
+        </div>
+        </form>
+
+        {#    Heinous DRY!#}
+
+        {#        <form id="edit-accs-section"#}
+        {#              style="display: flex;#}
+        {#          flex-direction: column;#}
+        {#          border: 1px solid #444444;#}
+        {#          padding: 10px;#}
+        {#          visibility: visible;#}
+        {#">#}
+        {#            {% for acc in sub_accs_sync %}#}
+        {#                <input value={{ acc.nickname }} />#}
+        {#            {% endfor %}#}
+        {##}
+        {#            {% for acc in sub_accs_manual.all %}#}
+        {#                <h3>Name</h3>#}
+        {#                <input value= {{ acc.name }} />#}
+        {##}
+        {#                <h3>Type</h3>#}
+        {#                    todo: DRY #}
+        {#                 todo: Set value#}
+        {#                <select id="" style="border: 1px solid black; height: 32px; width: 156px;">#}
+        {#                    <option value="0">Checking</option>#}
+        {#                    <option value="1">Savings</option>#}
+        {#                    <option value="2">Debit card</option>#}
+        {#                    <option value="3">Credit card</option>#}
+        {#                    <option value="4">401K</option>#}
+        {#                    <option value="5">Student</option>#}
+        {#                    <option value="6">Mortgage</option>#}
+        {#                    <option value="7">CD</option>#}
+        {#                    <option value="8">Money market</option>#}
+        {#                    <option value="9">IRA</option>#}
+        {#                    <option value="10">Mutual fund</option>#}
+        {#                    <option value="11">Crypto</option>#}
+        {#                    <option value="12">Asset (misc)</option>#}
+        {#                    <option value="13">Brokerage</option>#}
+        {#                    <option value="14">Roth</option>#}
+        {#                </select>#}
+        {##}
+        {#                <h3>Amount</h3>#}
+        {#                <input value={{  acc.amount }} />#}
+        {#            {% endfor %}#}
+        {#        </form>#}
 
         <div style="display: flex; align-items: center;">
             <h2 style="margin-right: 32px">Account balances</h2>
@@ -16,7 +78,7 @@
             <button id="link-button" class="button-general">➕ Syncing account</button>
             <button id="add-manual-button" class="button-general" onclick="toggleAddManual()">➕ Manual account</button>
             <button id="edit-accounts" class="button-general">✎ Edit</button>
-{#            <p>Click an account to edit it</p>#}
+            {#            <p>Click an account to edit it</p>#}
 
         </div>
 
@@ -34,9 +96,10 @@
         {#     todo: border color a/r#}
 
         {#        We hide and show this based on the "add a manual account" button.#}
-        <div id="add-manual-form" style="display: flex; justify-content: center; visibility: collapse;">
-            <form
-                    style="display: flex;
+    <div style="display: flex; justify-content: center">
+        <form
+                id="account-form"
+                style="display: flex;
                 margin-top: 32px;
                 margin-bottom: 32px;
                 flex-direction: column;
@@ -44,236 +107,240 @@
                 border: 1px solid #444444;
                 padding: 20px;
                 "
-            >
-
-                <div style="text-align: center">
-                    <h2 style="margin-top: 0; margin-bottom: 18px;">Add a manual account</h2>
-                </div>
-
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3>Account name</h3>
-                    <input id="add-manual-name" />
-                </div>
-
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3>Type</h3>
-                    <select id="add-manual-type" style="border: 1px solid black; height: 32px; width: 156px;">
-
-                        <option value="0">Checking</option>
-                        <option value="1">Savings</option>
-                        <option value="2">Debit card</option>
-                        <option value="3">Credit card</option>
-                        <option value="4">401K</option>
-                        <option value="5">Student</option>
-                        <option value="6">Mortgage</option>
-                        <option value="7">CD</option>
-                        <option value="8">Money market</option>
-                        <option value="9">IRA</option>
-                        <option value="10">Mutual fund</option>
-                        <option value="11">Crypto</option>
-                        <option value="12">Asset (misc)</option>
-                        <option value="13">Brokerage</option>
-                        <option value="14">Roth</option>
-                    </select>
-                </div>
-
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3>Currency code</h3>
-                    <input id="add-manual-currency-code" value="USD" maxlength="3" />
-                </div>
-
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3>Value (Must be updated manually)</h3>
-                    <input id="add-manual-current" type="number" value="0" />
-                </div>
-
-                <div style="display: flex; justify-content: center; margin-top: 18px;">
-                    <button
-                            type="button"
-                            onclick="addAccountManual()"
-                            class="button-general" style="width: 140px;"
-                    >
-                        Add this account</button>
-                </div>
-            </form>
-        </div>
-
-        <div id="balances"
-             style="display: flex; flex-wrap: wrap; border: 1px solid #666666; margin-bottom: 60px;"
         >
+        </form>
+    </div>
 
-            {#         todo: JS#}
-            {% if cash_accs|length %}
-                <div class="account-type">
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Cash</h2>
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{ totals.cash_class }}">{{ totals.cash }}</h2>
-                    {% for acc in cash_accs %}
-                        <div style="display: flex; justify-content: space-between">
-                            {% if acc.nickname %}
-                                <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.nickname }}</h4>
-                            {% else %}
-                                <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
-                            {% endif %}
-                            <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
+            <div id="add-manual-form" style="display: flex; justify-content: center; visibility: collapse;">
+                {##}
+                {#                <div style="text-align: center">#}
+                {#                    <h2 style="margin-top: 0; margin-bottom: 18px;">Add a manual account</h2>#}
+                {#                </div>#}
+                {##}
+                {#                <div style="display: flex; align-items: center; justify-content: space-between;">#}
+                {#                    <h3>Account name</h3>#}
+                {#                    <input id="add-manual-name" />#}
+                {#                </div>#}
+                {##}
+                {#                <div style="display: flex; align-items: center; justify-content: space-between;">#}
+                {#                    <h3>Type</h3>#}
+                {#                    todo: DRY #}
+                {#                    <select id="add-manual-type" style="border: 1px solid black; height: 32px; width: 156px;">#}
+                {#                        <option value="0">Checking</option>#}
+                {#                        <option value="1">Savings</option>#}
+                {#                        <option value="2">Debit card</option>#}
+                {#                        <option value="3">Credit card</option>#}
+                {#                        <option value="4">401K</option>#}
+                {#                        <option value="5">Student</option>#}
+                {#                        <option value="6">Mortgage</option>#}
+                {#                        <option value="7">CD</option>#}
+                {#                        <option value="8">Money market</option>#}
+                {#                        <option value="9">IRA</option>#}
+                {#                        <option value="10">Mutual fund</option>#}
+                {#                        <option value="11">Crypto</option>#}
+                {#                        <option value="12">Asset (misc)</option>#}
+                {#                        <option value="13">Brokerage</option>#}
+                {#                        <option value="14">Roth</option>#}
+                {#                    </select>#}
+                {#                </div>#}
+                {##}
+                {#                <div style="display: flex; align-items: center; justify-content: space-between;">#}
+                {#                    <h3>Currency code</h3>#}
+                {#                    <input id="add-manual-currency-code" value="USD" maxlength="3" />#}
+                {#                </div>#}
+                {##}
+                {#                <div style="display: flex; align-items: center; justify-content: space-between;">#}
+                {#                    <h3>Value (Must be updated manually)</h3>#}
+                {#                    <input id="add-manual-current" type="number" value="0" />#}
+                {#                </div>#}
+                {##}
+                {#                <div style="display: flex; justify-content: center; margin-top: 18px;">#}
+                {#                    <button#}
+                {#                            type="button"#}
+                {#                            onclick="addAccountManual()"#}
+                {#                            class="button-general" style="width: 140px;"#}
+                {#                    >#}
+                {#                        Add this account</button>#}
+                {#                </div>#}
 
-            {#    todo: DRY#}
-            {% if investment_accs|length %}
-                <div class="account-type">
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Investments</h2>
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{ totals.investment_class }}">{{ totals.investment }}</h2>
-                    {% for acc in investment_accs %}
-                        <div style="display: flex; justify-content: space-between">
+    </div>
+
+    <div id="balances"
+         style="display: flex; flex-wrap: wrap; border: 1px solid #666666; margin-bottom: 60px;"
+    >
+
+        {#         todo: JS#}
+        {% if cash_accs|length %}
+            <div class="account-type">
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Cash</h2>
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{ totals.cash_class }}">{{ totals.cash }}</h2>
+                {% for acc in cash_accs %}
+                    <div id="account:{{ acc.id }}" style="display: flex; justify-content: space-between">
+                        {% if acc.nickname %}
+                            <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.nickname }}</h4>
+                        {% else %}
                             <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
-                            {#                            todo: experiment. Also nickname. Possibly a hierarchy in the to_display_view code.#}
-                            <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name_official }}</h4>
-                            <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            {% if crypto_accs|length %}
-                <div class="account-type">
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Crypto</h2>
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{ totals.crypto_class }}">{{ totals.crypto }}</h2>
-                    {% for acc in crypto_accs %}
-                        <div style="display: flex; justify-content: space-between">
-                            <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
-                            <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            {% if credit_debit_accs|length %}
-                <div class="account-type">
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Credit and debit</h2>
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{  totals.credit_debit_class}}">{{ totals.credit_debit }}</h2>
-                    {% for acc in credit_debit_accs %}
-                        <div style="display: flex; justify-content: space-between">
-                            <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
-                            <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            {% if loan_accs|length %}
-                <div class="account-type">
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Loans</h2>
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{ totals.loans_class }}">{{ totals.loans }}</h2>
-                    {% for acc in loan_accs %}
-                        <div style="display: flex; justify-content: space-between">
-                            <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
-                            <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            {% if asset_accs|length %}
-                <div class="account-type">
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Assets and manual</h2>
-                    <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{  totals.assets_class}}">{{ totals.assets }}</h2>
-                    {% for acc in assets %}
-                        <div style="display: flex; justify-content: space-between">
-                            <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
-                            <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-
-        <div style="display: flex; align-items: center; margin-bottom: 18px;">
-            <h2 style="margin-right: 32px;">Transactions</h2>
-            {# Required to show borders?#}
-
-            <div style="display: flex; align-items: center;">
-                <span>🔍</span>
-                <input
-                        id="search"
-                        placeholder=""
-                        style="margin-right: 80px; width: 120px;"
-                        oninput="updateSearch()"
-                />
-            </div>
-
-            <div style="display: flex; align-items: center;">
-                <h4 style="width: 70px;">Value ></h4>
-                <input
-                        id="transaction-value-filter"
-                        type="number"
-                        value="0"
-                        {#                    style="margin-right: 80px; width: 120px; height: 32px;"#}
-                        style="width: 60px"
-                        {#                     todo: Same as search change?#}
-                        oninput="updateSearch()"
-                />
-            </div>
-
-            {#            Import / export form #}
-            <form
-                    id="import-form"
-                    method="post"
-                    enctype="multipart/form-data"
-                    {#                    collapse vis a/r#}
-                    style="display: flex; align-items: center; visibility: hidden;"
-            >
-                {% csrf_token %}
-                {#                <input#}
-                {#                    style="color: black; background-color: #aaaaaa; height: 38px;"#}
-                {#                    type="file"#}
-                {#                    accept="text/csv"#}
-                {#                />#}
-                <input type="file" name="file" required id="id_file"
-                       style="color: black; background-color: #aaaaaa; height: 38px;">
-                <button type="submit" class="button-general">Import from Mint</button>
-            </form>
-            <button id="import-start" class="button-general">Import ↑</button>
-
-
-            {#            Have a button show the import dialog#}
-            {#            <button id="import" class="general-button">Import from Mint</button>#}
-            <button id="export" class="button-general">Export ↓</button>
-        </div>
-
-        <table style="border-collapse: collapse;">
-            <thead>
-            <tr style="height: 40px; border-bottom: 2px solid black;">
-                <th>
-                    <div style="display: flex; align-items: center;">
-                        <h4 class="tran-heading">Icons</h4>
-                        <input id="icon-checkbox" type="checkbox" checked />
+                        {% endif %}
+                        <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
                     </div>
-                </th>
-                <th><button id="edit-transactions" class="button-small">Edit transactions</button></th>
-{#                Notes#}
-                <th style="text-align: left">Notes</th>
-                <th></th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody id="transaction-tbody"></tbody>
-            {#            {% for tran in transactions %}#}
-            {#                <tr class="transaction">#}
-            {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>#}
-            {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>#}
-            {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal; color: #444444;">{{ tran.notes }}</h4></td>#}
-            {#                    <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-heading">{{ tran.amount }}</h4></td>#}
-            {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>#}
-            {#                </tr>#}
-            {#            {% endfor %}#}
-        </table>
+                {% endfor %}
+            </div>
+        {% endif %}
 
-        {# todo: Load locally. #}
-        <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+        {#    todo: DRY#}
+        {% if investment_accs|length %}
+            <div class="account-type">
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Investments</h2>
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{ totals.investment_class }}">{{ totals.investment }}</h2>
+                {% for acc in investment_accs %}
+                    <div id="account:{{ acc.id }}" style="display: flex; justify-content: space-between">
+                        <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
+                        {#                            todo: experiment. Also nickname. Possibly a hierarchy in the to_display_view code.#}
+                        <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name_official }}</h4>
+                        <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
-        <script src="../static/main.js"></script>
+        {% if crypto_accs|length %}
+            <div class="account-type">
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Crypto</h2>
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{ totals.crypto_class }}">{{ totals.crypto }}</h2>
+                {% for acc in crypto_accs %}
+                    <div id="account:{{ acc.id }}" style="display: flex; justify-content: space-between">
+                        <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
+                        <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if credit_debit_accs|length %}
+            <div class="account-type">
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Credit and debit</h2>
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{  totals.credit_debit_class}}">{{ totals.credit_debit }}</h2>
+                {% for acc in credit_debit_accs %}
+                    <div id="account:{{ acc.id }}" style="display: flex; justify-content: space-between">
+                        <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
+                        <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if loan_accs|length %}
+            <div class="account-type">
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Loans</h2>
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{ totals.loans_class }}">{{ totals.loans }}</h2>
+                {% for acc in loan_accs %}
+                    <div id="account:{{ acc.id }}" style="display: flex; justify-content: space-between">
+                        <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
+                        <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if asset_accs|length %}
+            <div class="account-type">
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;">Assets and manual</h2>
+                <h2 style="margin-top: 0; margin-bottom: 8px; text-align: center;" class="{{  totals.assets_class}}">{{ totals.assets }}</h2>
+                {% for acc in assets %}
+                    <div id="account:{{ acc.id }}" style="display: flex; justify-content: space-between">
+                        <h4 class="acct-hdg" style="margin-right: 26px;">{{ acc.name }}</h4>
+                        <h4 class="acct-hdg {{ acc.current_class }}">{{ acc.current }}</h4>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div style="display: flex; align-items: center; margin-bottom: 18px;">
+        <h2 style="margin-right: 32px;">Transactions</h2>
+        {# Required to show borders?#}
+
+        <div style="display: flex; align-items: center;">
+            <span>🔍</span>
+            <input
+                    id="search"
+                    placeholder=""
+                    style="margin-right: 80px; width: 120px;"
+                    oninput="updateSearch()"
+            />
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <h4 style="width: 70px;">Value ></h4>
+            <input
+                    id="transaction-value-filter"
+                    type="number"
+                    value="0"
+                    {#                    style="margin-right: 80px; width: 120px; height: 32px;"#}
+                    style="width: 60px"
+                    {#                     todo: Same as search change?#}
+                    oninput="updateSearch()"
+            />
+        </div>
+
+        {#            Import / export form #}
+        <form
+                id="import-form"
+                method="post"
+                enctype="multipart/form-data"
+                {#                    collapse vis a/r#}
+                style="display: flex; align-items: center; visibility: hidden;"
+        >
+            {% csrf_token %}
+            {#                <input#}
+            {#                    style="color: black; background-color: #aaaaaa; height: 38px;"#}
+            {#                    type="file"#}
+            {#                    accept="text/csv"#}
+            {#                />#}
+            <input type="file" name="file" required id="id_file"
+                   style="color: black; background-color: #aaaaaa; height: 38px;">
+            <button type="submit" class="button-general">Import from Mint</button>
+        </form>
+        <button id="import-start" class="button-general">Import ↑</button>
+
+
+        {#            Have a button show the import dialog#}
+        {#            <button id="import" class="general-button">Import from Mint</button>#}
+        <button id="export" class="button-general">Export ↓</button>
+    </div>
+
+    <table style="border-collapse: collapse;">
+        <thead>
+        <tr style="height: 40px; border-bottom: 2px solid black;">
+            <th>
+                <div style="display: flex; align-items: center;">
+                    <h4 class="tran-heading">Icons</h4>
+                    <input id="icon-checkbox" type="checkbox" checked />
+                </div>
+            </th>
+            <th><button id="edit-transactions" class="button-small">Edit transactions</button></th>
+            {#                Notes#}
+            <th style="text-align: left">Notes</th>
+            <th></th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody id="transaction-tbody"></tbody>
+        {#            {% for tran in transactions %}#}
+        {#                <tr class="transaction">#}
+        {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>#}
+        {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>#}
+        {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal; color: #444444;">{{ tran.notes }}</h4></td>#}
+        {#                    <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-heading">{{ tran.amount }}</h4></td>#}
+        {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>#}
+        {#                </tr>#}
+        {#            {% endfor %}#}
+    </table>
+
+    {# todo: Load locally. #}
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+
+    <script src="../static/main.js"></script>
     </div>
 
     <script>

@@ -261,6 +261,7 @@ class SubAccount(Model):
             institution = ""
 
         return {
+            "id": self.id,
             "name": self.name,
             # todo: Consider a "name_display" that is based on if nick, and name_official are avail.
             "name_official": self.name_official,
@@ -313,6 +314,7 @@ class Transaction(Model):
     # Ie, entered by the user.
     notes = CharField(max_length=200, default="")
 
+    # todo: Change this to be a serializer.
     def to_display_dict(self) -> Dict[str, str]:
         """For use in the web page."""
 
