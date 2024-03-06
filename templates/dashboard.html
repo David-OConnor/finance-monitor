@@ -9,25 +9,24 @@
         {#        <h1>Welcome to Finance Monitor</h1>#}
 
         <h2>Net worth: {{ totals.net_worth }}</h2>
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-            <h3>Currency code</h3>
-            <input id="add-manual-currency-code" value="USD" maxlength="3" />
-        </div>
+{#        <div style="display: flex; align-items: center; justify-content: space-between;">#}
+{#            <h3>Currency code</h3>#}
+{#            <input id="add-manual-currency-code" value="USD" maxlength="3" />#}
+{#        </div>#}
+{##}
+{#        <div style="display: flex; align-items: center; justify-content: space-between;">#}
+{#            <h3>Value (Must be updated manually)</h3>#}
+{#            <input id="add-manual-current" type="number" value="0" />#}
+{#        </div>#}
 
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-            <h3>Value (Must be updated manually)</h3>
-            <input id="add-manual-current" type="number" value="0" />
-        </div>
-
-        <div style="display: flex; justify-content: center; margin-top: 18px;">
-            <button
-                    type="button"
-                    onclick="addAccountManual()"
-                    class="button-general" style="width: 140px;"
-            >
-                Add this account</button>
-        </div>
-        </form>
+{#        <div style="display: flex; justify-content: center; margin-top: 18px;">#}
+{#            <button#}
+{#                    type="button"#}
+{#                    onclick="addAccountManual()"#}
+{#                    class="button-general" style="width: 140px;"#}
+{#            >#}
+{#                Add this account</button>#}
+{#        </div>#}
 
         {#    Heinous DRY!#}
 
@@ -77,8 +76,8 @@
 
             <button id="link-button" class="button-general">➕ Syncing account</button>
             <button id="add-manual-button" class="button-general" onclick="toggleAddManual()">➕ Manual account</button>
-            <button id="edit-accounts" class="button-general">✎ Edit</button>
-            {#            <p>Click an account to edit it</p>#}
+{#            <button id="edit-accounts" class="button-general">✎ Edit</button>#}
+                        <p>Click an account to edit it</p>
 
         </div>
 
@@ -96,7 +95,7 @@
         {#     todo: border color a/r#}
 
         {#        We hide and show this based on the "add a manual account" button.#}
-    <div style="display: flex; justify-content: center">
+    <div id="account-div" style="display: flex; justify-content: center; visibility: collapse;">
         <form
                 id="account-form"
                 style="display: flex;
@@ -345,5 +344,22 @@
 
     <script>
         document.getElementById("menu-dashboard").style.color = "#F6F7EB"
+
+    {#     todo: use JS, vice templates for acc balances#}
+
+        {% for acc in sub_accs_manual.all %}
+            document.getElementById("account:{{ acc.id }}").addEventListener("click", _ => {
+                console.log("CLICK {{ acc.name }}")
+                    let acc_ = {
+                        id: {{ acc.id }},
+                        name: "{{ acc.name }}",
+                        type: {{ acc.type }},
+                        iso_currency_code: "{{ acc.currency_code }}",
+                        current: {{ acc.current }}
+                    }
+                    console.log("acc arg: ", acc_)
+                setupAccForm(acc_)
+            })
+        {% endfor %}
     </script>
 {% endblock %}

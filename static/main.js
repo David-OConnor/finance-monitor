@@ -431,6 +431,8 @@ function setupEditAccsButton() {
 // todo; Account an account type.
 function setupAccForm(acc) {
     // Setup the form for adding and editing accounts.
+    let outerDiv = document.getElementById("account-div")
+    outerDiv.style.visibility = "visible"
     let form = document.getElementById("account-form")
     form.replaceChildren()
 
@@ -441,9 +443,16 @@ function setupAccForm(acc) {
     d.appendChild(h)
     form.appendChild(d)
 
+    // d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
+    // h = createEl("h3", {}, {marginTop: 0, marginBottom: 18}, "Official name")
+    //
+    // d.appendChild(h)
+    // d.appendChild(ip)
+    // form.appendChild(d)
+
     d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
-    h = createEl("h3", {value: acc.name}, {marginTop: 0, marginBottom: 18}, "Account name")
-    ip = createEl("input")
+    h = createEl("h3", {}, {marginTop: 0, marginBottom: 18}, "Account name")
+    ip = createEl("input", { value: acc.name })
 
     ip.addEventListener("change", e => {
         let updated = {
@@ -496,20 +505,15 @@ function setupAccForm(acc) {
     d.appendChild(ip)
     form.appendChild(d)
 
+    d = createEl("div", {}, {display: "flex", justifyContent: "center", marginTop: 18})
+    let btn = createEl("button", {type: "button", class: "button-general"}, {width: 140}, "Save")
 
-                // <div style="display: flex; align-items: center; justify-content: space-between;">
-                //     <h3>Value (Must be updated manually)</h3>
-                //     <input id="add-manual-current" type="number" value="0" />
-                // </div>
-                //
-                // <div style="display: flex; justify-content: center; margin-top: 18px;">
-                //     <button
-                //             type="button"
-                //             onClick="addAccountManual()"
-                //             className="button-general" style="width: 140px;"
-                //     >
-                //         Add this account</button>
-                // </div>
+    btn.addEventListener("click", _ => {
+        // todo
+    })
+
+    d.appendChild(btn)
+    form.appendChild(d)
 
     console.log(form, "FORM")
 }
@@ -616,5 +620,4 @@ function toggleAddManual() {
         form.style.visibility = "visible"
         btn.textContent = "(Cancel adding this account)"
     }
-
 }
