@@ -528,13 +528,14 @@ function setupAccForm(id) {
 
     d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
     h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Account name")
-    ip = createEl("input", { value: acc.name })
+    ip = createEl("input", {value: acc.name})
 
     ip.addEventListener("input", e => {
-        acc.name = e.target.value
-        ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), acc]
-        ACCOUNTS_UPDATED[acc.id] = acc
-        refreshAccounts()
+        let updated = {
+            ...acc,
+            name: e.target.value
+        }
+        ACCOUNTS_UPDATED[acc.id] = updated
     })
 
     d.appendChild(h)
@@ -570,9 +571,11 @@ function setupAccForm(id) {
     ip = createEl("input", {value: acc.iso_currency_code, maxLength: "3"})
 
     ip.addEventListener("input", e => {
-        acc.iso_currency_code = e.target.value
-        ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), acc]
-        ACCOUNTS_UPDATED[acc.id] = acc
+        let updated = {
+            ...acc,
+            iso_currency_code: e.target.value
+        }
+        ACCOUNTS_UPDATED[acc.id] = updated
         refreshAccounts()
     })
 
@@ -580,34 +583,34 @@ function setupAccForm(id) {
     d.appendChild(ip)
     form.appendChild(d)
 
-    d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
-    h = createEl("h3", {}, {}, "Value")
-    ip = createEl("input", {type: "number", value: acc.current})
+    if (acc.manual) {
+        d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
+        h = createEl("h3", {}, {}, "Value")
+        ip = createEl("input", {type: "number", value: acc.current})
 
-    ip.addEventListener("input", e => {
-        acc.current = parseFloat(e.target.value)
-        ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), acc]
-        ACCOUNTS_UPDATED[acc.id] = acc
-        refreshAccounts()
-    })
+        ip.addEventListener("input", e => {
+            let updated = {
+                ...acc,
+                current: parseFloat(e.target.value)
+            }
+            ACCOUNTS_UPDATED[acc.id] = updated
+            refreshAccounts()
+        })
 
-    d.appendChild(h)
-    d.appendChild(ip)
-    form.appendChild(d)
+        d.appendChild(h)
+        d.appendChild(ip)
+        form.appendChild(d)
+    }
 
     d = createEl("div", {}, {display: "flex", justifyContent: "center", marginTop: "18px"})
     let btnSave = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "Save")
     let btnCancel = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "Cancel")
 
     btnSave.addEventListener("click", _ => {
-        console.log("Saving...")  // todo t
-
         const data = {
             // Discard keys; we mainly use them for updating internally here.
             accounts: Object.values(ACCOUNTS_UPDATED)
         }
-
-        console.log(data, "DATA")
 
         fetch("/edit-accounts", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
             .then(result => result.json())
@@ -616,17 +619,27 @@ function setupAccForm(id) {
                     console.error("Account edits save failed")
                 }
             });
+
+        // Update the ACCOUNTS list, and refresh accounts.
+        for (let updated of Object.values(ACCOUNTS_UPDATED)) {
+            ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== updated.id), updated]
+        }
+        refreshAccounts()
+        ACCOUNTS_UPDATED = {}
+        // Update our accoutns list, and refresh.
+
+
+        outerDiv.style.visibility = "collapse"
     })
 
     btnCancel.addEventListener("click", _ => {
-
+        ACCOUNTS_UPDATED = {}
+        outerDiv.style.visibility = "collapse"
     })
 
     d.appendChild(btnSave)
     d.appendChild(btnCancel)
     form.appendChild(d)
-
-    console.log(form, "FORM")
 }
 
 function init() {

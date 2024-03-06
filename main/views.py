@@ -102,8 +102,6 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
 def edit_accounts(request: HttpRequest) -> HttpResponse:
     """Edit accounts. Notably, account nicknames, and everything about manual accounts."""
     data = json.loads(request.body.decode("utf-8"))
-    print("Body of account edit: ", data)
-
     result = {"success": True}
 
     for acc in data.get("accounts", []):
@@ -124,7 +122,6 @@ def edit_accounts(request: HttpRequest) -> HttpResponse:
 def add_account_manual(request: HttpRequest) -> HttpResponse:
     """Add a manual account, with information populated by the user."""
     data = json.loads(request.body.decode("utf-8"))
-    print("Body of adding manual accounts: ", data)
     # todo: Use pages or last index A/R.
 
     sub_type = SubAccountType(data["sub_type"])
