@@ -108,10 +108,12 @@ def edit_accounts(request: HttpRequest) -> HttpResponse:
 
     for acc in data.get("accounts", []):
         _, _ = SubAccount.objects.update_or_create(
-            id=tran["id"],
+            id=acc["id"],
             defaults={
-                "notes": tran["notes"],
-                "date": tran["date"],
+                "name": acc["name"],
+                "nickname": acc["nickname"],
+                "iso_currency_code": acc["iso_currency_code"],
+                "current": acc["current"],
             },
         )
 

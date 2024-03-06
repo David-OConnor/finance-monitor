@@ -260,24 +260,6 @@
         let ACCOUNTS = {{ sub_accs|safe }};
         let TRANSACTIONS = {{ transactions|safe }};
         let TOTALS = {{ totals|safe }};
-
-        {#     todo: use JS, vice templates for acc balances#}
-
-        // todo: Put back in a new form
-        {#        {% for acc in sub_accs_manual.all %}#}
-        {#            document.getElementById("account:{{ acc.id }}").addEventListener("click", _ => {#}
-        {#                console.log("CLICK {{ acc.name }}")#}
-        {#                    let acc_ = {#}
-        {#                        id: {{ acc.id }},#}
-        {#                        name: "{{ acc.name }}",#}
-        {#                        type: {{ acc.type }},#}
-        {#                        iso_currency_code: "{{ acc.currency_code }}",#}
-        {#                        current: {{ acc.current }}#}
-        {#                    }#}
-        {#                    console.log("acc arg: ", acc_)#}
-        {#                setupAccForm(acc_)#}
-        {#            })#}
-        {#        {% endfor %}#}
     </script>
 
     {# todo: Load locally. #}

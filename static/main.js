@@ -172,12 +172,12 @@ function formatNumber(number, decimals) {
     // Format a currency value with commas, and either 2, or 0 decimals.
     let options = decimals ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } :
         { minimumFractionDigits: 0, maximumFractionDigits: 0 }
-  return new Intl.NumberFormat('en-US', options).format(number);
+    return new Intl.NumberFormat('en-US', options).format(number);
 }
 
-function createAccRow(name, value) {
+function createAccRow(id, name, value) {
     // Helper function when creating the account display.
-    let div = createEl("div", {}, {display: "flex", justifyContent: "space-between"})
+    let div = createEl("div", {}, {display: "flex", justifyContent: "space-between", cursor: "pointer"})
     let h_a = createEl("h4", {class: "acct-hdg"}, {marginRight: "26px"}, name)
 
     const valClass = value > 0 ? "tran_pos" : "tran_neg"
@@ -188,6 +188,10 @@ function createAccRow(name, value) {
 
     div.appendChild(h_a)
     div.appendChild(h_b)
+
+    div.addEventListener("click", _ => {
+        setupAccForm(id)
+    })
     return div
 }
 
@@ -196,6 +200,7 @@ function refreshAccounts() {
     console.log("Refreshing accounts...")
 
     let section = document.getElementById("accounts")
+    section.replaceChildren()
 
     const acc_cash = ACCOUNTS.filter(acc => [ACC_TYPE_CHECKING, ACC_TYPE_SAVINGS].includes(acc.sub_type))
     const acc_investment = ACCOUNTS.filter(acc => [ACC_TYPE_MUTUAL_FUND, ACC_TYPE_401K, ACC_TYPE_CD, ACC_TYPE_MONEY_MARKET,
@@ -238,7 +243,7 @@ function refreshAccounts() {
         }
 
         for (let acc of accs[0]) {
-            div.appendChild(createAccRow(acc.name + " " + acc.name_official, acc.current))
+            div.appendChild(createAccRow(acc.id, acc.name + " " + acc.name_official, acc.current))
         }
         section.appendChild(div)
     }
@@ -498,7 +503,9 @@ function setupEditAccsButton() {
 }
 
 // todo; Account an account type.
-function setupAccForm(acc) {
+function setupAccForm(id) {
+    let acc = ACCOUNTS.filter(a => a.id === id)[0]
+
     // Setup the form for adding and editing accounts.
     let outerDiv = document.getElementById("account-div")
     outerDiv.style.visibility = "visible"
@@ -523,18 +530,16 @@ function setupAccForm(acc) {
     h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Account name")
     ip = createEl("input", { value: acc.name })
 
-    ip.addEventListener("change", e => {
-        let updated = {
-            ...acc,
-            name: e.target.value
-        }
-        ACCOUNTS_UPDATED[acc.id] = updated
+    ip.addEventListener("input", e => {
+        acc.name = e.target.value
+        ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), acc]
+        ACCOUNTS_UPDATED[acc.id] = acc
+        refreshAccounts()
     })
 
     d.appendChild(h)
     d.appendChild(ip)
     form.appendChild(d)
-
 
 
     // <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -563,6 +568,14 @@ function setupAccForm(acc) {
     d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
     h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Currency code")
     ip = createEl("input", {value: acc.iso_currency_code, maxLength: "3"})
+
+    ip.addEventListener("input", e => {
+        acc.iso_currency_code = e.target.value
+        ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), acc]
+        ACCOUNTS_UPDATED[acc.id] = acc
+        refreshAccounts()
+    })
+
     d.appendChild(h)
     d.appendChild(ip)
     form.appendChild(d)
@@ -570,6 +583,14 @@ function setupAccForm(acc) {
     d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
     h = createEl("h3", {}, {}, "Value")
     ip = createEl("input", {type: "number", value: acc.current})
+
+    ip.addEventListener("input", e => {
+        acc.current = parseFloat(e.target.value)
+        ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), acc]
+        ACCOUNTS_UPDATED[acc.id] = acc
+        refreshAccounts()
+    })
+
     d.appendChild(h)
     d.appendChild(ip)
     form.appendChild(d)
@@ -579,11 +600,26 @@ function setupAccForm(acc) {
     let btnCancel = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "Cancel")
 
     btnSave.addEventListener("click", _ => {
-        // todo
+        console.log("Saving...")  // todo t
+
+        const data = {
+            // Discard keys; we mainly use them for updating internally here.
+            accounts: Object.values(ACCOUNTS_UPDATED)
+        }
+
+        console.log(data, "DATA")
+
+        fetch("/edit-accounts", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
+            .then(result => result.json())
+            .then(r => {
+                if (!r.success) {
+                    console.error("Account edits save failed")
+                }
+            });
     })
 
     btnCancel.addEventListener("click", _ => {
-        // todo
+
     })
 
     d.appendChild(btnSave)
@@ -648,16 +684,6 @@ function init() {
 
     setupEditTranButton()
     // setupEditAccsButton()
-
-    // // todo: Temp here. Move appropriately
-    // let acc = {
-    //     id: 0,
-    //     name: "test_acc",
-    //     type: 3,
-    //     iso_currency_code: "GBP",
-    //     current: 335,
-    // }
-    // setupAccForm(acc)
 }
 
 init()
