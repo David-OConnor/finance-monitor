@@ -128,20 +128,6 @@ function getPublicToken() {
     handler.open();
 }
 
-// function refreshBalances() {
-//     fetch("/refresh-alances", FETCH_HEADERS_GET)
-//         // Parse JSON if able.
-//         .then(result => result.json())
-//         .then(r => {
-//             if (!r.updated) {
-//                 return
-//             }
-//
-//             let div = document.getElementById("balances")
-//             div.innerHTML = ""
-//         });
-// }
-
 function filterTransactions() {
     const searchText = SEARCH_TEXT
     const valueThresh = VALUE_THRESH
@@ -211,11 +197,7 @@ function refreshAccounts() {
     const acc_crypto = ACCOUNTS.filter(acc => [ACC_TYPE_CRYPTO].includes(acc.sub_type))
     const acc_assets = ACCOUNTS.filter(acc => [ACC_TYPE_ASSET].includes(acc.sub_type))
 
-    // for (let acc of ACCOUNTS) {
-    //
-    // }
-
-    let div, h1, h2, class_, totalFormatted, total
+    let div, h1, h2, class_, totalFormatted
 
     for (let accs of [
         [acc_cash, "Cash"],
@@ -245,7 +227,10 @@ function refreshAccounts() {
         for (let acc of accs[0]) {
             div.appendChild(createAccRow(acc.id, acc.name + " " + acc.name_official, acc.current))
         }
-        section.appendChild(div)
+
+        if (accs[0].length > 0) {
+            section.appendChild(div)
+        }
     }
 }
 
@@ -278,7 +263,7 @@ function refreshTransactions() {
 
         col = createEl("td", {class: "transaction-cell"})
         if (EDIT_MODE_TRAN) {
-            h = createEl("input", {id: "edit-notes:" + tran.id, value: tran.notes}, {marginRight: "30px"})
+            h = createEl("input", {value: tran.notes}, {marginRight: "30px"})
 
             h.addEventListener("input", e => {
                 let updated = {
@@ -298,10 +283,22 @@ function refreshTransactions() {
 
         col = createEl("td", {class: "transaction-cell"})
         if (EDIT_MODE_TRAN) {
-            h = createEl("input", {id: "edit-amount:" + tran.id, value: tran.amount},
+            h = createEl("input", { value: tran.amount},
                 {width: "80px", textAlign: "right", marginRight: "30px"}, "")
+
+            h.addEventListener("input", e => {
+
+                if (isValidNumber(e.target.value)) {
+                    let updated = {
+                        ...tran,
+                        amount: parseFloat(e.target.value)
+                    }
+                    // todo: DRY!
+                    TRANSACTIONS_UPDATED[String(tran.id)] = updated
+                }
+            })
         } else {
-            h = createEl("h4", {class: "tran-heading " +  tran.amount_class}, {}, tran.amount)
+            h = createEl("h4", {class: "tran-heading " +  tran.amount_class}, {}, formatNumber(tran.amount, true))
         }
 
         col.appendChild(h)
@@ -310,7 +307,7 @@ function refreshTransactions() {
 
         col = createEl("td", {class: "transaction-cell"})
         if (EDIT_MODE_TRAN) {
-            h = createEl("input", {id: "edit-date:" + tran.id,type: "date", value: tran.date}, {width: "120px"})
+            h = createEl("input", {type: "date", value: tran.date}, {width: "120px"})
 
             h.addEventListener("input", e => {
                 let updated = {
@@ -329,17 +326,6 @@ function refreshTransactions() {
 
         tbody.appendChild(row)
     }
-    // {% for tran in transactions %}
-    // <tr class="transaction">
-    //     <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>
-    //     <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>
-    //     <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal; color: #444444;">{{ tran.notes }}</h4></td>
-    //     <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-heading">{{ tran.amount }}</h4></td>
-    //     <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>
-    // </tr>
-    // {% endfor %}
-
-    // });
 }
 
 function updateSearch() {
@@ -448,58 +434,6 @@ function setupEditTranButton() {
             refreshTransactions()  // Overkill; just to taek out of edit mode. todo: SPlit refreshTransactions.
             EDIT_MODE_TRAN = true
             btn.textContent = "Save transactions"
-        }
-        refreshTransactions()
-    })
-}
-
-// todo: DRY with tran edit setup
-function setupEditAccsButton() {
-    let btn = document.getElementById("edit-accounts");
-    let section = document.getElementById("edit-accs-section")
-
-
-    btn.addEventListener("click", _ => {
-        if (EDIT_MODE_ACC) {
-            // Save transactions on click
-
-            const data = {
-                // Discard keys; we mainly use them for updating internally here.
-                accounts: Object.values(ACCOUNTS_UPDATED)
-            }
-
-            // Save transactions to the database.
-            fetch("/edit-accounts", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
-                .then(result => result.json())
-                .then(r => {
-                    if (!r.success) {
-                        console.error("Account edits save failed")
-                    }
-                });
-
-            // todo: As long as we're using the template, consider a page refresh.
-
-            // Update accounts in place, so a refresh isn't required.
-            // todo: A/R
-            // for (let acc of Object.values(ACCOUNTS_UPDATED)) {
-            //     TRANSACTIONS = [
-            //         ...TRANSACTIONS.filter(t => t.id !== acc.id),
-            //         acc,
-            //     ]
-            // }
-
-            ACCOUNTS_UPDATED = {}
-
-            // todo: Refresh accounts.
-            EDIT_MODE_ACC = false
-            btn.textContent = "Edit accounts"
-        } else {
-            section.replaceChildren()
-
-            // todo: Refresh accounts.
-            // Enable editing on click.
-            EDIT_MODE_ACC = true
-            btn.textContent = "Save accounts"
         }
         refreshTransactions()
     })
@@ -708,17 +642,6 @@ function init() {
 
     })
 
-    // // Load transactions from the backend.
-    // // fetch("/load-transactions", FETCH_HEADERS_POST)
-    // fetch("/load-transactions", { body: JSON.stringify({}), ...FETCH_HEADERS_POST })
-    //     // Parse JSON if able.
-    //     .then(result => result.json())
-    //     .then(r => {
-    //         TRANSACTIONS = r.transactions
-    //         // TRANSACTIONS_DISPLAYED = r.transactions
-    //         refreshTransactions()
-    //     });
-
     refreshAccounts()
     refreshTransactions()
 
@@ -771,4 +694,26 @@ function toggleAddManual() {
         form.style.visibility = "visible"
         btn.textContent = "(Cancel adding this account)"
     }
+}
+
+function isValidNumber(str) {
+    // First, try parsing the string
+    const num = parseFloat(str);
+
+    // Check if the parsed number is NaN. If so, it's not a valid number.
+    if (isNaN(num)) {
+        return false;
+    }
+
+    // Then check if the string representation of the parsed number matches the input.
+    // This ensures that inputs like "123abc" or "123.45.67" are rejected.
+    // Trim the input to ignore leading/trailing whitespace.
+    const trimmedInput = str.trim();
+
+    // Create a regular expression to match the possible string representations of the parsed number.
+    // This accounts for both integer and floating-point numbers, including those in exponential notation.
+    const regexPattern = new RegExp("^" + num + "$|^" + num + "e[+-]?\\d+$", "i");
+
+    // Test the trimmed input against the regular expression.
+    return regexPattern.test(trimmedInput);
 }

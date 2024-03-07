@@ -91,6 +91,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
             id=tran["id"],
             defaults={
                 "notes": tran["notes"],
+                "amount": tran["amount"],
                 "date": tran["date"],
             },
         )
