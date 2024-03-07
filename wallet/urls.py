@@ -40,4 +40,6 @@ urlpatterns = [
     path("add-account-manual", views.add_account_manual),
     path("edit-transactions", views.edit_transactions),
     path("edit-accounts", views.edit_accounts),
+    path("delete-transactions", views.delete_transactions),
+    path("delete-accounts", views.delete_accounts),
 ]

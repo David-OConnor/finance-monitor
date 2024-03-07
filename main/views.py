@@ -151,6 +151,37 @@ def add_account_manual(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+def delete_accounts(request: HttpRequest) -> HttpResponse:
+    """Delete one or more sub accounts."""
+    data = json.loads(request.body.decode("utf-8"))
+    result = {"success": True}
+
+    # todo: Unlink etc if not manual
+    for id_ in data.get("ids", []):
+        try:
+            SubAccount.objects.get(id=id_).delete()
+        except SubAccount.DoesNotExist:
+            result["success"] = False
+
+    return HttpResponse(json.dumps(result), content_type="application/json")
+
+
+@login_required
+def delete_transactions(request: HttpRequest) -> HttpResponse:
+    """Delete one or more transactions."""
+    data = json.loads(request.body.decode("utf-8"))
+    result = {"success": True}
+
+    for id_ in data.get("ids", []):
+        try:
+            Transaction.objects.get(id=id_).delete()
+        except Transaction.DoesNotExist:
+            result["success"] = False
+
+    return HttpResponse(json.dumps(result), content_type="application/json")
+
+
+@login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
     person = request.user.person
     accounts = person.accounts.all()

@@ -522,6 +522,15 @@ function setupAccForm(id) {
     d.appendChild(h)
     form.appendChild(d)
 
+    d = createEl("div", {}, {textAlign: "center"})
+    let officialText = acc.institution
+    if (!acc.manual && acc.name_official) {
+        officialText += ": " + acc.name_official
+    }
+    h = createEl("h3", {}, {}, officialText)
+    d.appendChild(h)
+    form.appendChild(d)
+
     // d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
     // h = createEl("h3", {}, {marginTop: 0, marginBottom: 18}, "Official name")
     //
@@ -606,8 +615,13 @@ function setupAccForm(id) {
     }
 
     d = createEl("div", {}, {display: "flex", justifyContent: "center", marginTop: "18px"})
-    let btnSave = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "Save")
+    let btnSave = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "💾Save")
     let btnCancel = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "Cancel")
+
+    let btnDelete = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "❌Delete")
+    if (!acc.manual) {
+        btnDelete.textContent = "🔗Unlink"
+    }
 
     btnSave.addEventListener("click", _ => {
         const data = {
@@ -640,8 +654,24 @@ function setupAccForm(id) {
         outerDiv.style.visibility = "collapse"
     })
 
+    // todo: Confirmation.
+    btnDelete.addEventListener("click", _ => {
+        let data = {ids: [acc.id]}
+        fetch("/delete-accounts", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
+            .then(result => result.json())
+            .then(r => {
+                if (!r.success) {
+                    console.error("Account edits save failed")
+                }
+            });
+        ACCOUNTS = ACCOUNTS.filter(a => a.id !== acc.id)
+        refreshAccounts()
+        outerDiv.style.visibility = "collapse"
+    })
+
     d.appendChild(btnSave)
     d.appendChild(btnCancel)
+    d.appendChild(btnDelete)
     form.appendChild(d)
 }
 
