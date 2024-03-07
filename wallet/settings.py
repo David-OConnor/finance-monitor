@@ -79,6 +79,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "financial-monitor-783ae5ca6965.herokuapp.com",
     "financial-monitor.com",
+    "www.financial-monitor.com",
 ]
 
 # Application definition
