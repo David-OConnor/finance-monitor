@@ -137,8 +137,6 @@ def add_account_manual(request: HttpRequest) -> HttpResponse:
         current=data["current"],
     )
 
-    print("Adding account: ", account)
-
     success = True
     try:
         account.save()
@@ -148,7 +146,7 @@ def add_account_manual(request: HttpRequest) -> HttpResponse:
 
     # return HttpResponseRedirect("/dashboard")
     return HttpResponse(
-        json.dumps({"success": success}), content_type="application/json"
+        json.dumps({"success": success, "account": account.serialize()}), content_type="application/json"
     )
 
 

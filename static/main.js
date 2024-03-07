@@ -396,6 +396,9 @@ function addAccountManual() {
         .then(r => {
             console.log(r)
             // todo: Handle a failure.
+            // Add the account with info from the server; this will have the server-assigned database ID.
+            ACCOUNTS.push(r.account)
+            refreshAccounts()
         });
 
     let form = document.getElementById("add-manual-form")
@@ -728,6 +731,8 @@ function createEl(tag, attributes, style, text) {
 function toggleAddManual() {
     let form = document.getElementById("add-manual-form")
     let btn = document.getElementById("add-manual-button")
+
+    console.log("YEA")
 
     if (form.style.visibility === "visible") {
         form.style.visibility = "collapse"

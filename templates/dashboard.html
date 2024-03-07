@@ -111,57 +111,68 @@
         </div>
 
         <div id="add-manual-form" style="display: flex; justify-content: center; visibility: collapse;">
-            {##}
-            {#                <div style="text-align: center">#}
-            {#                    <h2 style="margin-top: 0; margin-bottom: 18px;">Add a manual account</h2>#}
-            {#                </div>#}
-            {##}
-            {#                <div style="display: flex; align-items: center; justify-content: space-between;">#}
-            {#                    <h3>Account name</h3>#}
-            {#                    <input id="add-manual-name" />#}
-            {#                </div>#}
-            {##}
-            {#                <div style="display: flex; align-items: center; justify-content: space-between;">#}
-            {#                    <h3>Type</h3>#}
-            {#                    todo: DRY #}
-            {#                    <select id="add-manual-type" style="border: 1px solid black; height: 32px; width: 156px;">#}
-            {#                        <option value="0">Checking</option>#}
-            {#                        <option value="1">Savings</option>#}
-            {#                        <option value="2">Debit card</option>#}
-            {#                        <option value="3">Credit card</option>#}
-            {#                        <option value="4">401K</option>#}
-            {#                        <option value="5">Student</option>#}
-            {#                        <option value="6">Mortgage</option>#}
-            {#                        <option value="7">CD</option>#}
-            {#                        <option value="8">Money market</option>#}
-            {#                        <option value="9">IRA</option>#}
-            {#                        <option value="10">Mutual fund</option>#}
-            {#                        <option value="11">Crypto</option>#}
-            {#                        <option value="12">Asset (misc)</option>#}
-            {#                        <option value="13">Brokerage</option>#}
-            {#                        <option value="14">Roth</option>#}
-            {#                    </select>#}
-            {#                </div>#}
-            {##}
-            {#                <div style="display: flex; align-items: center; justify-content: space-between;">#}
-            {#                    <h3>Currency code</h3>#}
-            {#                    <input id="add-manual-currency-code" value="USD" maxlength="3" />#}
-            {#                </div>#}
-            {##}
-            {#                <div style="display: flex; align-items: center; justify-content: space-between;">#}
-            {#                    <h3>Value (Must be updated manually)</h3>#}
-            {#                    <input id="add-manual-current" type="number" value="0" />#}
-            {#                </div>#}
-            {##}
-            {#                <div style="display: flex; justify-content: center; margin-top: 18px;">#}
-            {#                    <button#}
-            {#                            type="button"#}
-            {#                            onclick="addAccountManual()"#}
-            {#                            class="button-general" style="width: 140px;"#}
-            {#                    >#}
-            {#                        Add this account</button>#}
-            {#                </div>#}
+            <form
+                    id="add-account-form"
+                    style="display: flex;
+                margin-top: 32px;
+                margin-bottom: 32px;
+                flex-direction: column;
+                width: 400px;
+                border: 1px solid #444444;
+                padding: 20px;
+                "
+            >
 
+                <div style="text-align: center">
+                    <h2 style="margin-top: 0; margin-bottom: 18px;">Add a manual account</h2>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <h3>Account name</h3>
+                    <input id="add-manual-name" />
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <h3>Type</h3>
+                    todo: DRY
+                    <select id="add-manual-type" style="border: 1px solid black; height: 32px; width: 156px;">
+                        <option value="0">Checking</option>
+                        <option value="1">Savings</option>
+                        <option value="2">Debit card</option>
+                        <option value="3">Credit card</option>
+                        <option value="4">401K</option>
+                        <option value="5">Student</option>
+                        <option value="6">Mortgage</option>
+                        <option value="7">CD</option>
+                        <option value="8">Money market</option>
+                        <option value="9">IRA</option>
+                        <option value="10">Mutual fund</option>
+                        <option value="11">Crypto</option>
+                        <option value="12">Asset (misc)</option>
+                        <option value="13">Brokerage</option>
+                        <option value="14">Roth</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <h3>Currency code</h3>
+                    <input id="add-manual-currency-code" value="USD" maxlength="3" />
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <h3>Value (Must be updated manually)</h3>
+                    <input id="add-manual-current" type="number" value="0" />
+                </div>
+
+                <div style="display: flex; justify-content: center; margin-top: 18px;">
+                    <button
+                            type="button"
+                            onclick="addAccountManual()"
+                            class="button-general" style="width: 140px;"
+                    >
+                        Add this account</button>
+                </div>
+            </form>
         </div>
 
         <div id="accounts"
