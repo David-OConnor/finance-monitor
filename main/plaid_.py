@@ -60,7 +60,7 @@ PLAID_PRODUCTS = [
 
 
 PLAID_COUNTRY_CODES = ["US"]
-PLAID_REDIRECT_URI = "http://localhost:8080/"  # todo
+PLAID_REDIRECT_URI = "http://finance-monitor.com/"  # todo
 
 # Available environments arefr
 # 'Production'
