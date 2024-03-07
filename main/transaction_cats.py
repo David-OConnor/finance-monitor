@@ -302,6 +302,7 @@ def category_override(
 
 def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCategory]:
     """Simplify a category list if multiple related are listed together by the API.
+    In general, we return the more specific of the categories.
     Return the result, due to Python's sloppy mutation-in-place."""
     cats = list(set(cats))  # Remove duplicates.
 

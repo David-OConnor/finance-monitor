@@ -161,28 +161,41 @@ function formatNumber(number, decimals) {
     return new Intl.NumberFormat('en-US', options).format(number);
 }
 
-function createAccRow(id, name, value) {
+function createAccRow(acc) {
     // Helper function when creating the account display.
     let div = createEl("div", {}, {display: "flex", justifyContent: "space-between", cursor: "pointer"})
+
+    let name
+    if (acc.manual) {
+        name = acc.name
+    } else {
+        if (acc.nickname.length) {
+            name = acc.nickname
+        } else {
+            name = acc.name + " " + acc.name_official
+        }
+    }
+
     let h_a = createEl("h4", {class: "acct-hdg"}, {marginRight: "26px"}, name)
 
-    const valClass = value > 0 ? "tran_pos" : "tran_neg"
+    const valClass = acc.current > 0 ? "tran_pos" : "tran_neg"
 
     // Format with a comma, and no decimal places
-    const valueFormatted = formatNumber(value, false)
+    const valueFormatted = formatNumber(acc.current, false)
     let h_b = createEl("h4", {class: "acct-hdg " + valClass}, {}, valueFormatted)
 
     div.appendChild(h_a)
     div.appendChild(h_b)
 
     div.addEventListener("click", _ => {
-        setupAccForm(id)
+        setupAccForm(acc.id)
     })
     return div
 }
 
 function refreshAccounts() {
-    //[Re]populate the accounts table based on state.
+    //[Re]populate the accounts section based on state.
+
     console.log("Refreshing accounts...")
 
     let section = document.getElementById("accounts")
@@ -225,7 +238,7 @@ function refreshAccounts() {
         }
 
         for (let acc of accs[0]) {
-            div.appendChild(createAccRow(acc.id, acc.name + " " + acc.name_official, acc.current))
+            div.appendChild(createAccRow(acc))
         }
 
         if (accs[0].length > 0) {
@@ -251,12 +264,12 @@ function refreshTransactions() {
         if (TRANSACTION_ICONS) {
             col.textContent = tran.categories_icon
         } else {
-            col.textContent = tran.categories
+            col.textContent = tran.categories_text
         }
         row.appendChild(col)
 
         col = createEl("td", {class: "transaction-cell"})
-        let h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal"}, tran.description)
+        let h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal", marginLeft: "40px"}, tran.description)
         col.appendChild(h)
 
         row.appendChild(col)
@@ -458,9 +471,15 @@ function setupAccForm(id) {
 
     d = createEl("div", {}, {textAlign: "center"})
     let officialText = acc.institution
-    if (!acc.manual && acc.name_official) {
-        officialText += ": " + acc.name_official
+
+    if (!acc.manual) {
+        officialText += ": " + acc.name
     }
+
+    if (!acc.manual && acc.name_official) {
+        officialText += ", " + acc.name_official
+    }
+
     h = createEl("h3", {}, {}, officialText)
     d.appendChild(h)
     form.appendChild(d)
@@ -473,21 +492,36 @@ function setupAccForm(id) {
     // form.appendChild(d)
 
     d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
-    h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Account name")
-    ip = createEl("input", {value: acc.name})
 
-    ip.addEventListener("input", e => {
-        let updated = {
-            ...acc,
-            name: e.target.value
-        }
-        ACCOUNTS_UPDATED[acc.id] = updated
-    })
+    let acc_input_name = ""
+
+    if (acc.manual) {
+        h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Account name")
+        ip = createEl("input", {value: acc.name})
+        ip.addEventListener("input", e => {
+            let updated = {
+                ...acc,
+                name: e.target.value
+            }
+            ACCOUNTS_UPDATED[acc.id] = updated
+        })
+    } else {
+        h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Nickname")
+        ip = createEl("input", {value: acc.nickname})
+        ip.addEventListener("input", e => {
+            let updated = {
+                ...acc,
+                nickname: e.target.value
+            }
+            ACCOUNTS_UPDATED[acc.id] = updated
+        })
+    }
 
     d.appendChild(h)
     d.appendChild(ip)
     form.appendChild(d)
 
+// todo: Allow editing account type.
 
     // <div style="display: flex; align-items: center; justify-content: space-between;">
     //     <h3>Type</h3>
@@ -512,22 +546,24 @@ function setupAccForm(id) {
     // </div>
 
 
-    d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
-    h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Currency code")
-    ip = createEl("input", {value: acc.iso_currency_code, maxLength: "3"})
+    if (acc.manual) {
+        d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
+        h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Currency code")
+        ip = createEl("input", {value: acc.iso_currency_code, maxLength: "3"})
 
-    ip.addEventListener("input", e => {
-        let updated = {
-            ...acc,
-            iso_currency_code: e.target.value
-        }
-        ACCOUNTS_UPDATED[acc.id] = updated
-        refreshAccounts()
-    })
+        ip.addEventListener("input", e => {
+            let updated = {
+                ...acc,
+                iso_currency_code: e.target.value
+            }
+            ACCOUNTS_UPDATED[acc.id] = updated
+            refreshAccounts()
+        })
 
-    d.appendChild(h)
-    d.appendChild(ip)
-    form.appendChild(d)
+        d.appendChild(h)
+        d.appendChild(ip)
+        form.appendChild(d)
+    }
 
     if (acc.manual) {
         d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
