@@ -24,7 +24,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# DEPLOYED = True if "SECRET_KEY" in os.environ else False
 DEPLOYED = True if "DATABASE_URL" in os.environ else False
 
 
@@ -35,8 +34,8 @@ class PlaidMode(Enum):
 
 
 # PLAID_MODE = PlaidMode.SANDBOX
-PLAID_MODE = PlaidMode.DEV
-# PLAID_MODE = PlaidMode.PRODUCTION
+# PLAID_MODE = PlaidMode.DEV
+PLAID_MODE = PlaidMode.PRODUCTION
 
 if DEPLOYED:
     DEBUG = False
@@ -92,8 +91,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "rest_framework",
-    # "corsheaders",
 ]
 
 MIDDLEWARE = [

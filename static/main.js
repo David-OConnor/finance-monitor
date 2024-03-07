@@ -188,7 +188,7 @@ function createAccRow(acc) {
     div.appendChild(h_b)
 
     div.addEventListener("click", _ => {
-        setupAccForm(acc.id)
+        setupAccEditForm(acc.id)
     })
     return div
 }
@@ -452,8 +452,7 @@ function setupEditTranButton() {
     })
 }
 
-// todo; Account an account type.
-function setupAccForm(id) {
+function setupAccEditForm(id) {
     let acc = ACCOUNTS.filter(a => a.id === id)[0]
 
     // Setup the form for adding and editing accounts.
@@ -480,16 +479,15 @@ function setupAccForm(id) {
         officialText += ", " + acc.name_official
     }
 
-    h = createEl("h3", {}, {}, officialText)
+    h = createEl("h3", {}, {margin: 0}, officialText)
     d.appendChild(h)
     form.appendChild(d)
 
-    // d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
-    // h = createEl("h3", {}, {marginTop: 0, marginBottom: 18}, "Official name")
-    //
-    // d.appendChild(h)
-    // d.appendChild(ip)
-    // form.appendChild(d)
+    d = createEl("div", {}, {textAlign: "center"})
+    h = createEl("h3", {}, {marginTop: "8px", marginBottom: "40px"}, "Type: " + accTypeFromNum(acc.sub_type))
+    d.appendChild(h)
+    form.appendChild(d)
+
 
     d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
 
@@ -693,35 +691,9 @@ function init() {
 
 init()
 
-// todo: util.js
-function createEl(tag, attributes, style, text) {
-    // Create and return an element with given attributes and style.
-    let el = document.createElement(tag)
-
-    if (attributes) {
-        for (const [attr, val] of Object.entries(attributes)) {
-            el.setAttribute(attr, val)
-        }
-    }
-
-    if (style) {
-        for (const [attr, val] of Object.entries(style)) {
-            el.style[attr] = val
-        }
-    }
-
-    if (text) {
-        el.textContent = text
-    }
-
-    return el
-}
-
 function toggleAddManual() {
     let form = document.getElementById("add-manual-form")
     let btn = document.getElementById("add-manual-button")
-
-    console.log("YEA")
 
     if (form.style.visibility === "visible") {
         form.style.visibility = "collapse"
@@ -732,24 +704,3 @@ function toggleAddManual() {
     }
 }
 
-function isValidNumber(str) {
-    // First, try parsing the string
-    const num = parseFloat(str);
-
-    // Check if the parsed number is NaN. If so, it's not a valid number.
-    if (isNaN(num)) {
-        return false;
-    }
-
-    // Then check if the string representation of the parsed number matches the input.
-    // This ensures that inputs like "123abc" or "123.45.67" are rejected.
-    // Trim the input to ignore leading/trailing whitespace.
-    const trimmedInput = str.trim();
-
-    // Create a regular expression to match the possible string representations of the parsed number.
-    // This accounts for both integer and floating-point numbers, including those in exponential notation.
-    const regexPattern = new RegExp("^" + num + "$|^" + num + "e[+-]?\\d+$", "i");
-
-    // Test the trimmed input against the regular expression.
-    return regexPattern.test(trimmedInput);
-}

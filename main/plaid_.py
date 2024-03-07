@@ -48,12 +48,13 @@ from plaid.api import plaid_api
 PLAID_PRODUCTS = [
     Products(p)
     for p in [
-        # "assets",  # todo: Not auth currently. Do we need it?
+        "auth",
+        "assets",
         # "balance",
         "transactions",
         "investments",
         "liabilities",
-        # "recurring_transactions", # todo: Not supported as an initial product?
+        # "recurring_transactions",
     ]
 ]
 

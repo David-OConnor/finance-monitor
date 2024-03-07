@@ -390,10 +390,20 @@ class Transaction(Model):
         ]
 
 
-# todo: More refined snapshot, including all accounts.
-
-
-class NetWorthSnapshot(Model):
-    person = ForeignKey(Person, related_name="net_worth_snapshots", on_delete=CASCADE)
-    datetime = DateTimeField()
+class SnapshotAccount(Model):
+    account = ForeignKey(SubAccount, related_name="snapshots", on_delete=SET_NULL, blank=True, null=True)
+    # Used if the account gets deleted etc.
+    account_name = CharField(max_length=30)
+    dt = DateTimeField()
     value = FloatField()
+
+
+class SnapshotPerson(Model):
+    person = ForeignKey(Person, related_name="snapshots", on_delete=CASCADE)
+    dt = DateTimeField()
+    value = FloatField()
+
+    def __str__(self):
+        return (
+            f"Value snapshot. {self.dt}: {self.value}"
+        )
