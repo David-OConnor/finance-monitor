@@ -24,7 +24,12 @@ let FILTER_START = "1999-09-09"  // todo!
 let FILTER_END = "2040-09-09"  // todo!
 let VALUE_THRESH = 0
 
+// Whenever we change page, or filter terms, we may need to load transactions. This tracks
+// if we've already done so, for a given config
+let TRANSACTIONS_LOADED = true
+
 const PAGE_SIZE = 60
+
 
 // todo: Config object?
 
@@ -169,21 +174,24 @@ function filterTransactions() {
 
     transactions.sort((b, a) => new Date(a.date) - new Date(b.date))
 
-    // If, after filtering, we don't have a full page of information, request more from the backend.
-    if (transactions.length < PAGE_SIZE) {
-        console.log("Requesting more transactions...")
-        data = { numToLoad: PAGE_SIZE }
+    if (!TRANSACTIONS_LOADED) {  // A check against doing this multiple times (or finititely) in a row.
+        TRANSACTIONS_LOADED = true
 
-        fetch("/load-transactions", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
-            .then(result => result.json())
-            .then(r => {
-                console.log("Load result: ", r)
-                for (let tran_loaded of r.transactions) {
-                    TRANSACTIONS.push(tran_loaded)
-                    // todo: Watch out for an infinite recursion here...
-                    refreshTransactions()
-                }
-            });
+        // If, after filtering, we don't have a full page of information, request more from the backend.
+        if (transactions.length < PAGE_SIZE) {
+            console.log("Requesting more transactions...")
+            data = {num: PAGE_SIZE, search: SEARCH_TEXT, start: FILTER_START, end: FILTER_END} // todo: Doesn't have to be page size.
+
+            fetch("/load-transactions", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
+                .then(result => result.json())
+                .then(r => {
+                    console.log("Load result: ", r)
+                    for (let tran_loaded of r.transactions) {
+                        TRANSACTIONS.push(tran_loaded)
+                        refreshTransactions()
+                    }
+                });
+        }
     }
 
     return transactions.slice(0, PAGE_SIZE)
@@ -415,6 +423,8 @@ function refreshTransactions() {
 }
 
 function updateTranFilter() {
+    TRANSACTIONS_LOADED = false // Allows more transactions to be loaded from the server.
+
     SEARCH_TEXT = document.getElementById("search").value.toLowerCase()
 
     // todo: Enforce integer value.

@@ -4,7 +4,7 @@ from datetime import date
 
 from django.db.models import Q
 
-from main.models import AccountType, FinancialAccount, Person, SubAccount
+from main.models import AccountType, FinancialAccount, Person, SubAccount, Transaction
 
 
 def unw_helper(net_worth: float, sub_acc: SubAccount) -> float:
@@ -38,6 +38,7 @@ def update_net_worth_manual_accs(net_worth: float, person: Person) -> float:
 
 
 def get_transaction_data(
+    count: int,
     accounts: Iterable[FinancialAccount],
     person: Person,
     search_text: Optional[str],
@@ -46,37 +47,25 @@ def get_transaction_data(
 ) -> List[Dict[str, str]]:
     """Create a set of transactions, serialized for use with the frontend. These
     are combined from all sub-accounts."""
-
-    # todo: You really need datetime for result. How do you get it? Take another pass through, and confirm
-    # todo you're not missing something.
-    result = []
-
     # todo: Pending? Would have to parse into the DB.
 
-    # todo: Sort out amounts/pagination etc
+    print(f"\n\nStart: {start}, end: {end}\n\n\n")
 
-    count = 80  # todo temp
-
-    trans_no_account = person.transactions_without_account.all()[:count]
+    trans = Transaction.objects.filter(
+        Q(account__in=accounts) | Q(person=person)
+    )
 
     if search_text:
-        print("SEARCH TEXT", search_text)
-        trans_no_account = trans_no_account.filter(
+        trans = trans.filter(
             #  todo: Categories A/R
             Q(description__icontains=search_text)
             | Q(notes__icontains=search_text)
         )
 
-    for tran in trans_no_account:
-        result.append(tran.serialize())
+    if start is not None:
+        trans = trans.filter(date__gte=start)
+    if end is not None:
+        trans = trans.filter(date__lte=end)
 
-    for acc in accounts:
-        for tran in acc.transactions.all()[:count]:
-            result.append(tran.serialize())
+    return [tran.serialize() for tran in trans[:count]]
 
-    result.sort(key=lambda t: t["date"], reverse=True)
-    #
-    # for tran in result:
-    #     tran["date"] = tran["date"].isoformat()
-
-    return result

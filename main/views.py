@@ -1,4 +1,5 @@
 import json
+from datetime import date
 from io import TextIOWrapper
 
 from django.db.models import Q
@@ -62,13 +63,25 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     data = json.loads(request.body.decode("utf-8"))
     # todo: Use pages or last index A/R.
 
-    search_text = data.get("search_text")
+    print("Loading transactions. Data received: ", data)
+
+    num = data["num"]
+    search = data.get("search")
     categories = data.get("categories")
     start = data.get("start")
     end = data.get("end")
 
+    if start:
+        start = date.fromisoformat(start)
+    else:
+        start = None  # In case of empty string passed
+    if end:
+        end = date.fromisoformat(end)
+    else:
+        end = None
+
     transactions = {
-        "transactions": util.get_transaction_data(accounts, person, search_text, start, end)
+        "transactions": util.get_transaction_data(num, accounts, person, search, start, end)
     }
 
     return HttpResponse(json.dumps(transactions), content_type="application/json")
@@ -273,7 +286,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
         return HttpResponseRedirect("/dashboard")
 
-    transactions = util.get_transaction_data(accounts, person, "", None, None)
+    transactions = util.get_transaction_data(60, accounts, person, None, None, None)
 
     context = {
         "totals": totals_display,
