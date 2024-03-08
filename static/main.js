@@ -28,7 +28,8 @@ let VALUE_THRESH = 0
 // if we've already done so, for a given config
 let TRANSACTIONS_LOADED = true
 
-const PAGE_SIZE = 60
+// const PAGE_SIZE = 60
+const PAGE_SIZE = 5  // todo temp!
 
 
 // todo: Config object?
@@ -186,8 +187,14 @@ function filterTransactions() {
                 .then(result => result.json())
                 .then(r => {
                     console.log("Load result: ", r)
-                    for (let tran_loaded of r.transactions) {
-                        TRANSACTIONS.push(tran_loaded)
+
+                    let existingTranIds = TRANSACTIONS.map(t => t.id)
+
+                    for (let tranLoaded of r.transactions) {
+                        // Don't add duplicates.
+                        if (!existingTranIds.includes(tranLoaded.id)) {
+                            TRANSACTIONS.push(tranLoaded)
+                        }
                         refreshTransactions()
                     }
                 });
@@ -305,6 +312,8 @@ function refreshAccounts() {
 function refreshTransactions() {
     //[Re]populate the transactions table based on state.
     console.log("Refreshing transactions...")
+
+    console.log(TRANSACTIONS.length, "TL", TRANSACTIONS)
 
     let transactions = filterTransactions()
 

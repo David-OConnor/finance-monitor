@@ -49,8 +49,6 @@ def get_transaction_data(
     are combined from all sub-accounts."""
     # todo: Pending? Would have to parse into the DB.
 
-    print(f"\n\nStart: {start}, end: {end}\n\n\n")
-
     trans = Transaction.objects.filter(
         Q(account__in=accounts) | Q(person=person)
     )

@@ -286,7 +286,9 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
         return HttpResponseRedirect("/dashboard")
 
-    transactions = util.get_transaction_data(60, accounts, person, None, None, None)
+    count = 60
+    count = 5  # todo temp for testing search
+    transactions = util.get_transaction_data(count, accounts, person, None, None, None)
 
     context = {
         "totals": totals_display,
