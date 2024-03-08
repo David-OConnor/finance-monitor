@@ -111,16 +111,16 @@
 
         <div id="accounts"></div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center;">
             <h2 style="margin-right: 4px;">Transactions</h2>
             {# Required to show borders?#}
 
-            <div style="display: flex; align-items: center;">
+            <div style="display: flex; align-items: center; margin-right: 32px;">
                 <span>🔍</span>
                 <input
                         id="search"
                         placeholder=""
-                        style="margin-right: 80px; width: 120px;"
+                        style="width: 120px;"
                         oninput="updateTranFilter()"
                 />
             </div>
@@ -176,11 +176,9 @@
                        style="color: black; background-color: #aaaaaa; height: 38px;">
                 <button type="submit" class="button-general">Import from Mint</button>
             </form>
+
             <button id="import-start" class="button-general">Import ↑</button>
-
-
             {#            Have a button show the import dialog#}
-            {#            <button id="import" class="general-button">Import from Mint</button>#}
             <button id="export" class="button-general">Export ↓</button>
         </div>
 

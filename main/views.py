@@ -68,7 +68,7 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     end = data.get("end")
 
     transactions = {
-        "transactions": util.create_transaction_display(accounts, person, search_text)
+        "transactions": util.get_transaction_data(accounts, person, search_text, start, end)
     }
 
     return HttpResponse(json.dumps(transactions), content_type="application/json")
@@ -273,7 +273,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
         return HttpResponseRedirect("/dashboard")
 
-    transactions = util.create_transaction_display(accounts, person, "")
+    transactions = util.get_transaction_data(accounts, person, "", None, None)
 
     context = {
         "totals": totals_display,

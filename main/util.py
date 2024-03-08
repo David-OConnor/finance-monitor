@@ -1,5 +1,6 @@
 # Misc / utility functions
 from typing import List, Dict, Iterable, Optional
+from datetime import date
 
 from django.db.models import Q
 
@@ -36,12 +37,14 @@ def update_net_worth_manual_accs(net_worth: float, person: Person) -> float:
     return net_worth
 
 
-def create_transaction_display(
+def get_transaction_data(
     accounts: Iterable[FinancialAccount],
     person: Person,
     search_text: Optional[str],
+    start: Optional[date],
+    end: Optional[date],
 ) -> List[Dict[str, str]]:
-    """Create a set of transactions, formatted for display on the Dashboard table. These
+    """Create a set of transactions, serialized for use with the frontend. These
     are combined from all sub-accounts."""
 
     # todo: You really need datetime for result. How do you get it? Take another pass through, and confirm

@@ -135,8 +135,8 @@ function filterTransactions() {
 
     const searchText = SEARCH_TEXT
     const valueThresh = VALUE_THRESH
-    let start = null
-    let end = null
+    let start = new Date("1999-09-09")
+    let end = new Date("2099-09-09")
     // Start and end will be empty strings if null
     if (FILTER_START.length) {
         start = new Date(FILTER_START)
@@ -158,12 +158,10 @@ function filterTransactions() {
         })
     }
 
-    if (start !== null && end !== null) {
-        transactions = transactions.filter(t => {
-            let tran_date = new Date(t.date)
-            return tran_date >= start && tran_date <= end
-        })
-    }
+    transactions = transactions.filter(t => {
+        let tran_date = new Date(t.date)
+        return tran_date >= start && tran_date <= end
+    })
 
     if (valueThresh) {
         transactions = transactions.filter(t => Math.abs(t.amount) >= valueThresh)
@@ -171,7 +169,24 @@ function filterTransactions() {
 
     transactions.sort((b, a) => new Date(a.date) - new Date(b.date))
 
-    return transactions
+    // If, after filtering, we don't have a full page of information, request more from the backend.
+    if (transactions.length < PAGE_SIZE) {
+        console.log("Requesting more transactions...")
+        data = { numToLoad: PAGE_SIZE }
+
+        fetch("/load-transactions", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
+            .then(result => result.json())
+            .then(r => {
+                console.log("Load result: ", r)
+                for (let tran_loaded of r.transactions) {
+                    TRANSACTIONS.push(tran_loaded)
+                    // todo: Watch out for an infinite recursion here...
+                    refreshTransactions()
+                }
+            });
+    }
+
+    return transactions.slice(0, PAGE_SIZE)
 }
 
 function formatNumber(number, decimals) {
@@ -352,7 +367,7 @@ function refreshTransactions() {
                 "input",
                 { value: tran.amount},
                 {width: "80px", marginRight: "30px"},
-                )
+            )
 
             h.addEventListener("input", e => {
 
@@ -722,14 +737,16 @@ function init() {
         window.location.href = '/export'
     })
 
+    // Set up the import start
     const importStart = document.getElementById('import-start')
     importStart.addEventListener('click', function() {
         // importStart.
         const importForm = document.getElementById("import-form")
-        if (importForm.style.visibility === "hidden") {
+        if (importForm.style.visibility === "collapse") {
             importForm.style.visibility = "visible"
+            // importStart.style.visibility = "collapse"
         } else {
-            importForm.style.visibility = "hidden"
+            importForm.style.visibility = "collapse"
         }
 
     })
