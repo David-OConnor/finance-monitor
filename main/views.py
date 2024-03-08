@@ -43,8 +43,6 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 from main import plaid_, util
 from main.plaid_ import client, PLAID_COUNTRY_CODES, PLAID_REDIRECT_URI
 
-# todo: Increase to 12 or so hours.
-ACCOUNT_REFRESH_INTERVAL = 4 * 60 * 60  # seconds.
 
 MAX_LOGIN_ATTEMPTS = 5
 
@@ -185,30 +183,8 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     accounts = person.accounts.all()
 
     # We add synced sub accounts below.
-    sub_accs = [sub_acc.serialize() for sub_acc in person.subaccounts_manual.all()]
 
-    net_worth = 0.0
-
-    # Update account info, if we are due for a refresh
-    for acc in accounts:
-        # todo: We may have a timezone or related error on acct refreshes...
-        print(acc, acc.last_refreshed, "ACC")
-        print("Time delta seconds, interval", (timezone.now() - acc.last_refreshed).seconds, ACCOUNT_REFRESH_INTERVAL)
-        if (timezone.now() - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
-            print("Refreshing account data...")
-
-            plaid_.refresh_account_balances(acc)
-            plaid_.load_transactions(acc)
-            acc.last_refreshed = timezone.now()
-        else:
-            print("Not refreshing account data")
-
-        for sub in acc.sub_accounts.all():
-            sub_accs.append(sub.serialize())
-
-        net_worth = util.update_net_worth(net_worth, acc)
-
-    net_worth = util.update_net_worth_manual_accs(net_worth, person)
+    sub_accs, net_worth = plaid_.update_accounts(accounts, person)
 
     # Organize balances by sub-account
     # todo: Dict

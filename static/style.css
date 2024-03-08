@@ -102,18 +102,6 @@ img {
     color: black;
 }
 
-.features {
-    display: flex;
-    flex-direction: column;
-    /*justify-content: stretch;*/
-}
-
-.quick-features {
-    display: flex;
-    justify-content: stretch;
-    /*align-items: stretch;*/
-}
-
 .button-general {
     display: flex;
     justify-content: center;
@@ -337,7 +325,7 @@ img {
 
 .transaction {
     /*display: flex;*/
-    border: 1px solid #666666;
+    border: 1px solid #888888;
     /*margin-bottom: 20px;*/
     border-radius: 8px;
     padding-left: 10px;
@@ -369,12 +357,25 @@ img {
     color: #bd5935;
 }
 
+/* These contain all accounts for each type. */
 .account-type {
     display: flex;
     flex-direction: column;
-    border: 1px solid #666666;
+    border: 1px solid #888888;
+    border-radius: 12px;
     margin: 12px;
-    padding: 4px;
+    padding: 8px;
+}
+
+/* This surrounds the account-types above*/
+#accounts {
+    display: flex;
+    flex-wrap: wrap;
+    border: 1px solid #888888;
+    border-radius: 12px;
+    margin-bottom: 60px;
+    justify-content: center;
+    /*background-color: #eeeeee;*/
 }
 
 .acct-hdg {

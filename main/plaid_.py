@@ -5,7 +5,7 @@ Sandbox test credentials: user_good, pass_good, credential_good (pin), mfa_devic
 """
 
 import json
-from typing import Optional
+from typing import Optional, Iterable, List, Tuple
 
 from django.utils import timezone
 
@@ -21,19 +21,24 @@ from plaid.model.products import Products
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from django.db import IntegrityError
 
-from . import transaction_cats
+from . import transaction_cats, util
 from .models import (
     FinancialAccount,
     SubAccount,
     AccountType,
     SubAccountType,
-    Transaction,
+    Transaction, Person,
 )
 from .transaction_cats import TransactionCategory
 from wallet.settings import PLAID_SECRET, PLAID_CLIENT_ID, PLAID_MODE, PlaidMode
 
 import plaid
 from plaid.api import plaid_api
+
+
+# todo: Settings.py?
+# todo: Increase to 12 or so hours.
+ACCOUNT_REFRESH_INTERVAL = 4 * 60 * 60  # seconds.
 
 #  must be one of [
 #  "assets",  "auth", "balance", "identity", "identity_match", "investments", "investments_auth", "liabilities", "payment_initiation",
@@ -104,6 +109,39 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
         return None
 
     return response["accounts"]
+
+
+def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> Tuple[List[SubAccount], float]:
+    """Update all account balances and related information. Return sub accounts, and net worth"""
+    sub_accs = [sub_acc.serialize() for sub_acc in person.subaccounts_manual.all()]
+
+    net_worth = 0.0
+
+    # Update account info, if we are due for a refresh
+    for acc in accounts:
+        if acc.sub_accounts.count() == 0:
+            print(f"Deleting this account due to no remaining sub accounts: {acc}")
+            acc.delete()
+            continue
+
+        # todo: We may have a timezone or related error on acct refreshes...
+        print(acc, acc.last_refreshed, "ACC")
+        print("Time delta seconds, interval", (timezone.now() - acc.last_refreshed).seconds, ACCOUNT_REFRESH_INTERVAL)
+        if (timezone.now() - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
+            print("Refreshing account data...")
+
+            refresh_account_balances(acc)
+            load_transactions(acc)
+            acc.last_refreshed = timezone.now()
+        else:
+            print("Not refreshing account data")
+
+        for sub in acc.sub_accounts.all():
+            sub_accs.append(sub.serialize())
+
+        net_worth = util.update_net_worth(net_worth, acc)
+
+    return sub_accs, util.update_net_worth_manual_accs(net_worth, person)
 
 
 def refresh_account_balances(account: FinancialAccount):
