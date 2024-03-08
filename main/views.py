@@ -1,14 +1,12 @@
-# Sandbox test credentials: user_good, pass_good, credential_good (pin), mfa_device (pin etc), code: 1234
-import csv
-import time
 import json
-from datetime import datetime, date
-from io import StringIO, TextIOWrapper
+from io import TextIOWrapper
 
 from django.db.models import Q
 from django import forms
 
 from . import export
+
+# todo: Plaid institution icon urls??
 
 from django.contrib.auth import login, authenticate, logout, user_login_failed
 from django.contrib.auth.forms import UserCreationForm
@@ -20,7 +18,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.csrf import requires_csrf_token
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 
 from main.models import (
     FinancialAccount,
@@ -31,10 +29,8 @@ from main.models import (
     AccountType,
     SubAccountType,
 )
-from .transaction_cats import TransactionCategory
 
 import plaid
-from plaid.model.products import Products
 from plaid.model.country_code import CountryCode
 
 from plaid.model.item_public_token_exchange_request import (
@@ -47,6 +43,7 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 from main import plaid_, util
 from main.plaid_ import client, PLAID_COUNTRY_CODES, PLAID_REDIRECT_URI
 
+# todo: Increase to 12 or so hours.
 ACCOUNT_REFRESH_INTERVAL = 4 * 60 * 60  # seconds.
 
 MAX_LOGIN_ATTEMPTS = 5
@@ -404,7 +401,11 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     item_id = response["item_id"]
     # request_id = response["request_id"]
 
-    # sub_accounts = metadata["accounts"]
+    print("\n Response when adding acct: ", response)
+
+    sub_accounts = metadata["accounts"]
+
+    print("\n Sub accts: ", sub_accounts)
 
     inst, _ = Institution.objects.get_or_create(
         plaid_id=metadata["institution"]["institution_id"],
@@ -612,11 +613,3 @@ def export_(request: HttpRequest) -> HttpResponse:
     )
 
     return response
-
-
-def refresh_balances(request: HttpRequest) -> HttpResponse:
-    pass
-
-
-def refresh_transactions(request: HttpRequest) -> HttpResponse:
-    pass

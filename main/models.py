@@ -297,6 +297,7 @@ class Transaction(Model):
     # Note that Plaid associates this with a primary account, vice sub account.
     # account can be blank or null, if the transaction is imported, or manual.
     # todo: Allow the user to assign this to an account.
+    # todo: Subaccount?
     account = ForeignKey(
         FinancialAccount,
         related_name="transactions",
@@ -324,7 +325,10 @@ class Transaction(Model):
     currency_code = CharField(max_length=5)  # ISO, eg USD
     pending = BooleanField(default=False)
     # Ie, entered by the user.
-    notes = CharField(max_length=200, default="")
+    notes = CharField(max_length=200, default="", blank=True, null=True)
+    # todo: Cache these image URLs somewhere, then use a numeric identifier. Also, host them locally.
+    logo_url = CharField(max_length=100, default="", blank=True, null=True)
+    plaid_category_icon_url = CharField(max_length=100, default="", blank=True, null=True)
 
     # todo: Change this to be a serializer.
     def serialize(self) -> Dict[str, str]:
@@ -365,6 +369,7 @@ class Transaction(Model):
             ),  # eg to color green or red.
             "date": self.date.isoformat(),
             "date_display": date_display,
+            "logo_url": self.logo_url,
         }
 
     def __str__(self):

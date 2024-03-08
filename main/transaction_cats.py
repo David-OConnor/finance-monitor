@@ -370,6 +370,9 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
     if TransactionCategory.FOOD_AND_DRINK in cats and TransactionCategory.SHOPS in cats:
         cats.remove(TransactionCategory.SHOPS)
 
+    if TransactionCategory.ELECTRONICS in cats and TransactionCategory.SHOPS in cats:
+        cats.remove(TransactionCategory.SHOPS)
+
     if (
         TransactionCategory.FOOD_AND_DRINK in cats
         and TransactionCategory.TRAVEL in cats
@@ -378,6 +381,9 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
 
     if TransactionCategory.TAXI in cats and TransactionCategory.TRAVEL in cats:
         cats.remove(TransactionCategory.TRAVEL)
+
+    if TransactionCategory.UNCATEGORIZED in cats and len(cats) > 1:
+        cats.remove(TransactionCategory.UNCATEGORIZED)
 
     if len(cats) > 1:
         print(">1 len categories: \n", cats)

@@ -1,27 +1,22 @@
 """
 This module contains interacdtions with Plaid's API
+
+Sandbox test credentials: user_good, pass_good, credential_good (pin), mfa_device (pin etc), code: 1234
 """
 
 import json
-from enum import Enum, auto
 from typing import Optional
-
-import requests
-import pydantic
 
 from django.utils import timezone
 
-import plaid
 from plaid import ApiException
 from plaid.model.account_base import AccountBase
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
-from plaid.model.accounts_get_request import AccountsGetRequest
+
 from plaid.model.country_code import CountryCode
 from plaid.model.institutions_get_request import InstitutionsGetRequest
 from plaid.model.investments_holdings_get_request import InvestmentsHoldingsGetRequest
-from plaid.model.item_public_token_exchange_request import (
-    ItemPublicTokenExchangeRequest,
-)
+
 from plaid.model.products import Products
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from django.db import IntegrityError
@@ -117,24 +112,26 @@ def refresh_account_balances(account: FinancialAccount):
     if balance_data is None:
         return
 
-    print("Balance data loaded: ", balance_data)
+    print("\nBalance data loaded: ", balance_data)
+
+    # todo: Icon?
 
     # todo:  Handle  sub-acct entries in DB that have missing data.
-    for sub_loaded in balance_data:
+    for sub in balance_data:
         sub_acc_model, _ = SubAccount.objects.update_or_create(
             account=account,
-            plaid_id=sub_loaded.account_id,
+            plaid_id=sub.account_id,
             defaults={
                 # "plaid_id_persistent": acc_sub.persistent_account_id,
                 "plaid_id_persistent": "",  # todo temp
-                "name": sub_loaded.name,
-                "name_official": sub_loaded.official_name,
-                "type": AccountType.from_str(str(sub_loaded.type)).value,
-                "sub_type": SubAccountType.from_str(str(sub_loaded.subtype)).value,
-                "iso_currency_code": sub_loaded.balances.iso_currency_code,
-                "available": sub_loaded.balances.available,
-                "current": sub_loaded.balances.current,
-                "limit": sub_loaded.balances.limit,
+                "name": sub.name,
+                "name_official": sub.official_name,
+                "type": AccountType.from_str(str(sub.type)).value,
+                "sub_type": SubAccountType.from_str(str(sub.subtype)).value,
+                "iso_currency_code": sub.balances.iso_currency_code,
+                "available": sub.balances.available,
+                "current": sub.balances.current,
+                "limit": sub.balances.limit,
             },
         )
 
@@ -202,6 +199,8 @@ def load_transactions(account: FinancialAccount) -> None:
             plaid_id=tran.transaction_id,
             currency_code=tran.iso_currency_code,
             pending=tran.pending,
+            logo_url=tran.logo_url,
+            plaid_category_icon_url="",  # todo: A/R
         )
         try:
             tran_db.save()

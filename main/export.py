@@ -112,7 +112,8 @@ def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str
                 amount,
                 transaction_type,
                 category,
-                "",  # Account Name is left empty assuming it's not available in the Transaction object
+                # todo: Sub-account info?
+                transaction.account.institution.name,
                 "",  # Labels are skipped as per the provided code snippet
                 transaction.notes,
             ]

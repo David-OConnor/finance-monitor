@@ -256,16 +256,27 @@ function refreshTransactions() {
     let tbody = document.getElementById("transaction-tbody")
     tbody.replaceChildren();
 
+    let col, img
     for (let tran of transactions) {
         const row = document.createElement("tr")
 
-        let col = document.createElement("td")
+        col = document.createElement("td") // Icon
 
-        if (TRANSACTION_ICONS) {
-            col.textContent = tran.categories_icon
-        } else {
-            col.textContent = tran.categories_text
+        if (tran.logo_url.length > 0) {
+            img = createEl("img", {"src": tran.logo_url, alt: "", width: "20px"})
+            col.appendChild(img)
         }
+
+        // todo: Put back once the icon is sorted.
+        let s
+        if (TRANSACTION_ICONS) {
+            s = createEl("span", {}, {}, tran.categories_icon)
+            // col.textContent = tran.categories_icon
+        } else {
+            // col.textContent = tran.categories_text
+            s = createEl("span", {}, {}, tran.categories_text)
+        }
+        col.appendChild(s)
         row.appendChild(col)
 
         col = createEl("td", {class: "transaction-cell"})
