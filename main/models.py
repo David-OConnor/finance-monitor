@@ -353,19 +353,11 @@ class Transaction(Model):
         # todo: Modify to serialize values vice displayl.
         return {
             "id": self.id,  # DB primary key.
-            "categories": json.loads(self.categories),
-            # "categories": " | ".join([c.to_str() for c in cats]),
-            # "categories_icon": " | ".join([c.to_icon() for c in cats]),
-            "categories_icon": [
-                TransactionCategory(c).to_icon() for c in json.loads(self.categories)
-            ],
-            "categories_text": [
-                TransactionCategory(c).to_str() for c in json.loads(self.categories)
-            ],
+            "categories": [cat.value for cat in cats],
+            "categories_icon": [cat.to_icon() for cat in cats],
+            "categories_text": [cat.to_str() for cat in cats],
             "description": description,
             "notes": self.notes,
-            # todo: Currency-appropriate symbol.
-            # "amount": f"{self.amount:,.2f}",
             "amount": self.amount,
             # todo: DO we want this?
             "amount_class": (

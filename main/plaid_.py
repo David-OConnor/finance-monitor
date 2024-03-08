@@ -24,6 +24,7 @@ from plaid.model.item_public_token_exchange_request import (
 )
 from plaid.model.products import Products
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
+from django.db import IntegrityError
 
 from . import transaction_cats
 from .models import (
@@ -45,22 +46,29 @@ from plaid.api import plaid_api
 #  "standing_orders", "transfer", "employment", "recurring_transactions", "signal", "statements", "processor_payments", "processor_identity",
 
 # Todo: SO confused about this, eg https://dashboard.plaid.com/overview/request-products
-PLAID_PRODUCTS = [
-    Products(p)
-    for p in [
-        "auth",
-        "assets",
-        # "balance",
-        "transactions",
-        "investments",
-        "liabilities",
-        # "recurring_transactions",
-    ]
-]
+# Note: Activating with too many products enabled may cause problems: https://www.youtube.com/watch?v=yPQPPGdBYIs
+
+# "auth",
+# "assets",
+# "transactions",
+# "investments",
+# "liabilities",
+# "recurring_transactions",  # Not enabled in the Plaid dashboard.
+
+# From experimenting: products= investments only allows access to Vanguard
+# products = assets only allows access to novo, Amex
+
+# todo: I still don't understand this.
+PRODUCTS = [Products(p)for p in ["assets", "transactions"]]
+# PRODUCTS = [Products(p)for p in ["assets"]]
+PRODUCTS_REQUIRED_IF_SUPPORTED = [Products(p)for p in []]
+PRODUCTS_OPTIONAL = [Products(p)for p in []]
+PRODUCTS_ADDITIONAL_CONSENTED = [Products(p)for p in []]
+
 
 
 PLAID_COUNTRY_CODES = ["US"]
-PLAID_REDIRECT_URI = "http://finance-monitor.com/"  # todo
+PLAID_REDIRECT_URI = "https://financial-monitor-783ae5ca6965.herokuapp.com/dashboard"
 
 # Available environments arefr
 # 'Production'
@@ -180,13 +188,12 @@ def load_transactions(account: FinancialAccount) -> None:
     print("Rem: ", removed)
 
     for tran in added:
-        categories = [TransactionCategory.from_str(cat).value for cat in tran.category]
-
+        categories = [TransactionCategory.from_str(cat) for cat in tran.category]
         categories = transaction_cats.category_override(tran.name, categories)
 
         tran_db = Transaction(
             account=account,
-            categories=json.dumps(categories),
+            categories=json.dumps([cat.value for cat in categories]),
             amount=tran.amount,
             # Note: Other fields like "merchange_name" are available, but aren't used on many transactcions.
             description=tran.name,
@@ -196,7 +203,11 @@ def load_transactions(account: FinancialAccount) -> None:
             currency_code=tran.iso_currency_code,
             pending=tran.pending,
         )
-        tran_db.save()
+        try:
+            tran_db.save()
+        except IntegrityError:
+            # todo: Why do we get this, if using cursor?
+            print("Integrity error when saving a transaction: ", account)
 
     for tran in modified:
         # tran_db_, _ = Transaction.objects.update(

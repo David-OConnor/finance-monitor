@@ -45,9 +45,10 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 
 
 from main import plaid_, util
-from main.plaid_ import client, PLAID_PRODUCTS, PLAID_COUNTRY_CODES
+from main.plaid_ import client, PLAID_COUNTRY_CODES, PLAID_REDIRECT_URI
 
 ACCOUNT_REFRESH_INTERVAL = 4 * 60 * 60  # seconds.
+ACCOUNT_REFRESH_INTERVAL = 1  # seconds.d
 
 MAX_LOGIN_ATTEMPTS = 5
 
@@ -194,6 +195,9 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     # Update account info, if we are due for a refresh
     for acc in accounts:
+        # todo: We may have a timezone or related error on acct refreshes...
+        print(acc, acc.last_refreshed, "ACC")
+        print("Time delta seconds, intervan", (timezone.now() - acc.last_refreshed).seconds, ACCOUNT_REFRESH_INTERVAL)
         if (timezone.now() - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
             print("Refreshing account data...")
 
@@ -315,10 +319,14 @@ def create_link_token(request_: HttpRequest) -> HttpResponse:
 
     try:
         request = LinkTokenCreateRequest(
-            products=PLAID_PRODUCTS,
+            # `products`: Which products to show.
+            products=plaid_.PRODUCTS,
+            required_if_supported_products=plaid_.PRODUCTS_REQUIRED_IF_SUPPORTED,
+            optional_products=plaid_.PRODUCTS_OPTIONAL,
+            additional_consented_products=plaid_.PRODUCTS_ADDITIONAL_CONSENTED,
             client_name="Finance Monitor",
             country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
-            # redirect_uri=PLAID_REDIRECT_URI,
+            redirect_uri=PLAID_REDIRECT_URI,
             language="en",
             user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
         )
@@ -420,7 +428,6 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     except OperationalError as e:
         print("\nError saving the account: ", e)
     else:
-        print(f"\nSuccessfully saved an account: {account_added}")
         plaid_.refresh_account_balances(account_added)
 
     return HttpResponse(
