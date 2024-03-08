@@ -60,7 +60,7 @@
 
                 <div style="display: flex; align-items: center; justify-content: space-between;">
                     <h3>Type</h3>
-{#                    todo: DRY#}
+                    {#                    todo: DRY#}
                     <select id="add-manual-type" style="border: 1px solid black; height: 32px; width: 156px;">
                         <option value="0">Checking</option>
                         <option value="1">Savings</option>
@@ -97,14 +97,22 @@
                             class="button-general" style="width: 140px;"
                     >
                         Add this account</button>
+
+
+                    <button
+                            type="button"
+                            onclick="toggleAddManual()"
+                            class="button-general" style="width: 140px;"
+                    >
+                        Cancel</button>
                 </div>
             </form>
         </div>
 
         <div id="accounts"></div>
 
-        <div style="display: flex; align-items: center; margin-bottom: 18px;">
-            <h2 style="margin-right: 32px;">Transactions</h2>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <h2 style="margin-right: 4px;">Transactions</h2>
             {# Required to show borders?#}
 
             <div style="display: flex; align-items: center;">
@@ -113,7 +121,27 @@
                         id="search"
                         placeholder=""
                         style="margin-right: 80px; width: 120px;"
-                        oninput="updateSearch()"
+                        oninput="updateTranFilter()"
+                />
+            </div>
+
+            <div style="display: flex; align-items: center;">
+                <h4>Start:</h4>
+                <input
+                        id="tran-filter-start"
+                        type="date"
+{#                        value="19",#}
+                        style="margin-right: 20px; width: 120px;"
+                        oninput="updateTranFilter()"
+                />
+
+                <h4>End:</h4>
+                <input
+                        id="tran-filter-end"
+                        type="date"
+{#                        value=FILTER_END,#}
+                        style="margin-right: 80px; width: 120px;"
+                        oninput="updateTranFilter()"
                 />
             </div>
 
@@ -126,7 +154,7 @@
                         {#                    style="margin-right: 80px; width: 120px; height: 32px;"#}
                         style="width: 60px"
                         {#                     todo: Same as search change?#}
-                        oninput="updateSearch()"
+                        oninput="updateTranFilter()"
                 />
             </div>
 
@@ -136,7 +164,7 @@
                     method="post"
                     enctype="multipart/form-data"
                     {#                    collapse vis a/r#}
-                    style="display: flex; align-items: center; visibility: hidden;"
+                    style="display: flex; align-items: center; visibility: collapse;"
             >
                 {% csrf_token %}
                 {#                <input#}

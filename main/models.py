@@ -231,8 +231,8 @@ class SubAccount(Model):
     plaid_id = CharField(max_length=100, blank=True, null=True)
     plaid_id_persistent = CharField(max_length=100, blank=True, null=True)
     name = CharField(max_length=50)
-    name_official = CharField(max_length=100, default="")
-    nickname = CharField(max_length=30, default="")
+    name_official = CharField(max_length=100, default="", null=True, blank=True)
+    nickname = CharField(max_length=30, default="", null=True, blank=True)
     type = IntegerField(choices=AccountType.choices())
     sub_type = IntegerField(choices=SubAccountType.choices())
     iso_currency_code = CharField(max_length=5)
@@ -369,7 +369,7 @@ class Transaction(Model):
             ),  # eg to color green or red.
             "date": self.date.isoformat(),
             "date_display": date_display,
-            "logo_url": self.logo_url,
+            "logo_url": self.logo_url if self.logo_url else "",
         }
 
     def __str__(self):

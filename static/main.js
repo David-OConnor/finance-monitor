@@ -20,6 +20,8 @@ const FETCH_HEADERS_POST = {
 // Global mutal variables
 let LINK_TOKEN = ""
 let SEARCH_TEXT = ""
+let FILTER_START = "1999-09-09"  // todo!
+let FILTER_END = "2040-09-09"  // todo!
 let VALUE_THRESH = 0
 
 const PAGE_SIZE = 60
@@ -129,8 +131,19 @@ function getPublicToken() {
 }
 
 function filterTransactions() {
+    // Filter transactions by keyword, date, value, category, etc. Sort by date at the end.
+
     const searchText = SEARCH_TEXT
     const valueThresh = VALUE_THRESH
+    let start = null
+    let end = null
+    // Start and end will be empty strings if null
+    if (FILTER_START.length) {
+        start = new Date(FILTER_START)
+    }
+    if (FILTER_END.length) {
+        end = new Date(FILTER_END)
+    }
 
     let transactions
     // todo: Use TRANSACTIONS_DISPLAYED?
@@ -142,6 +155,13 @@ function filterTransactions() {
             return t.description.toLowerCase().includes(searchText) ||
                 t.notes.toLowerCase().includes(searchText) ||
                 t.categories_text.join().toLowerCase().includes(searchText)
+        })
+    }
+
+    if (start !== null && end !== null) {
+        transactions = transactions.filter(t => {
+            let tran_date = new Date(t.date)
+            return tran_date >= start && tran_date <= end
         })
     }
 
@@ -292,7 +312,12 @@ function refreshTransactions() {
         row.appendChild(col)
 
         col = createEl("td", {class: "transaction-cell"})
-        let h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal", marginLeft: "40px"}, tran.description)
+        let h = createEl(
+            "h4",
+            {class: "tran-heading"},
+            {fontWeight: "normal", marginLeft: "40px"},
+            tran.description
+        )
         col.appendChild(h)
 
         row.appendChild(col)
@@ -310,17 +335,24 @@ function refreshTransactions() {
                 TRANSACTIONS_UPDATED[String(tran.id)] = updated
             })
         } else {
-            h = createEl("h4", {class: "tran-heading"}, {fontWeight: "normal", color: "#444444", marginRight: "60px"}, tran.notes)
+            h = createEl(
+                "h4",
+                {class: "tran-heading"},
+                {fontWeight: "normal", color: "#444444", marginRight: "60px"},
+                tran.notes
+            )
         }
 
         col.appendChild(h)
-
         row.appendChild(col)
 
         col = createEl("td", {class: "transaction-cell"})
         if (EDIT_MODE_TRAN) {
-            h = createEl("input", { value: tran.amount},
-                {width: "80px", textAlign: "right", marginRight: "30px"}, "")
+            h = createEl(
+                "input",
+                { value: tran.amount},
+                {width: "80px", marginRight: "30px"},
+                )
 
             h.addEventListener("input", e => {
 
@@ -334,7 +366,10 @@ function refreshTransactions() {
                 }
             })
         } else {
-            h = createEl("h4", {class: "tran-heading " +  tran.amount_class}, {}, formatNumber(tran.amount, true))
+            h = createEl("h4",
+                {class: "tran-heading " +  tran.amount_class},
+                {textAlign: "right", marginRight: "40px"}, formatNumber(tran.amount, true)
+            )
         }
 
         col.appendChild(h)
@@ -364,7 +399,7 @@ function refreshTransactions() {
     }
 }
 
-function updateSearch() {
+function updateTranFilter() {
     SEARCH_TEXT = document.getElementById("search").value.toLowerCase()
 
     // todo: Enforce integer value.
@@ -375,6 +410,9 @@ function updateSearch() {
     // so, we can't just ignore chars.
 
     VALUE_THRESH = parseInt(valueThresh.replace(/\D+/g, ''))
+
+    FILTER_START = document.getElementById("tran-filter-start").value
+    FILTER_END = document.getElementById("tran-filter-end").value
     refreshTransactions()
 }
 
@@ -423,10 +461,7 @@ function addAccountManual() {
             refreshAccounts()
         });
 
-    let form = document.getElementById("add-manual-form")
-    let btn = document.getElementById("add-manual-button")
-    form.style.visibility = "collapse"
-    btn.textContent = "➕ Manual account"
+    toggleAddManual()
 }
 
 function setupEditTranButton() {
@@ -723,14 +758,15 @@ init()
 
 function toggleAddManual() {
     let form = document.getElementById("add-manual-form")
-    let btn = document.getElementById("add-manual-button")
+    let btnToggle = document.getElementById("add-manual-button")
 
     if (form.style.visibility === "visible") {
         form.style.visibility = "collapse"
-        btn.textContent = "➕ Manual account"
+        // btnToggle.textContent = "➕ Manual account"
+        btnToggle.style.visibility = "visible"
     } else {
         form.style.visibility = "visible"
-        btn.textContent = "(Cancel adding this account)"
+        btnToggle.style.visibility = "hidden"
     }
 }
 

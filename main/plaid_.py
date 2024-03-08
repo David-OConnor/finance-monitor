@@ -39,7 +39,7 @@ from plaid.api import plaid_api
 # todo: Settings.py?
 # todo: Increase to 12 or so hours.
 ACCOUNT_REFRESH_INTERVAL = 4 * 60 * 60  # seconds.
-ACCOUNT_REFRESH_INTERVAL = 1 * 60 * 60  # seconds.  # todo temp
+# ACCOUNT_REFRESH_INTERVAL = 1 * 60 * 60  # seconds.  # todo temp
 # ACCOUNT_REFRESH_INTERVAL = 1   # seconds.  # todo temp
 
 #  must be one of [

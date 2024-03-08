@@ -83,7 +83,7 @@ class TransactionCategory(Enum):
             return cls.CREDIT_CARD
         if "fast food" in s:
             return cls.FAST_FOOD
-        if "debit" == s:
+        if "debit" in s:
             return cls.DEBIT
         if "shop" in s:
             return cls.SHOPS
@@ -91,9 +91,9 @@ class TransactionCategory(Enum):
             return cls.PAYMENT
         if "coffee shop" == s:
             return cls.COFFEE_SHOP
-        if "taxi" == s:
+        if "taxi" in s:
             return cls.TAXI
-        if "sporting" == s:
+        if "sporting" in s:
             return cls.SPORTING_GOODS
         if "electron" in s:
             return cls.ELECTRONICS
