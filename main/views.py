@@ -41,7 +41,7 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 
 
 from main import plaid_, util
-from main.plaid_ import client, PLAID_COUNTRY_CODES, PLAID_REDIRECT_URI
+from main.plaid_ import CLIENT, PLAID_COUNTRY_CODES, PLAID_REDIRECT_URI
 
 
 MAX_LOGIN_ATTEMPTS = 5
@@ -182,9 +182,16 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     person = request.user.person
     accounts = person.accounts.all()
 
-    # We add synced sub accounts below.
+    net_worth = 0.0
+    sub_accs = [sub_acc.serialize() for sub_acc in person.subaccounts_manual.all()]
 
-    sub_accs, net_worth = plaid_.update_accounts(accounts, person)
+    for acc in accounts:
+        for sub in acc.sub_accounts.all():
+            sub_accs.append(sub.serialize())
+
+        net_worth = util.update_net_worth(net_worth, acc)
+
+    util.update_net_worth_manual_accs(net_worth, person)
 
     # Organize balances by sub-account
     # todo: Dict
@@ -269,14 +276,6 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     transactions = util.create_transaction_display(accounts, person, "")
 
     context = {
-        # "accounts": accounts,
-        # "cash_accs": cash_accs,
-        # "investment_accs": investment_accs,
-        # "crypto_accs": crypto_accs,
-        # "credit_debit_accs": credit_debit_accs,
-        # "loan_accs": loan_accs,
-        # "assets": asset_accs,
-        # "transactions": transactions,
         "totals": totals_display,
         "sub_accs": json.dumps(sub_accs),
         "transactions": transactions,
@@ -285,11 +284,27 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     return render(request, "../templates/dashboard.html", context)
 
 
-def create_link_token(request_: HttpRequest) -> HttpResponse:
+@login_required
+def post_dash_load(request: HttpRequest) -> HttpResponse:
+    """This performs actions after a dashboard initial  load, such as refreshing
+    account data."""
+    print("Post dash load...")  # todo temp
+
+    person = request.user.person
+    accounts = person.accounts.all()
+
+    # Update account balances, and sub-account info, if required (eg based on the last update time)
+    plaid_.update_accounts(accounts, person)
+
+    return HttpResponse(
+        json.dumps({"key": 0}), content_type="application/json"
+    )
+
+
+@login_required
+def create_link_token(request: HttpRequest) -> HttpResponse:
     """The first stage of the Plaid workflow. GET request. Passes the client a link token,
     provided by Plaid's API."""
-    user_id = 100
-
     try:
         request = LinkTokenCreateRequest(
             # `products`: Which products to show.
@@ -301,11 +316,11 @@ def create_link_token(request_: HttpRequest) -> HttpResponse:
             country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
             redirect_uri=PLAID_REDIRECT_URI,
             language="en",
-            user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
+            user=LinkTokenCreateRequestUser(client_user_id=str(request.user.id)),
         )
 
         # create link token
-        response = client.link_token_create(request)
+        response = CLIENT.link_token_create(request)
 
     except plaid.ApiException as e:
         print(e, "Plaid error")
@@ -321,6 +336,7 @@ def create_link_token(request_: HttpRequest) -> HttpResponse:
     )
 
 
+@login_required
 def exchange_public_token(request: HttpRequest) -> HttpResponse:
     """Part of the Plaid workflow. POST request. Exchanges the public token retrieved by
     the client, after it successfullya uthenticates with an institution. Exchanges this for
@@ -370,7 +386,7 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
 
     request = ItemPublicTokenExchangeRequest(public_token=public_token)
 
-    response = client.item_public_token_exchange(request)
+    response = CLIENT.item_public_token_exchange(request)
 
     # These values should be saved to a persistent database and
     # associated with the currently signed-in user
@@ -411,6 +427,11 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         json.dumps({"success": True}),
         content_type="application/json",
     )
+
+
+@login_required
+def spending(request: HttpRequest) -> HttpResponse:
+    return render(request, "spending.html", {})
 
 
 def about(request: HttpRequest) -> HttpResponse:

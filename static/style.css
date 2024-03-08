@@ -107,9 +107,9 @@ img {
     justify-content: center;
     align-items: center;
     text-align: center;
-    /*width: 200px;*/
-    background-color: #c9e4ea;
+    background-color: #dce9ec;
     border: 2px solid #222222;
+    border-radius: 12px;
     padding: 14px;
     margin-left: 20px;
     margin-right: 20px;
@@ -123,9 +123,9 @@ img {
     justify-content: center;
     align-items: center;
     text-align: center;
-    /*width: 200px;*/
-    background-color: #c9e4ea;
+    background-color: #dce9ec;
     border: 2px solid #222222;
+    border-radius: 12px;
     padding: 14px;
     margin-left: 20px;
     margin-right: 20px;

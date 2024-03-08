@@ -172,7 +172,8 @@ function createAccRow(acc, type) {
         if (acc.nickname.length) {
             name = acc.nickname
         } else {
-            name = acc.name + " " + acc.name_official
+            // name = acc.name + " " + acc.name_official
+            name = acc.name
         }
     }
 
@@ -708,7 +709,14 @@ function init() {
     })
 
     setupEditTranButton()
-    // setupEditAccsButton()
+
+    // Tell the backend to start updating account data values etc, and receive updates based on that here.
+    fetch("/post-dash-load", FETCH_HEADERS_GET)
+        // Parse JSON if able.
+        .then(result => result.json())
+        .then(r => {
+            console.log("Post dash load data: ", r)
+        });
 }
 
 init()

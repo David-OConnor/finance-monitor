@@ -39,6 +39,8 @@ from plaid.api import plaid_api
 # todo: Settings.py?
 # todo: Increase to 12 or so hours.
 ACCOUNT_REFRESH_INTERVAL = 4 * 60 * 60  # seconds.
+ACCOUNT_REFRESH_INTERVAL = 1 * 60 * 60  # seconds.  # todo temp
+# ACCOUNT_REFRESH_INTERVAL = 1   # seconds.  # todo temp
 
 #  must be one of [
 #  "assets",  "auth", "balance", "identity", "identity_match", "investments", "investments_auth", "liabilities", "payment_initiation",
@@ -59,16 +61,17 @@ ACCOUNT_REFRESH_INTERVAL = 4 * 60 * 60  # seconds.
 # products = assets only allows access to novo, Amex
 
 # todo: I still don't understand this.
-PRODUCTS = [Products(p)for p in ["assets", "transactions"]]
+# Note: We don't use assets! That's used to qualify for a loan. Maybe see if Transactions only works?
+# PRODUCTS = [Products(p)for p in ["assets", "transactions"]]
+PRODUCTS = [Products(p)for p in ["transactions"]]
 # PRODUCTS = [Products(p)for p in ["assets"]]
 PRODUCTS_REQUIRED_IF_SUPPORTED = [Products(p)for p in []]
 PRODUCTS_OPTIONAL = [Products(p)for p in []]
 PRODUCTS_ADDITIONAL_CONSENTED = [Products(p)for p in []]
 
-
-
 PLAID_COUNTRY_CODES = ["US"]
 PLAID_REDIRECT_URI = "https://financial-monitor-783ae5ca6965.herokuapp.com/dashboard"
+# PLAID_REDIRECT_URI = "https://www.financial-monitor.com/dashboard"
 
 # Available environments arefr
 # 'Production'
@@ -93,8 +96,8 @@ configuration = plaid.Configuration(
     },
 )
 
-api_client = plaid.ApiClient(configuration)
-client = plaid_api.PlaidApi(api_client)
+API_CLIENT = plaid.ApiClient(configuration)
+CLIENT = plaid_api.PlaidApi(API_CLIENT)
 
 
 def get_balance_data(access_token: str) -> Optional[AccountBase]:
@@ -103,7 +106,7 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
     request = AccountsBalanceGetRequest(access_token=access_token)
 
     try:
-        response = client.accounts_balance_get(request)
+        response = CLIENT.accounts_balance_get(request)
     except ApiException as e:
         print("API exception; unable to access this account: ", e)
         return None
@@ -111,19 +114,11 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
     return response["accounts"]
 
 
-def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> Tuple[List[SubAccount], float]:
+def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> None:
+# def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> Tuple[List[SubAccount], float]:
     """Update all account balances and related information. Return sub accounts, and net worth"""
-    sub_accs = [sub_acc.serialize() for sub_acc in person.subaccounts_manual.all()]
-
-    net_worth = 0.0
-
     # Update account info, if we are due for a refresh
     for acc in accounts:
-        # if acc.sub_accounts.count() == 0:
-        #     print(f"Deleting this account due to no remaining sub accounts: {acc}")
-        #     acc.delete()
-        #     continue
-
         # todo: We may have a timezone or related error on acct refreshes...
         print(acc, acc.last_refreshed, "ACC")
         print("Time delta seconds, interval", (timezone.now() - acc.last_refreshed).seconds, ACCOUNT_REFRESH_INTERVAL)
@@ -135,13 +130,6 @@ def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> Tup
             acc.last_refreshed = timezone.now()
         else:
             print("Not refreshing account data")
-
-        for sub in acc.sub_accounts.all():
-            sub_accs.append(sub.serialize())
-
-        net_worth = util.update_net_worth(net_worth, acc)
-
-    return sub_accs, util.update_net_worth_manual_accs(net_worth, person)
 
 
 def refresh_account_balances(account: FinancialAccount):
@@ -199,7 +187,7 @@ def load_transactions(account: FinancialAccount) -> None:
             access_token=account.access_token,
             cursor=cursor,
         )
-        response = client.transactions_sync(request)
+        response = CLIENT.transactions_sync(request)
 
         print("Transaction resp: ", response)
 
@@ -265,7 +253,7 @@ def load_transactions2(access_token: str):
     request = TransactionsSyncRequest(
         access_token=access_token,
     )
-    response = client.transactions_sync(request)
+    response = CLIENT.transactions_sync(request)
     transactions = response["added"]
 
     # the transactions in the response are paginated, so make multiple calls while incrementing the cursor to
@@ -274,7 +262,7 @@ def load_transactions2(access_token: str):
         request = TransactionsSyncRequest(
             access_token=access_token, cursor=response["next_cursor"]
         )
-        response = client.transactions_sync(request)
+        response = CLIENT.transactions_sync(request)
 
         json_string = json.dumps(response.to_dict(), default=str)
 
@@ -289,7 +277,7 @@ def _get_institutions(access_token: str) -> dict:
     request = InstitutionsGetRequest(
         country_codes=[CountryCode("US")], count=count, offset=offset
     )
-    response = client.institutions_get(request)
+    response = CLIENT.institutions_get(request)
 
     print("Inst resp", response)
 
@@ -303,7 +291,7 @@ def _get_institutions(access_token: str) -> dict:
 def _get_investment_holdings(access_token: str) -> (dict, dict):
     # Pull Holdings for an Item
     request = InvestmentsHoldingsGetRequest(access_token=access_token)
-    response = client.investments_holdings_get(request)
+    response = CLIENT.investments_holdings_get(request)
 
     # Handle Holdings response
     holdings = response["holdings"]
