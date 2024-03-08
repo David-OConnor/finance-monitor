@@ -155,7 +155,7 @@ def delete_accounts(request: HttpRequest) -> HttpResponse:
     # todo: Unlink etc if not manual
     for id_ in data.get("ids", []):
         try:
-            SubAccount.objects.get(id=id_).delete()
+            SubAccount.objects.get(id=id_).account.delete()
         except SubAccount.DoesNotExist:
             result["success"] = False
 
@@ -255,7 +255,8 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     for k, v in totals.items():
         totals_display[k + "_class"] = "tran_pos" if v > 0.0 else "tran_neg"
         # A bit of a hack to keep this value consistent with the sub-account values.
-        totals_display[k] = f"{v:,.0f}".replace("-", "")
+        # totals_display[k] = f"{v:,.0f}".replace("-", "")
+        totals_display[k] = f"{v:,.0f}"
 
     #  todo: Move this A/R
     if request.method == "POST":

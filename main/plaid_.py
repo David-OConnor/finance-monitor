@@ -119,10 +119,10 @@ def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> Tup
 
     # Update account info, if we are due for a refresh
     for acc in accounts:
-        if acc.sub_accounts.count() == 0:
-            print(f"Deleting this account due to no remaining sub accounts: {acc}")
-            acc.delete()
-            continue
+        # if acc.sub_accounts.count() == 0:
+        #     print(f"Deleting this account due to no remaining sub accounts: {acc}")
+        #     acc.delete()
+        #     continue
 
         # todo: We may have a timezone or related error on acct refreshes...
         print(acc, acc.last_refreshed, "ACC")

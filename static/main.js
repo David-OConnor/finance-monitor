@@ -161,7 +161,7 @@ function formatNumber(number, decimals) {
     return new Intl.NumberFormat('en-US', options).format(number);
 }
 
-function createAccRow(acc) {
+function createAccRow(acc, type) {
     // Helper function when creating the account display.
     let div = createEl("div", {}, {display: "flex", justifyContent: "space-between", cursor: "pointer"})
 
@@ -178,10 +178,15 @@ function createAccRow(acc) {
 
     let h_a = createEl("h4", {class: "acct-hdg"}, {marginRight: "26px"}, name)
 
-    const valClass = acc.current > 0 ? "tran_pos" : "tran_neg"
+    let val = acc.current
+    if (["Credit", "Loan"].includes(type)) {
+        val *= -1
+    }
+    // todo: Negate Acc if
+    const valClass = val > 0 ? "tran_pos" : "tran_neg"
 
     // Format with a comma, and no decimal places
-    const valueFormatted = formatNumber(acc.current, false)
+    const valueFormatted = formatNumber(val, false)
     let h_b = createEl("h4", {class: "acct-hdg " + valClass}, {}, valueFormatted)
 
     div.appendChild(h_a)
@@ -223,13 +228,19 @@ function refreshAccounts() {
         if (accs[0].length > 0) {
             div = createEl("div", {class: "account-type"})
             h1 = createEl("h2", {}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, accs[1])
-            class_ = "tran_pos" // todo
 
             // note: We also calcualte this server side
             let total = 0.
             for (let acc of accs[0]) {
-                total += acc.current
+                if (["Credit", "Loan"].includes(accs[1])) {
+                    total -= acc.current
+                } else {
+                    total += acc.current
+                }
             }
+
+            // todo: Remove minus sign for cleanness?
+            const class_ = total > 0 ? "tran_pos" : "tran_neg"
             totalFormatted = formatNumber(total, false)
             h2 = createEl("h2", {class: class_}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, totalFormatted) // total todo
 
@@ -238,7 +249,7 @@ function refreshAccounts() {
         }
 
         for (let acc of accs[0]) {
-            div.appendChild(createAccRow(acc))
+            div.appendChild(createAccRow(acc, accs[1]))
         }
 
         if (accs[0].length > 0) {

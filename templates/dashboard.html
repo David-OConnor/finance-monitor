@@ -8,7 +8,7 @@
     <div class="home-body">
         {#        <h1>Welcome to Finance Monitor</h1>#}
 
-        <h2>Net worth: {{ totals.net_worth }}</h2>
+        <h2>Net worth: <span class="{{ totals.net_worth_class }}">{{ totals.net_worth }}</span></h2>
 
         <div style="display: flex; align-items: center;">
             <h2 style="margin-right: 32px">Account balances</h2>
