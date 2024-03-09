@@ -1,7 +1,8 @@
 /*todo: Remove unused.*/
 
 body {
-    background-color: #ffffff;
+    /*background-color: #ffffff;*/
+    background-color: #F8F8F8;
     background-position: top center;
     background-size: auto;
 }
@@ -61,6 +62,7 @@ img {
 @media (min-width : 600px) {
     .home-body {
         padding: 40px;
+        background-color: #F8F8F8;
         margin-left: 10%;
         margin-right: 10%;
     }
@@ -326,6 +328,7 @@ img {
 .account-type {
     display: flex;
     flex-direction: column;
+    background-color: white;
     border: 1px solid #888888;
     border-radius: 12px;
     margin: 12px;
@@ -336,7 +339,8 @@ img {
 #accounts {
     display: flex;
     flex-wrap: wrap;
-    border: 1px solid #888888;
+    /*border: 1px solid #888888;*/
+    background-color: white;
     border-radius: 12px;
     margin-bottom: 60px;
     justify-content: center;
@@ -346,6 +350,15 @@ img {
 .acct-hdg {
     margin-top: 4px;
     margin-bottom: 4px;
+}
+
+.tran-table {
+    background-color: white;
+    border-radius: 12px;
+    padding: 18px;
+    /* Hmm. To get both borders and padding, we need some combo of this...*/
+    border-collapse: collapse;
+    margin-top: 12px;
 }
 
 /* latin-ext */

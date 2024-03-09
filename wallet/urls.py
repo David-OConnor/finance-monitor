@@ -29,6 +29,7 @@ urlpatterns = [
     path("dashboard", views.dashboard),
     path("about", views.about),
     path("spending", views.spending),
+    path("recurring", views.recurring),
     path("privacy", views.privacy),
     path("terms", views.terms),
     # path("refresh-balances", views.refresh_balances),

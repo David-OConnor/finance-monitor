@@ -408,3 +408,13 @@ class SnapshotPerson(Model):
         return (
             f"Value snapshot. {self.dt}: {self.value}"
         )
+
+
+class CategoryCusom(Model):
+    person = ForeignKey(Person, related_name="custom_cats", on_delete=CASCADE)
+    name = CharField(max_length=30)
+
+    def __str__(self):
+        return (
+            f"Custom cat. {self.person}, {self.name}"
+        )

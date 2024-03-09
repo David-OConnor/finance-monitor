@@ -326,9 +326,9 @@ function refreshTransactions() {
 
     let col, img, h, opt
     for (let tran of transactions) {
-        const row = document.createElement("tr")
+        const row = document.createElement("tr", {},{borderBottom: "1px solid #bbbbbb"} )
 
-        col = document.createElement("td") // Icon
+        col = document.createElement("td", {}) // Icon
 
         if (EDIT_MODE_TRAN) {
             h = createEl("select", {}, {})
@@ -434,7 +434,7 @@ function refreshTransactions() {
 
         row.appendChild(col)
 
-        col = createEl("td", {class: "transaction-cell"})
+        col = createEl("td", {class: "transaction-cell"}, {})
         if (EDIT_MODE_TRAN) {
             h = createEl("input", {value: tran.notes}, {marginRight: "30px"})
 
@@ -876,8 +876,6 @@ function init() {
         // Parse JSON if able.
         .then(result => result.json())
         .then(r => {
-            console.log("Post dash load data: ", r)
-
             for (let acc_new of r.sub_accs) {
                 ACCOUNTS = [
                     ...ACCOUNTS.filter(a => a.id !== acc_new.id),

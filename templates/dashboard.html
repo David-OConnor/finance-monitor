@@ -129,7 +129,7 @@
                 />
             </div>
 
-            <div style="display: flex; align-items: center;">
+            <div style="display: flex; align-items: center; margin-right: 32px;">
                 <h4>Start:</h4>
                 <input
                         id="tran-filter-start"
@@ -144,7 +144,7 @@
                         id="tran-filter-end"
                         type="date"
 {#                        value=FILTER_END,#}
-                        style="margin-right: 80px; width: 120px;"
+                        style="width: 120px;"
                         oninput="updateTranFilter()"
                 />
             </div>
@@ -186,7 +186,7 @@
             <button id="export" class="button-general">Export ↓</button>
         </div>
 
-        <table style="border-collapse: collapse;">
+        <table class="tran-table">
             <thead>
             <tr style="height: 40px; border-bottom: 2px solid black;">
                 <th>

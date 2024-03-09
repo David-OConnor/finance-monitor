@@ -389,7 +389,14 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def spending(request: HttpRequest) -> HttpResponse:
+    """Page for details on spending"""
     return render(request, "spending.html", {})
+
+
+@login_required
+def recurring(request: HttpRequest) -> HttpResponse:
+    """Page for recurring transactions"""
+    return render(request, "recurring.html", {})
 
 
 def about(request: HttpRequest) -> HttpResponse:
