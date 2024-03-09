@@ -196,25 +196,13 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     person = request.user.person
     accounts = person.accounts.all()
 
-    net_worth = 0.0
-    sub_accs = [sub_acc.serialize() for sub_acc in person.subaccounts_manual.all()]
+    sub_accounts = SubAccount.objects.filter(
+        Q(account__person=person) | Q(person=person)
+    )
 
-    for acc in accounts:
-        for sub in acc.sub_accounts.all():
-            sub_accs.append(sub.serialize())
-
-        net_worth = util.update_net_worth(net_worth, acc)
-
-    util.update_net_worth_manual_accs(net_worth, person)
-
-    # Organize balances by sub-account
-    # todo: Dict
-    # cash_accs = []
-    # investment_accs = []
-    # crypto_accs = []
-    # credit_debit_accs = []
-    # loan_accs = []
-    # asset_accs = []
+    net_worth = 0.
+    for acc in sub_accounts:
+        net_worth = util.unw_helper(net_worth, acc)
 
     totals = {
         "cash": 0,
@@ -293,7 +281,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     context = {
         "totals": totals_display,
-        "sub_accs": json.dumps(sub_accs),
+        "sub_accs": json.dumps([s.serialize() for s in sub_accounts]),
         "transactions": transactions,
     }
 

@@ -30,13 +30,6 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
     return net_worth
 
 
-def update_net_worth_manual_accs(net_worth: float, person: Person) -> float:
-    for sub_acc in person.subaccounts_manual.all():
-        net_worth = unw_helper(net_worth, sub_acc)
-
-    return net_worth
-
-
 def get_transaction_data(
     start_i: int,
     end_i: int,
