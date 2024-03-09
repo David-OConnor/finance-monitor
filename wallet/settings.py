@@ -39,6 +39,7 @@ PLAID_MODE = PlaidMode.SANDBOX
 
 if DEPLOYED:
     DEBUG = False
+    DEBUG = True  # todo temp!
     # SECURITY WARNING: keep the secret key used in production secret!
     SECRET_KEY = os.environ["SECRET_KEY"]
     PLAID_CLIENT_ID = os.environ["PLAID_CLIENT_ID"]
