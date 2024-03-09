@@ -324,36 +324,101 @@ function refreshTransactions() {
     let tbody = document.getElementById("transaction-tbody")
     tbody.replaceChildren();
 
-    let col, img
+    let col, img, h, opt
     for (let tran of transactions) {
         const row = document.createElement("tr")
 
         col = document.createElement("td") // Icon
 
-        if (tran.logo_url.length > 0) {
-            img = createEl("img", {"src": tran.logo_url, alt: "", width: "20px"})
-            col.appendChild(img)
+        if (EDIT_MODE_TRAN) {
+            h = createEl("select", {}, {})
+            for (let cat of [
+                // See models.py
+                [-1, "Uncategorized"],
+                [0, "Food and drink"],
+                [1, "Restauants"],
+                // [2, "ASC"],
+                [3, "Travel"],
+                [4, "Airlines"],
+                [5, "Recreation"],
+                [6, "Gyms"],
+                [7, "Transfer"],
+                [8, "Deposit"],
+                [9, "Payroll"],
+                [10, "Credit card"],
+                [11, "Fast food"],
+                [12, "Debit card"],
+                [13, "Shops"],
+                [14, "Payment"],
+                [15, "Coffee shop"],
+                [16, "Taxi"],
+                [17, "Sporting goods"],
+                [18, "Electronics"],
+                [19, "Pets"],
+                [20, "Children"],
+                [21, "Mortgage and rent"],
+                [22, "Car"],
+                [23, "Home and garden"],
+                [24, "Medical"],
+                [25, "Entertainment"],
+                [26, "Bills and utilities"],
+                [27, "Investments"],
+                [28, "Fees"],
+                [29, "Taxes"],
+                [30, "Business services"],
+                [31, "Cash and checks"],
+                [32, "Gift"],
+                [33, "Education"]
+                ]) {
+
+                let catPrimary = tran.categories.length > 0 ? tran.categories[0] : -1  // -1 is uncategorized
+                opt = createEl("option", {value: cat[0]}, {}, cat[1])
+                if (cat[0] === catPrimary) {
+                    opt.setAttribute("selected", "")
+                }
+
+                h.appendChild(opt)
+
+                h.addEventListener("input", e => {
+                    console.log(e.target.value, "SELECT VALUE")
+                let updated = {
+                    ...tran,
+                    categories: [parseInt(e.target.value)]
+                }
+                // todo: DRY!
+                TRANSACTIONS_UPDATED[String(tran.id)] = updated
+            })
+            }
+
+            col.appendChild(h)
+        } else {
+            if (tran.logo_url.length > 0) {
+                img = createEl("img", {"src": tran.logo_url, alt: "", width: "20px"})
+                col.appendChild(img)
+            }
+
+            // todo: Put back once the icon is sorted.
+            let s
+            if (TRANSACTION_ICONS) {
+                s = createEl("span", {}, {}, tran.categories_icon)
+                // col.textContent = tran.categories_icon
+            } else {
+                // col.textContent = tran.categories_text
+                s = createEl("span", {}, {}, tran.categories_text)
+            }
+            col.appendChild(s)
         }
 
-        // todo: Put back once the icon is sorted.
-        let s
-        if (TRANSACTION_ICONS) {
-            s = createEl("span", {}, {}, tran.categories_icon)
-            // col.textContent = tran.categories_icon
-        } else {
-            // col.textContent = tran.categories_text
-            s = createEl("span", {}, {}, tran.categories_text)
-        }
-        col.appendChild(s)
         row.appendChild(col)
 
         col = createEl("td", {class: "transaction-cell"})
-        let h = createEl(
+        h = createEl(
             "h4",
             {class: "tran-heading"},
             {fontWeight: "normal", marginLeft: "40px"},
             tran.description
         )
+
         col.appendChild(h)
 
         row.appendChild(col)
@@ -520,13 +585,21 @@ function setupEditTranButton() {
                 .then(r => {
                     if (!r.success) {
                         console.error("Transaction save failed")
+                    } else {
+                        window.location.reload(); // todo temp until we can update cat in place.
                     }
                 });
+
+
 
             // Update transactions in place, so a refresh isn't required.
             for (let tran of Object.values(TRANSACTIONS_UPDATED)) {
                 let date = new Date(tran.date)
                 tran.date_display = (date.getUTCMonth() + 1) % 12 + "/" + date.getUTCDate()
+
+                // todo: To update categories in place, we will need to parse categories in the UI instead of using
+                // todo teh passed cats from the backend.
+
                 TRANSACTIONS = [
                     ...TRANSACTIONS.filter(t => t.id !== tran.id),
                     tran,
@@ -768,8 +841,10 @@ function init() {
         if (importForm.style.visibility === "collapse") {
             importForm.style.visibility = "visible"
             // importStart.style.visibility = "collapse"
+            importStart.textContent = "Cancel import"
         } else {
             importForm.style.visibility = "collapse"
+            importStart.textContent = "Import ↑"
         }
 
     })

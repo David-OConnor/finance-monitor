@@ -1,6 +1,7 @@
 import json
 from datetime import date
 from enum import Enum
+from json import JSONDecodeError
 from typing import Dict
 
 from django.db import models
@@ -334,7 +335,12 @@ class Transaction(Model):
     def serialize(self) -> Dict[str, str]:
         """For use in the web page."""
 
-        cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
+        try:
+            cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
+        except JSONDecodeError as e:
+            print("Problem decoding categories during serialization", self.categories)
+            cats = [TransactionCategory.UNCATEGORIZED]
+
         cats = cleanup_categories(cats)
 
         # Only display the year if not the present one.

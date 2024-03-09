@@ -287,6 +287,10 @@ def category_override(
     if "coffee" in descrip:
         categories = [TransactionCategory.COFFEE_SHOP]
 
+    if "starbucks" in descrip:
+        print("STAR")
+        categories = [TransactionCategory.COFFEE_SHOP]
+
     # Prevents a restaurant style logo
     if (
         "trader joe" in descrip
@@ -368,6 +372,9 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
         cats.remove(TransactionCategory.FOOD_AND_DRINK)
 
     if TransactionCategory.FOOD_AND_DRINK in cats and TransactionCategory.SHOPS in cats:
+        cats.remove(TransactionCategory.SHOPS)
+
+    if TransactionCategory.SPORTING_GOODS in cats and TransactionCategory.SHOPS in cats:
         cats.remove(TransactionCategory.SHOPS)
 
     if TransactionCategory.ELECTRONICS in cats and TransactionCategory.SHOPS in cats:

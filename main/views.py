@@ -99,9 +99,11 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
     result = {"success": True}
 
     for tran in data.get("transactions", []):
+        print(tran, "TRAN UP")
         _, _ = Transaction.objects.update_or_create(
             id=tran["id"],
             defaults={
+                "categories": tran["categories"],
                 "notes": tran["notes"],
                 "amount": tran["amount"],
                 "date": tran["date"],
