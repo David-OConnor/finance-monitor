@@ -126,7 +126,7 @@ def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> Non
             print("Refreshing account data...")
 
             refresh_account_balances(acc)
-            load_transactions(acc)
+            refresh_transactions(acc)
             acc.last_refreshed = timezone.now()
         else:
             print("Not refreshing account data")
@@ -165,7 +165,7 @@ def refresh_account_balances(account: FinancialAccount):
     account.save()
 
 
-def load_transactions(account: FinancialAccount) -> None:
+def refresh_transactions(account: FinancialAccount) -> None:
     """
     Updates the database with transactions for a single account.
     https://plaid.com/docs/api/products/transactions/#transactionssync

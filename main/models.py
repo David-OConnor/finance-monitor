@@ -203,7 +203,7 @@ class FinancialAccount(Model):
     # todo: Unique together with person, institution, or can we allow multiples?
 
     def __str__(self):
-        return f"Account. Person: {self.person} Inst: {self.institution.name}. Nickname: {self.name}"
+        return f"Account. Person: {self.person} Inst: {self.institution.name}"
 
     class Meta:
         ordering = ["name"]
@@ -238,7 +238,7 @@ class SubAccount(Model):
     iso_currency_code = CharField(max_length=5)
     # unofficial currency code is also available
     available = FloatField(blank=True, null=True)
-    current = FloatField(blank=True, null=True)
+    current = FloatField(default=0)
     limit = FloatField(blank=True, null=True)
     # Lets the user mark the account as ignored by the program.
     ignored = BooleanField(default=False)

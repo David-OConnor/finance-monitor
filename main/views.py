@@ -4,6 +4,7 @@ from io import TextIOWrapper
 
 from django.db.models import Q
 from django import forms
+import time
 
 from . import export
 
@@ -229,10 +230,8 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         # total and per-accoutn for loads, CC+Debit
 
         if t in [SubAccountType.CHECKING, SubAccountType.SAVINGS]:
-            # cash_accs.append(sub_acc.serialize())
             totals["cash"] += sub_acc.current
         elif t in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
-            # credit_debit_accs.append(sub_acc.serialize())
             totals["credit_debit"] -= sub_acc.current
         elif t in [
             SubAccountType.T401K,
@@ -243,16 +242,12 @@ def dashboard(request: HttpRequest) -> HttpResponse:
             SubAccountType.BROKERAGE,
             SubAccountType.ROTH,
         ]:
-            # investment_accs.append(sub_acc.serialize())
             totals["investment"] += sub_acc.current
         elif t in [SubAccountType.STUDENT, SubAccountType.MORTGAGE]:
-            # loan_accs.append(sub_acc.serialize())
             totals["loans"] -= sub_acc.current
         elif t in [SubAccountType.CRYPTO]:
-            # crypto_accs.append(sub_acc.serialize())
             totals["crypto"] += sub_acc.current
         elif t in [SubAccountType.ASSET]:
-            # asset_accs.append(sub_acc.serialize())
             totals["asset"] += sub_acc.current
         else:
             print("Fallthrough in sub account type: ", t)
@@ -276,7 +271,6 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         return HttpResponseRedirect("/dashboard")
 
     count = 60
-    count = 5  # todo temp for testing search
     transactions = util.get_transaction_data(0, count, accounts, person, None, None, None)
 
     context = {
@@ -420,15 +414,39 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     # todo: We can add subaccounts here if we wish, using metadata["accounts"].
     # todo: Sub-keys
 
+    success = True
+
     try:
         account_added.save()
     except OperationalError as e:
         print("\nError saving the account: ", e)
+        success = False
     else:
+        # Add sub-accounts. Note that these are also added when refreshing A/R.
+        # for sub in metadata.get("accounts", []):
+        #     sub_acc = SubAccount(
+        #         account=account_added,
+        #         plaid_id=sub["id"],
+        #         plaid_id_persistent="",  # todo temp
+        #         name=sub.get("name_official", ""),
+        #         name_official=sub.get("name_official", ""),
+        #         type=AccountType.from_str(str(sub["type"])).value,
+        #         sub_type=AccountType.from_str(str(sub["subtype"])).value,
+        #         iso_currency_code=sub.get("iso_currency_code", "USD"),
+        #     )
+        #     try:
+        #         sub_acc.save()
+        #     except IntegrityError as e:
+        #         print("\nError saving a subaccount during account add", e)
+        #         success = False
+
+        # Refresh balances, and send the updated account data to the client to display.
+        # (Currently, the client commands a refresh)
         plaid_.refresh_account_balances(account_added)
+        plaid_.refresh_transactions(account_added)
 
     return HttpResponse(
-        json.dumps({"success": True}),
+        json.dumps({"success": success}),
         content_type="application/json",
     )
 

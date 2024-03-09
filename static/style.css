@@ -276,45 +276,10 @@ img {
 
 }
 
-/* For the central section selector on the home page */
-.home-picker {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.home-picker-item {
-    display: flex;
-    width: 250px;
-    flex-direction: column;
-    align-items: center;
-    margin: 50px;
-    /* Add an invisble border so things don't jump when we add a highlighted one. */
-    border: 2px solid #ffffff;
-}
-
-.home-picker-heading {
-    color: black;
-    text-decoration: none;
-}
-
 @media (max-width : 800px) {
-    .home-picker {
-        flex-direction: column;
+    .hide-on-mobile {
+        visibility: collapse;
     }
-
-    .home-picker-item {
-        width: auto;
-        margin-left: 0;
-        margin-right: 0;
-        border: 2px solid black;
-    }
-}
-
-.home-picker-item:hover {
-    border: 2px solid #178217;
 }
 
 

@@ -29,8 +29,7 @@ let CURRENT_PAGE = 0
 // if we've already done so, for a given config
 let TRANSACTIONS_LOADED = true
 
-// const PAGE_SIZE = 60
-const PAGE_SIZE = 5  // todo temp!
+const PAGE_SIZE = 40
 
 
 // todo: Config object?
@@ -103,6 +102,7 @@ function getPublicToken() {
                 .then(r => {
                     if (r.success) {
                         console.log("Token exchange complete")
+                        window.location.reload();
                     } else {
                         console.error("Token exchange failed")
                     }
