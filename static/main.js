@@ -411,7 +411,9 @@ function refreshTransactions() {
 
         row.appendChild(col)
 
-        col = createEl("td", {class: "transaction-cell"})
+        // Flex for pending indicator.
+        col = createEl("td", {class: "transaction-cell"}, {display: "flex"})
+
         h = createEl(
             "h4",
             {class: "tran-heading"},
@@ -420,6 +422,15 @@ function refreshTransactions() {
         )
 
         col.appendChild(h)
+
+        if (tran.pending) {
+            col.appendChild(createEl(
+                "h4",
+                {class: "tran-heading"},
+                {color: "#999999", fontWeight: "normal", marginLeft: "8px"},
+                "| Pending")
+            )
+        }
 
         row.appendChild(col)
 

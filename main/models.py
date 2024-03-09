@@ -356,9 +356,6 @@ class Transaction(Model):
                 date_display = self.date.strftime("%m/%d/%y")
 
         description = self.description
-        if self.pending:
-            # todo: Separate element so you can make it faded, or otherwise a custom style or cell.
-            description += " (pending)"
 
         # todo: Modify to serialize values vice displayl.
         return {
@@ -376,6 +373,7 @@ class Transaction(Model):
             "date": self.date.isoformat(),
             "date_display": date_display,
             "logo_url": self.logo_url if self.logo_url else "",
+            "pending": self.pending,
         }
 
     def __str__(self):
