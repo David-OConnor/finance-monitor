@@ -326,10 +326,17 @@ function refreshTransactions() {
 
     let col, img, h, opt
     for (let tran of transactions) {
-        const row = document.createElement("tr", {},{borderBottom: "1px solid #bbbbbb"} )
+        const row = createEl("tr", {},{borderBottom: "1px solid #cccccc"} )
 
-        col = document.createElement("td", {}) // Icon
+        col = createEl(
+            "td",
+            {class: "transaction-cell"},
+            // todo: We can only do one or both of this , and descrip flex. We need this to center teh icon,
+            // todo and descrip to be horizontal with pending...
+            {paddingLeft: "12px", color: "black"}
+        ) // Icon
 
+        d = createEl("div", {}, {display: "flex", alignItems: "center"})
         if (EDIT_MODE_TRAN) {
             h = createEl("select", {}, {})
             for (let cat of [
@@ -369,7 +376,7 @@ function refreshTransactions() {
                 [31, "Cash and checks"],
                 [32, "Gift"],
                 [33, "Education"]
-                ]) {
+            ]) {
 
                 let catPrimary = tran.categories.length > 0 ? tran.categories[0] : -1  // -1 is uncategorized
                 opt = createEl("option", {value: cat[0]}, {}, cat[1])
@@ -381,20 +388,23 @@ function refreshTransactions() {
 
                 h.addEventListener("input", e => {
                     console.log(e.target.value, "SELECT VALUE")
-                let updated = {
-                    ...tran,
-                    categories: [parseInt(e.target.value)]
-                }
-                // todo: DRY!
-                TRANSACTIONS_UPDATED[String(tran.id)] = updated
-            })
+                    let updated = {
+                        ...tran,
+                        categories: [parseInt(e.target.value)]
+                    }
+                    // todo: DRY!
+                    TRANSACTIONS_UPDATED[String(tran.id)] = updated
+                })
             }
 
-            col.appendChild(h)
+            d.append(h)
+            col.append(d)
+            // col.appendChild(h)
         } else {
             if (tran.logo_url.length > 0) {
                 img = createEl("img", {"src": tran.logo_url, alt: "", width: "20px"})
-                col.appendChild(img)
+                // col.appendChild(img)
+                d.append(img)
             }
 
             // todo: Put back once the icon is sorted.
@@ -406,7 +416,10 @@ function refreshTransactions() {
                 // col.textContent = tran.categories_text
                 s = createEl("span", {}, {}, tran.categories_text)
             }
-            col.appendChild(s)
+            // col.appendChild(s)
+
+            d.append(s)
+            col.append(d)
         }
 
         row.appendChild(col)

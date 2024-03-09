@@ -355,9 +355,10 @@ img {
 .tran-table {
     background-color: white;
     border-radius: 12px;
-    padding: 18px;
+    /*padding: 18px; */
     /* Hmm. To get both borders and padding, we need some combo of this...*/
     border-collapse: collapse;
+    width: 100%;
     margin-top: 12px;
 }
 
