@@ -23,6 +23,7 @@ let SEARCH_TEXT = ""
 let FILTER_START = "1999-09-09"  // todo!
 let FILTER_END = "2040-09-09"  // todo!
 let VALUE_THRESH = 0
+let CURRENT_PAGE = 0
 
 // Whenever we change page, or filter terms, we may need to load transactions. This tracks
 // if we've already done so, for a given config
@@ -138,7 +139,6 @@ function getPublicToken() {
 
 function filterTransactions() {
     // Filter transactions by keyword, date, value, category, etc. Sort by date at the end.
-
     const searchText = SEARCH_TEXT
     const valueThresh = VALUE_THRESH
     let start = new Date("1999-09-09")
@@ -175,13 +175,21 @@ function filterTransactions() {
 
     transactions.sort((b, a) => new Date(a.date) - new Date(b.date))
 
+    const startI = CURRENT_PAGE * PAGE_SIZE
+    const endI = CURRENT_PAGE * PAGE_SIZE + PAGE_SIZE
+
+    transactions = transactions.slice(startI, endI)
+
+    console.log(startI, endI, transactions, transactions.length, "Start, end, tran")
+
     if (!TRANSACTIONS_LOADED) {  // A check against doing this multiple times (or finititely) in a row.
+        console.log("Trans not loaded")
         TRANSACTIONS_LOADED = true
 
         // If, after filtering, we don't have a full page of information, request more from the backend.
         if (transactions.length < PAGE_SIZE) {
             console.log("Requesting more transactions...")
-            data = {num: PAGE_SIZE, search: SEARCH_TEXT, start: FILTER_START, end: FILTER_END} // todo: Doesn't have to be page size.
+            const data = {start_i: startI, end_i: endI, search: SEARCH_TEXT, start: FILTER_START, end: FILTER_END} // todo: Doesn't have to be page size.
 
             fetch("/load-transactions", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
                 .then(result => result.json())
@@ -201,7 +209,7 @@ function filterTransactions() {
         }
     }
 
-    return transactions.slice(0, PAGE_SIZE)
+    return transactions
 }
 
 function formatNumber(number, decimals) {
@@ -312,8 +320,6 @@ function refreshAccounts() {
 function refreshTransactions() {
     //[Re]populate the transactions table based on state.
     console.log("Refreshing transactions...")
-
-    console.log(TRANSACTIONS.length, "TL", TRANSACTIONS)
 
     let transactions = filterTransactions()
 
@@ -806,3 +812,14 @@ function toggleAddManual() {
     }
 }
 
+function changePage(direction) {
+    CURRENT_PAGE += direction // eg-1 or 1
+
+    if (CURRENT_PAGE < 0) {
+        CURRENT_PAGE = 0
+    }
+    console.log("Page: ", CURRENT_PAGE)
+
+    TRANSACTIONS_LOADED = false // Allows more transactions to be loaded from the server.
+    refreshTransactions()
+}

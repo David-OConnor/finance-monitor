@@ -65,7 +65,8 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
 
     print("Loading transactions. Data received: ", data)
 
-    num = data["num"]
+    start_i = data["start_i"]
+    end_i = data["end_i"]
     search = data.get("search")
     categories = data.get("categories")
     start = data.get("start")
@@ -81,7 +82,7 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
         end = None
 
     transactions = {
-        "transactions": util.get_transaction_data(num, accounts, person, search, start, end)
+        "transactions": util.get_transaction_data(start_i, end_i, accounts, person, search, start, end)
     }
 
     return HttpResponse(json.dumps(transactions), content_type="application/json")
@@ -288,7 +289,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     count = 60
     count = 5  # todo temp for testing search
-    transactions = util.get_transaction_data(count, accounts, person, None, None, None)
+    transactions = util.get_transaction_data(0, count, accounts, person, None, None, None)
 
     context = {
         "totals": totals_display,

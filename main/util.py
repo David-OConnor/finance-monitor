@@ -38,7 +38,8 @@ def update_net_worth_manual_accs(net_worth: float, person: Person) -> float:
 
 
 def get_transaction_data(
-    count: int,
+    start_i: int,
+    end_i: int,
     accounts: Iterable[FinancialAccount],
     person: Person,
     search_text: Optional[str],
@@ -65,5 +66,5 @@ def get_transaction_data(
     if end is not None:
         trans = trans.filter(date__lte=end)
 
-    return [tran.serialize() for tran in trans[:count]]
+    return [tran.serialize() for tran in trans[start_i:end_i]]
 
