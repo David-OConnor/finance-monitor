@@ -114,10 +114,11 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
     return response["accounts"]
 
 
-def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> None:
-# def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> Tuple[List[SubAccount], float]:
-    """Update all account balances and related information. Return sub accounts, and net worth"""
+def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> bool:
+    """Update all account balances and related information. Return sub accounts, and net worth.
+    Returns `True if there is new data. """
     # Update account info, if we are due for a refresh
+    new_data = False
     for acc in accounts:
         # todo: We may have a timezone or related error on acct refreshes...
         print(acc, acc.last_refreshed, "ACC")
@@ -128,8 +129,12 @@ def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> Non
             refresh_account_balances(acc)
             refresh_transactions(acc)
             acc.last_refreshed = timezone.now()
+
+            new_data = True
         else:
             print("Not refreshing account data")
+
+    return new_data
 
 
 def refresh_account_balances(account: FinancialAccount):

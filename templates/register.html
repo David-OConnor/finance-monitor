@@ -5,23 +5,42 @@
 
 {% block contents %}
 
-    <div class="home-body", style="justify-content: center">
+    <div class="home-body" style="justify-content: center">
         <div style="display: flex; align-items: center; justify-content: center">
             <h1>Register</h1>
         </div>
 
-        <form method="post">
-            {% csrf_token %}
-            <p>
-                <label for="id_username">Username:</label>
-                <input type="text" name="username" maxlength="150" autocapitalize="none" autocomplete="username" autofocus required aria-describedby="id_username_helptext" id="id_username">
+        <div class="form-block" style="display: flex; justify-content: center;">
+            <form method="post" style="display: flex; flex-direction: column; align-items: center;">
+                {% csrf_token %}
+                <label for="id_username">Email:</label>
+                <input type="email" name="username" maxlength="150" autocapitalize="none"
+                       autocomplete="username" autofocus required aria-describedby="id_username_helptext"
+                       id="id_username"
+                       style="width: 180px;"
+                >
 
                 <span class="helptext" id="id_username_helptext">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</span>
-            </p>
 
-            <p>
-                <label for="id_password1">Password:</label>
-                <input type="password" name="password1" autocomplete="new-password" required aria-describedby="id_password1_helptext" id="id_password1">
+                <label for="id_password1" style="margin-top: 32px;">Password:</label>
+                <input
+                        type="password"
+                        name="password1"
+                        autocomplete="new-password"
+                        required aria-describedby="id_password1_helptext"
+                        id="id_password1"
+                        style="width: 180px; margin-bottom: 20px;"
+                >
+
+                <label for="id_password2">Password confirmation:</label>
+                <input
+                        type="password"
+                        name="password2"
+                        autocomplete="new-password"
+                        required aria-describedby="id_password2_helptext"
+                        id="id_password2"
+                        style="width: 180px;"
+                >
 
                 <span class="helptext" id="id_password1_helptext">
                     <ul>
@@ -30,16 +49,14 @@
                         <li>Your password can’t be a commonly used password.</li><li>Your password can’t be entirely numeric.</li>
                     </ul>
                 </span>
-            </p>
 
-            <p>
-                <label for="id_password2">Password confirmation:</label>
-                <input type="password" name="password2" autocomplete="new-password" required aria-describedby="id_password2_helptext" id="id_password2">
+                {#                <span class="helptext" id="id_password2_helptext">Enter the same password as before, for verification.</span>#}
 
-                <span class="helptext" id="id_password2_helptext">Enter the same password as before, for verification.</span>
-            </p>
-            <button class="button-general" type="submit">Register</button>
-        </form>
+                <button class="button-general" type="submit"
+                        style="margin-top: 32px; width: 180px; margin-bottom: 40px;"
+                >Register</button>
+            </form>
+        </div>
     </div>
 
 {% endblock %}

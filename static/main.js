@@ -180,8 +180,6 @@ function filterTransactions() {
 
     transactions = transactions.slice(startI, endI)
 
-    console.log(startI, endI, transactions, transactions.length, "Start, end, tran")
-
     if (!TRANSACTIONS_LOADED) {  // A check against doing this multiple times (or finititely) in a row.
         console.log("Trans not loaded")
         TRANSACTIONS_LOADED = true
@@ -793,6 +791,21 @@ function init() {
         .then(result => result.json())
         .then(r => {
             console.log("Post dash load data: ", r)
+
+            for (let acc_new of r.sub_accs) {
+                ACCOUNTS = [
+                    ...ACCOUNTS.filter(a => a.id !== acc_new.id),
+                    acc_new
+                ]
+            }
+
+            for (let tran_new of r.transactions) {
+                TRANSACTIONS = [
+                    ...TRANSACTIONS.filter(a => a.id !== tran_new.id),
+                    tran_new
+                ]
+            }
+
         });
 }
 

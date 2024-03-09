@@ -82,8 +82,10 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     else:
         end = None
 
+    tran = util.get_transaction_data(start_i, end_i, accounts, person, search, start, end)
+
     transactions = {
-        "transactions": util.get_transaction_data(start_i, end_i, accounts, person, search, start, end)
+        "transactions": [t.serialize() for t in tran],
     }
 
     return HttpResponse(json.dumps(transactions), content_type="application/json")
@@ -194,75 +196,8 @@ def delete_transactions(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
-    person = request.user.person
-    accounts = person.accounts.all()
+    """The main account dashboard."""
 
-    sub_accounts = SubAccount.objects.filter(
-        Q(account__person=person) | Q(person=person)
-    )
-
-    net_worth = 0.
-    for acc in sub_accounts:
-        net_worth = util.unw_helper(net_worth, acc)
-
-    totals = {
-        "cash": 0,
-        "investment": 0,
-        "crypto": 0,
-        "credit_debit": 0,
-        "loans": 0,
-        "assets": 0,
-        # net_worth: f"{net_worth:,.0f}"
-        "net_worth": net_worth,
-    }
-
-    for sub_acc in SubAccount.objects.filter(
-        Q(account__person=person) | Q(person=person)
-    ):
-        if sub_acc.ignored:
-            continue
-
-        t = SubAccountType(sub_acc.sub_type)
-
-        # todo: Integer math and DB storage; not floating point.
-
-        # todo: Consistency with use of minus signs on debgs. Currently reverse behavior on cat
-        # total and per-accoutn for loads, CC+Debit
-
-        if t in [SubAccountType.CHECKING, SubAccountType.SAVINGS]:
-            totals["cash"] += sub_acc.current
-        elif t in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
-            totals["credit_debit"] -= sub_acc.current
-        elif t in [
-            SubAccountType.T401K,
-            SubAccountType.CD,
-            SubAccountType.MONEY_MARKET,
-            SubAccountType.IRA,
-            SubAccountType.MUTUAL_FUND,
-            SubAccountType.BROKERAGE,
-            SubAccountType.ROTH,
-        ]:
-            totals["investment"] += sub_acc.current
-        elif t in [SubAccountType.STUDENT, SubAccountType.MORTGAGE]:
-            totals["loans"] -= sub_acc.current
-        elif t in [SubAccountType.CRYPTO]:
-            totals["crypto"] += sub_acc.current
-        elif t in [SubAccountType.ASSET]:
-            totals["asset"] += sub_acc.current
-        else:
-            print("Fallthrough in sub account type: ", t)
-
-    # Apply a class for color-coding in the template.
-
-    totals_display = {}  # Avoids adding keys while iterating.
-
-    for k, v in totals.items():
-        totals_display[k + "_class"] = "tran_pos" if v > 0.0 else "tran_neg"
-        # A bit of a hack to keep this value consistent with the sub-account values.
-        # totals_display[k] = f"{v:,.0f}".replace("-", "")
-        totals_display[k] = f"{v:,.0f}"
-
-    #  todo: Move this A/R
     if request.method == "POST":
         uploaded_file = request.FILES["file"]
         file_data = TextIOWrapper(uploaded_file.file, encoding="utf-8")
@@ -270,14 +205,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
         return HttpResponseRedirect("/dashboard")
 
-    count = 60
-    transactions = util.get_transaction_data(0, count, accounts, person, None, None, None)
-
-    context = {
-        "totals": totals_display,
-        "sub_accs": json.dumps([s.serialize() for s in sub_accounts]),
-        "transactions": transactions,
-    }
+    context = util.load_dash_data(request.user.person)
 
     return render(request, "../templates/dashboard.html", context)
 
@@ -291,11 +219,17 @@ def post_dash_load(request: HttpRequest) -> HttpResponse:
     person = request.user.person
     accounts = person.accounts.all()
 
-    # Update account balances, and sub-account info, if required (eg based on the last update time)
-    plaid_.update_accounts(accounts, person)
+    data = {
+        "sub_accs": [],
+        "transactions": [],
+    }
+    # Get new balance and transaction data from Plaid. This only populates if there is new data available.
+    if plaid_.update_accounts(accounts, person):
+        # Send balances and transactions to the UI, if new data is available.
+        data = util.load_dash_data(request.user.person, no_preser=True)
 
     return HttpResponse(
-        json.dumps({"key": 0}), content_type="application/json"
+        json.dumps(data), content_type="application/json"
     )
 
 
@@ -428,7 +362,7 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         #         account=account_added,
         #         plaid_id=sub["id"],
         #         plaid_id_persistent="",  # todo temp
-        #         name=sub.get("name_official", ""),
+        #         name=sub.get("name_official", ""),z
         #         name_official=sub.get("name_official", ""),
         #         type=AccountType.from_str(str(sub["type"])).value,
         #         sub_type=AccountType.from_str(str(sub["subtype"])).value,
@@ -502,6 +436,8 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            user.email = user.username
+            user.save()
 
             person = Person()
             person.user = user
@@ -598,22 +534,6 @@ def user_logout(request):
 class UploadFileForm(forms.Form):
     title = forms.CharField(max_length=50)
     file = forms.FileField()
-
-
-# @login_required
-# def import_(request: HttpRequest) -> HttpResponse:
-#     # todo: A/R
-#
-#
-#     # body_unicode = request.body.decode('utf-8')
-#     # csv_file = StringIO(body_unicode)
-#     #
-#     # export.import_csv_mint(csv_file, request.user.person)
-#
-#     print("IMPORT")
-#     # todo?
-#     # return HttpResponse({"success": True})
-#     return HttpResponseRedirect("/dashboard")
 
 
 @login_required
