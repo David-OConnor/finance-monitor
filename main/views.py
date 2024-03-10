@@ -44,6 +44,7 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 
 from main import plaid_, util
 from main.plaid_ import CLIENT, PLAID_COUNTRY_CODES, PLAID_REDIRECT_URI, ACCOUNT_REFRESH_INTERVAL_RECURRING
+from .transaction_cats import TransactionCategory
 
 MAX_LOGIN_ATTEMPTS = 5
 
@@ -411,7 +412,7 @@ def recurring(request: HttpRequest) -> HttpResponse:
     recur = RecurringTransaction.objects.filter(
             Q(account__person=person) |
             Q(account__account__person=person)
-        )
+        ).filter(is_active=True)
 
     context = {
         # "recurring": json.dumps([r.serialize() for r in recur])

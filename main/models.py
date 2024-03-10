@@ -2,7 +2,7 @@ import json
 from datetime import date
 from enum import Enum
 from json import JSONDecodeError
-from typing import Dict
+from typing import Dict, List
 
 from django.db import models
 from django.contrib.auth.models import Group, User
@@ -490,3 +490,16 @@ class RecurringTransaction(Model):
             "categories_text": [cat.to_str() for cat in cats],
             "notes": self.notes,
         }
+
+    def cats_cleaned(self) -> str:
+        """Since we don't apply the serializer as we do with transactions on the dash, apply the
+         post-processing category code here. (DRY from serialize)"""
+        try:
+            cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
+        except JSONDecodeError as e:
+            print("Problem decoding categories during serialization", self.categories)
+            cats = [TransactionCategory.UNCATEGORIZED]
+
+        # todo: Text? Icon?
+        cats = cleanup_categories(cats)
+        return ",".join([cat.to_icon() for cat in cats])
