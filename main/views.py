@@ -397,7 +397,8 @@ def spending(request: HttpRequest) -> HttpResponse:
 def recurring(request: HttpRequest) -> HttpResponse:
     """Page for recurring transactions"""
 
-    plaid.refresh_recurring(request.person)
+    for account in request.user.person.accounts.all():
+        plaid_.refresh_recurring(account)
 
     return render(request, "recurring.html", {})
 

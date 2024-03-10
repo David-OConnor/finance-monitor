@@ -18,6 +18,7 @@ from plaid.model.institutions_get_request import InstitutionsGetRequest
 from plaid.model.investments_holdings_get_request import InvestmentsHoldingsGetRequest
 
 from plaid.model.products import Products
+from plaid.model.transactions_recurring_get_request import TransactionsRecurringGetRequest
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from django.db import IntegrityError
 
@@ -63,7 +64,7 @@ ACCOUNT_REFRESH_INTERVAL = 4 * 60 * 60  # seconds.
 # todo: I still don't understand this.
 # Note: We don't use assets! That's used to qualify for a loan. Maybe see if Transactions only works?
 # PRODUCTS = [Products(p)for p in ["assets", "transactions"]]
-PRODUCTS = [Products(p)for p in ["transactions"]]
+PRODUCTS = [Products(p)for p in ["transactions", "recurring_transactions"]]
 # PRODUCTS = [Products(p)for p in ["assets"]]
 PRODUCTS_REQUIRED_IF_SUPPORTED = [Products(p)for p in []]
 PRODUCTS_OPTIONAL = [Products(p)for p in []]
@@ -253,5 +254,89 @@ def refresh_transactions(account: FinancialAccount) -> None:
     account.save()
 
 
-def refresh_recurring(person: Person):
-    pass
+def refresh_recurring(account: FinancialAccount):
+    # Run this on all sub-accounts that have recent transactions.\
+    # The docs have some interesting notes; I'm not yet sure how to impl them.
+    # https://plaid.com/docs/api/products/transactions/#transactionsrecurringget
+
+    # todo: Use your own logic instead of paying Plaid for this API.
+
+    sub_accs = account.sub_accounts.all()  # todo: Filter A/R based on which have transactions
+    account_ids = [s.plaid_id for s in sub_accs]
+
+    request = TransactionsRecurringGetRequest(
+        access_token=account.access_token,
+        account_ids=account_ids
+    )
+
+    response = CLIENT.transactions_recurring_get(request)
+
+    inflow_streams = response.inflow_streams
+    outflow_streams = response.outflow_streams
+
+    # Example response:
+    # Recur resp:  {'inflow_streams': [{'account_id': 'GMBMxzPRkLfkKxL5RDD4cGlaGjZMaqI6oKX8n',
+    #                      'average_amount': {'amount': -4.22},
+    #                      'category': ['Transfer', 'Payroll'],
+    #                      'category_id': '21009000',
+    #                      'description': 'INTRST PYMNT',
+    #                      'first_date': datetime.date(2023, 12, 21),
+    #                      'frequency': 'MONTHLY',
+    #                      'is_active': True,
+    #                      'is_user_modified': False,
+    #                      'last_amount': {'amount': -4.22},
+    #                      'last_date': datetime.date(2024, 2, 19),
+    #                      'last_user_modified_datetime': datetime.datetime(1, 1, 1, 0, 0, tzinfo=tzutc()),
+    #                      'merchant_name': '',
+    #                      'personal_finance_category': {'confidence_level': 'UNKNOWN',
+    #                                                    'detailed': 'INCOME_WAGES',
+    #                                                    'primary': 'INCOME'},
+    #                      'status': 'MATURE',
+    #                      'stream_id': 'Z4D4yMVpjlHJkNdKxjjXUNVoQEXgWAFgZXBJN',
+    #                      'transaction_ids': ['mKZKXDVa91T5EDRqKPPJil7ZWE8ZZ5cgw77mV',
+    #                                          'nr1rQDVbJLUBG6lKrnnaIXAqpb9qqBfAp88ep',
+    #                                          'LkykNaZQbECRbqk5prrzIeB5npQ4aVikEEae5']}],
+    #  'outflow_streams': [{'account_id': 'bMQMzXVwjdfMG3K47wwNFoBZoAgeZVum7n1zE',
+    #                       'average_amount': {'amount': 2078.5},
+    #                       'category': ['Payment'],
+    #                       'category_id': '16000000',
+    #                       'description': 'AUTOMATIC PAYMENT - THANK',
+    #                       'first_date': datetime.date(2024, 1, 4),
+    #                       'frequency': 'MONTHLY',
+    #                       'is_active': True,
+    #                       'is_user_modified': False,
+    #                       'last_amount': {'amount': 2078.5},
+    #                       'last_date': datetime.date(2024, 3, 4),
+    #                       'last_user_modified_datetime': datetime.datetime(1, 1, 1, 0, 0, tzinfo=tzutc()),
+    #                       'merchant_name': '',
+    #                       'personal_finance_category': {'confidence_level': 'UNKNOWN',
+    #                                                     'detailed': 'TRANSFER_OUT_ACCOUNT_TRANSFER',
+    #                                                     'primary': 'TRANSFER_OUT'},
+    #                       'status': 'MATURE',
+    #                       'stream_id': 'bMQMzXVwjdfMG3K47wwrUq1LyvDzWViVAZeo4',
+    #                       'transaction_ids': ['3RwRXbgLvlhZNrkR6vvACke1EBo11duZKwwJ1',
+    #                                           'lk5kQDVJ1MC5GmPlkooaiNA31DB33rFpGLLWB',
+    #                                           'EQEQBK4nrMuZknD5wWW1ClnND9Rba6c4mmlgX']},
+    #                      {'account_id': 'bMQMzXVwjdfMG3K47wwNFoBZoAgeZVum7n1zE',
+    #                       'average_amount': {'amount': 500.0},
+    #                       'category': ['Travel', 'Airlines and Aviation Services'],
+    #                       'category_id': '22001000',
+    #                       'description': 'United Airlines',
+    #                       'first_date': datetime.date(2023, 12, 11),
+    #                       'frequency': 'MONTHLY',
+    #                       'is_active': True,
+    #                       'is_user_modified': False,
+    #                       'last_amount': {'amount': 500.0},
+    #                       'last_date': datetime.date(2024, 2, 9),
+    #                       'last_user_modified_datetime': datetime.datetime(1, 1, 1, 0, 0, tzinfo=tzutc()),
+    #                       'merchant_name': 'United Airlines',
+    #                       'personal_finance_category': {'confidence_level': 'UNKNOWN',
+    #                                                     'detailed': 'TRAVEL_FLIGHTS',
+    #                                                     'primary': 'TRAVEL'},
+    #                       'status': 'MATURE',
+    #                       'stream_id': 'WxgxyMGp46TekEo5KjjbTpW46QD1XdCle1VPZ',
+    #                       'transaction_ids': ['dLaL3XVNJ4HpkwzW733ZtBZQPx6QQaiJ5PPNk',
+    #                                           'Ko9oNdQyV8UnpLD5AJJgcE7ZxeGZZWsRW668p',
+    #                                           'APbPkV3497TgKnNZQookfXJm35nRQqt955P44']},
+
+    print("\nRecur resp: ", response)

@@ -40,3 +40,8 @@ class SubAccountAdmin(ModelAdmin):
 @admin.register(models.Transaction)
 class TransactionAdmin(ModelAdmin):
     list_display = ("description", "account", "amount", "categories", "date")
+
+
+@admin.register(models.RecurringTransaction)
+class RecurringAdmin(ModelAdmin):
+    list_display = ("description", "account", "last_date", "average_amount")
