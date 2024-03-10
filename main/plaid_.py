@@ -120,30 +120,37 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
     return response["accounts"]
 
 
-def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> bool:
+def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     """Update all account balances and related information. Return sub accounts, and net worth.
     Returns `True if there is new data. """
     # Update account info, if we are due for a refresh
     new_data = False
     for acc in accounts:
-        # todo: We may have a timezone or related error on acct refreshes...
-        print(acc, acc.last_refreshed, "ACC")
-        print("Time delta seconds, interval", (timezone.now() - acc.last_refreshed).seconds, ACCOUNT_REFRESH_INTERVAL)
-        if (timezone.now() - acc.last_refreshed).seconds > ACCOUNT_REFRESH_INTERVAL:
+        print(f"\nAcc timing: {acc.last_refreshed}, {acc.last_refreshed_recurring}")
+        print("Time delta seconds, interval", (timezone.now() - acc.last_refreshed).total_seconds(), ACCOUNT_REFRESH_INTERVAL)
+        print("Time delta seconds, recurring", (timezone.now() - acc.last_refreshed_recurring).total_seconds(), ACCOUNT_REFRESH_INTERVAL_RECURRING)
+
+        if (timezone.now() - acc.last_refreshed).total_seconds() > ACCOUNT_REFRESH_INTERVAL:
             print("Refreshing account data...")
 
             refresh_account_balances(acc)
             refresh_transactions(acc)
             acc.last_refreshed = timezone.now()
+            acc.save()
 
             new_data = True
 
-        if (timezone.now() - acc.last_refreshed_recurring).seconds > ACCOUNT_REFRESH_INTERVAL_RECURRING:
-            refresh_recurring(acc)
-            acc.last_refreshed_recurring = timezone.now()
-
         else:
             print("Not refreshing account data")
+
+        if (timezone.now() - acc.last_refreshed_recurring).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
+            print("Refreshing recurring data...")
+            refresh_recurring(acc)
+            acc.last_refreshed_recurring = timezone.now()
+            acc.save()
+
+        else:
+            print("Not refreshing recurring data")
 
     return new_data
 

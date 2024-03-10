@@ -225,7 +225,7 @@ def post_dash_load(request: HttpRequest) -> HttpResponse:
         "transactions": [],
     }
     # Get new balance and transaction data from Plaid. This only populates if there is new data available.
-    if plaid_.update_accounts(accounts, person):
+    if plaid_.update_accounts(accounts):
         # Send balances and transactions to the UI, if new data is available.
         data = util.load_dash_data(request.user.person, no_preser=True)
 
@@ -400,7 +400,7 @@ def recurring(request: HttpRequest) -> HttpResponse:
 
     # Note: This is also checked in post_load.
     for acc in person.accounts.all():
-    #     if (timezone.now() - acc.last_refreshed_recurring).seconds > ACCOUNT_REFRESH_INTERVAL_RECURRING:
+    #     if (timezone.now() - acc.last_refreshed_recurring).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
     #         plaid_.refresh_recurring(acc)
     #         acc.last_refreshed_recurring = timezone.now()
 
