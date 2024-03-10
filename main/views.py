@@ -396,7 +396,16 @@ def spending(request: HttpRequest) -> HttpResponse:
 @login_required
 def recurring(request: HttpRequest) -> HttpResponse:
     """Page for recurring transactions"""
+
+    plaid.refresh_recurring(request.person)
+
     return render(request, "recurring.html", {})
+
+
+@login_required
+def settings(request: HttpRequest) -> HttpResponse:
+    """Page for adjusting account settings"""
+    return render(request, "settings.html", {})
 
 
 def about(request: HttpRequest) -> HttpResponse:

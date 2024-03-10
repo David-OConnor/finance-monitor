@@ -1,4 +1,5 @@
 {% extends 'base.html'  %}
+{% load static %}
 
 {% block head_contents %}
     <title>Finance Monitor</title>
@@ -10,7 +11,8 @@
 
     <div class="home-body">
         <h1>Finance Monitor</h1>
-        <h2>The easiest way to view your finances</h2>
+
+        <h2 class="home-h">The easiest way to view your finances</h2>
 
         <p class="home-p">
             View account balances, net worth, and transactions. <a href="register">Register here</a>; it takes about a minute.
@@ -23,13 +25,16 @@
 
         {#    screenshot here#}
 
-        <h2>Understand your net worth across all accounts</h2>
-        <p>Fast connections, on PC, mobile., and tablets</p>
+        <h2 class="home-h">Account balances and transactions</h2>
+        <p class="home-p">View account balances and transaction data. Edit transaction data. Identify trends,
+        and spending by category. View recurring transactions.</p>
 
         <h2 class="home-h">Secure authentication</h2>
         <p class="home-p">We use <a href="https://plaid.com/">Plaid</a> to safely and quickly link to your financial accounts.
             We don't store your financial account login details. Plaid is designed for security: It meets or exceeds industry
             standards, and connects in seconds. All connections occur using secure socket layer (SSL) encryption.</p>
+
+        <img src="{% static 'images/dash-example.png' %}" alt="Dashboard example" width=800 height="auto" />
 
         <h2 class="home-h">Low cost</h2>
         <p class="home-p">Currently free. Our upcoming $5 monthly subscription for more features is cheaper than alternatives.
@@ -42,7 +47,7 @@
             mobile connections. </p>
 
         <p class="home-p">
-            We respect you and your time: No ads, no distractions, and no notifications. We have no engagement
+            We respect you and your time: No ads, no distractions, no notifications. We don't have engagement
             metrics: Finance Monitor shows you information in an efficient format, so you can find what you're looking for,
             and get and off the site fast.
         </p>
@@ -51,7 +56,7 @@
         <p class="home-p">Finance Monitor has no access to make transactions, or alter your accounts: It connects only to read balance and
         transaction data.</p>
 
-        <h2 class="home-h">Import your transactions from Mint</h2>
+        <h2 class="home-h">Import transactions from Mint</h2>
 
         <h2 class="home-h">Customer-oriented</h2>
         <p class="home-p">Do you have any suggestions? Is something not working as you expect?

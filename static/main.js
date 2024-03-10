@@ -29,7 +29,7 @@ let CURRENT_PAGE = 0
 // if we've already done so, for a given config
 let TRANSACTIONS_LOADED = true
 
-const PAGE_SIZE = 40
+const PAGE_SIZE = 60
 
 
 // todo: Config object?

@@ -207,9 +207,10 @@ MANAGERS = ADMINS
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "quals"  # todo: What should this be?
 
-if DEPLOYED:
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SECURE_SSL_REDIRECT = True
+# todo temp; put back!
+# if DEPLOYED:
+#     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+#     SECURE_SSL_REDIRECT = True
 
 EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_HOST_USER = "apikey"
