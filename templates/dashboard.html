@@ -224,7 +224,8 @@
     <script>
         // We include some page-specific things here, and parsing template items as global JS values.
         // Run this before loading `main.js.
-        document.getElementById("menu-dashboard").style.color = "#F6F7EB"
+        document.getElementById("menu-dashboard").classList.add("menu-highlighted")
+
 
         let ACCOUNTS = {{ sub_accs|safe }};
         let TRANSACTIONS = {{ transactions|safe }};

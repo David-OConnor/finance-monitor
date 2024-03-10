@@ -29,7 +29,7 @@ from main.models import (
     Person,
     SubAccount,
     AccountType,
-    SubAccountType,
+    SubAccountType, RecurringTransaction,
 )
 
 import plaid
@@ -43,8 +43,7 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 
 
 from main import plaid_, util
-from main.plaid_ import CLIENT, PLAID_COUNTRY_CODES, PLAID_REDIRECT_URI
-
+from main.plaid_ import CLIENT, PLAID_COUNTRY_CODES, PLAID_REDIRECT_URI, ACCOUNT_REFRESH_INTERVAL_RECURRING
 
 MAX_LOGIN_ATTEMPTS = 5
 
@@ -397,10 +396,29 @@ def spending(request: HttpRequest) -> HttpResponse:
 def recurring(request: HttpRequest) -> HttpResponse:
     """Page for recurring transactions"""
 
-    for account in request.user.person.accounts.all():
-        plaid_.refresh_recurring(account)
+    person = request.user.person
 
-    return render(request, "recurring.html", {})
+    # Note: This is also checked in post_load.
+    for acc in person.accounts.all():
+    #     if (timezone.now() - acc.last_refreshed_recurring).seconds > ACCOUNT_REFRESH_INTERVAL_RECURRING:
+    #         plaid_.refresh_recurring(acc)
+    #         acc.last_refreshed_recurring = timezone.now()
+
+        pass
+    # todo temp
+    #     plaid_.refresh_recurring(acc)
+
+    recur = RecurringTransaction.objects.filter(
+            Q(account__person=person) |
+            Q(account__account__person=person)
+        )
+
+    context = {
+        # "recurring": json.dumps([r.serialize() for r in recur])
+        "recurring": recur
+    }
+
+    return render(request, "recurring.html", context)
 
 
 @login_required

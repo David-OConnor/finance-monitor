@@ -390,3 +390,7 @@ img {
     margin-top: 0;
     margin-bottom: 32px;
 }
+
+.menu-highlighted {
+    color: #F6F7EB;
+}

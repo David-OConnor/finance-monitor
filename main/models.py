@@ -201,6 +201,8 @@ class FinancialAccount(Model):
     # todo: Account types associated with this institution/account. Checking, 401k etc.
     # todo: Check the metadata for this A/R.
     last_refreshed = DateTimeField()
+    # Recurring can be refreshed at a lower rate.
+    last_refreshed_recurring = DateTimeField()
     # The cursor is used with the `/transactions/sync` endpoint, to know the latest data loaded.
     # Generally initialized to null, but has a value after. It is encoded in base64, and has a max length of 256 characters.
     # It appears that None fails for the Python Plaid API, eg at init, but an empty string works.
@@ -337,7 +339,6 @@ class Transaction(Model):
     logo_url = CharField(max_length=100, default="", blank=True, null=True)
     plaid_category_icon_url = CharField(max_length=100, default="", blank=True, null=True)
 
-    # todo: Change this to be a serializer.
     def serialize(self) -> Dict[str, str]:
         """For use in the web page."""
 
@@ -415,6 +416,7 @@ class SnapshotPerson(Model):
             f"Value snapshot. {self.dt}: {self.value}"
         )
 
+
 class CategoryCustom(Model):
     person = ForeignKey(Person, related_name="custom_cats", on_delete=CASCADE)
     name = CharField(max_length=30)
@@ -437,8 +439,54 @@ class RecurringTransaction(Model):
     is_active = BooleanField(default=True)
     status = CharField(max_length=15)  # Plaid string. Use an enum or remove A/R
     categories = TextField()  # List of category enums, eg [0, 2]
+    # User notes
+    notes = TextField()
+
+    class Meta:
+        ordering = ["-last_date"]
 
     def __str__(self):
         return (
             f"Recurring {self.account}, {self.average_amount}, Last: {self.last_date}, {self.description}"
         )
+
+    def serialize(self) -> Dict[str, str]:
+        # todo: DRY with tran serializer
+        try:
+            cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
+        except JSONDecodeError as e:
+            print("Problem decoding categories during serialization", self.categories)
+            cats = [TransactionCategory.UNCATEGORIZED]
+
+        cats = cleanup_categories(cats)
+        #
+        # # Only display the year if not the present one.
+        # if self.date.year == date.today().year:
+        #     if self.datetime is not None:
+        #         date_display = self.datetime.strftime("%m/%d %H:%M")
+        #     else:
+        #         date_display = self.date.strftime("%m/%d")
+        # else:
+        #     if self.datetime is not None:
+        #         date_display = self.datetime.strftime("%m/%d%y %H:%M")
+        #     else:
+        #         date_display = self.date.strftime("%m/%d/%y")
+
+        # todo: Modify to serialize values vice displayl.
+        return {
+            "id": self.id,  # DB primary key.
+            "institution": self.account.account.institution.name,
+            "direction": self.direction,
+            "average_amount": self.average_amount,
+            "last_amount": self.last_amount,
+            "first_date": self.first_date.isoformat(),
+            "last_date": self.last_date.isoformat(),
+            "description": self.description,
+            "merchant_name": self.merchant_name,
+            "is_active": json.dumps(self.is_active),
+            "status": self.status,
+            "categories": [cat.value for cat in cats],
+            "categories_icon": [cat.to_icon() for cat in cats],
+            "categories_text": [cat.to_str() for cat in cats],
+            "notes": self.notes,
+        }

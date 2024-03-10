@@ -36,10 +36,15 @@ from wallet.settings import PLAID_SECRET, PLAID_CLIENT_ID, PLAID_MODE, PlaidMode
 import plaid
 from plaid.api import plaid_api
 
+HOUR = 60 * 60
 
 # todo: Settings.py?
 # todo: Increase to 12 or so hours.
-ACCOUNT_REFRESH_INTERVAL = 4 * 60 * 60  # seconds.
+ACCOUNT_REFRESH_INTERVAL = 4 * HOUR  # seconds.
+
+# We can use a slow update for recurring transactions.
+ACCOUNT_REFRESH_INTERVAL_RECURRING = 48 * HOUR  # seconds.
+
 # ACCOUNT_REFRESH_INTERVAL = 1 * 60 * 60  # seconds.  # todo temp
 # ACCOUNT_REFRESH_INTERVAL = 1   # seconds.  # todo temp
 
@@ -132,6 +137,11 @@ def update_accounts(accounts: Iterable[FinancialAccount], person: Person) -> boo
             acc.last_refreshed = timezone.now()
 
             new_data = True
+
+        if (timezone.now() - acc.last_refreshed_recurring).seconds > ACCOUNT_REFRESH_INTERVAL_RECURRING:
+            refresh_recurring(acc)
+            acc.last_refreshed_recurring = timezone.now()
+
         else:
             print("Not refreshing account data")
 
@@ -343,8 +353,10 @@ def refresh_recurring(account: FinancialAccount) -> List[RecurringTransaction]:
         categories = [TransactionCategory.from_str(cat) for cat in recur.category]
         categories = transaction_cats.category_override(recur.description, categories)
 
+        sub_acc = SubAccount.objects.get(plaid_id=recur.account_id)
+
         recur_db = RecurringTransaction(
-            account=account,
+            account=sub_acc,
             direction=RecurringDirection.INFLOW,
             average_amount=recur.average_amount.amount,
             last_amount=recur.last_amount.amount,
@@ -366,8 +378,10 @@ def refresh_recurring(account: FinancialAccount) -> List[RecurringTransaction]:
         categories = [TransactionCategory.from_str(cat) for cat in recur.category]
         categories = transaction_cats.category_override(recur.description, categories)
 
+        sub_acc = SubAccount.objects.get(plaid_id=recur.account_id)
+
         recur_db = RecurringTransaction(
-            account=account,
+            account=sub_acc,
             direction=RecurringDirection.OUTFLOW,
             average_amount=recur.average_amount.amount,
             last_amount=recur.last_amount.amount,
@@ -384,4 +398,4 @@ def refresh_recurring(account: FinancialAccount) -> List[RecurringTransaction]:
         except IntegrityError as e:
             print("Integrity error saving recuring transaction", e)
 
-    print("\nRecur resp: ", response)
+    # print("\nRecur resp: ", response)
