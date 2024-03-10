@@ -37,7 +37,6 @@ def enum_choices(cls):
 
 @enum_choices
 class RecurringDirection(Enum):
-
     INFLOW = 0
     OUTFLOW = 1
 
@@ -416,7 +415,6 @@ class SnapshotPerson(Model):
             f"Value snapshot. {self.dt}: {self.value}"
         )
 
-
 class CategoryCustom(Model):
     person = ForeignKey(Person, related_name="custom_cats", on_delete=CASCADE)
     name = CharField(max_length=30)
@@ -435,11 +433,10 @@ class RecurringTransaction(Model):
     first_date = DateField()
     last_date = DateField()
     description = CharField(max_length=50)
-    merchange_name = CharField(max_length=50)
+    merchant_name = CharField(max_length=50)
     is_active = BooleanField(default=True)
     status = CharField(max_length=15)  # Plaid string. Use an enum or remove A/R
     categories = TextField()  # List of category enums, eg [0, 2]
-
 
     def __str__(self):
         return (

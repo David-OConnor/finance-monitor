@@ -28,7 +28,7 @@ from .models import (
     SubAccount,
     AccountType,
     SubAccountType,
-    Transaction, Person,
+    Transaction, Person, RecurringTransaction, RecurringDirection,
 )
 from .transaction_cats import TransactionCategory
 from wallet.settings import PLAID_SECRET, PLAID_CLIENT_ID, PLAID_MODE, PlaidMode
@@ -254,7 +254,7 @@ def refresh_transactions(account: FinancialAccount) -> None:
     account.save()
 
 
-def refresh_recurring(account: FinancialAccount):
+def refresh_recurring(account: FinancialAccount) -> List[RecurringTransaction]:
     # Run this on all sub-accounts that have recent transactions.\
     # The docs have some interesting notes; I'm not yet sure how to impl them.
     # https://plaid.com/docs/api/products/transactions/#transactionsrecurringget
@@ -338,5 +338,50 @@ def refresh_recurring(account: FinancialAccount):
     #                       'transaction_ids': ['dLaL3XVNJ4HpkwzW733ZtBZQPx6QQaiJ5PPNk',
     #                                           'Ko9oNdQyV8UnpLD5AJJgcE7ZxeGZZWsRW668p',
     #                                           'APbPkV3497TgKnNZQookfXJm35nRQqt955P44']},
+
+    for recur in inflow_streams:
+        categories = [TransactionCategory.from_str(cat) for cat in recur.category]
+        categories = transaction_cats.category_override(recur.description, categories)
+
+        recur_db = RecurringTransaction(
+            account=account,
+            direction=RecurringDirection.INFLOW,
+            average_amount=recur.average_amount.amount,
+            last_amount=recur.last_amount.amount,
+            first_date=recur.first_date,
+            last_date=recur.last_date,
+            description=recur.description,
+            merchant_name=recur.merchant_name,
+            is_active=recur.is_active,
+            status=recur.status,
+            categories=json.dumps([cat.value for cat in categories]),
+        )
+        try:
+            recur_db.save()
+        except IntegrityError as e:
+            print("Integrity error saving recuring transaction", e)
+
+    # todo: DRY!
+    for recur in outflow_streams:
+        categories = [TransactionCategory.from_str(cat) for cat in recur.category]
+        categories = transaction_cats.category_override(recur.description, categories)
+
+        recur_db = RecurringTransaction(
+            account=account,
+            direction=RecurringDirection.OUTFLOW,
+            average_amount=recur.average_amount.amount,
+            last_amount=recur.last_amount.amount,
+            first_date=recur.first_date,
+            last_date=recur.last_date,
+            description=recur.description,
+            merchant_name=recur.merchant_name,
+            is_active=recur.is_active,
+            status=recur.status,
+            categories=json.dumps([cat.value for cat in categories]),
+        )
+        try:
+            recur_db.save()
+        except IntegrityError as e:
+            print("Integrity error saving recuring transaction", e)
 
     print("\nRecur resp: ", response)
