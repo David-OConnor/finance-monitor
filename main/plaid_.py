@@ -125,17 +125,19 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     Returns `True if there is new data. """
     # Update account info, if we are due for a refresh
     new_data = False
+    now = timezone.now()
+    
     for acc in accounts:
         print(f"\nAcc timing: {acc.last_refreshed}, {acc.last_refreshed_recurring}")
-        print("Time delta seconds, interval", (timezone.now() - acc.last_refreshed).total_seconds(), ACCOUNT_REFRESH_INTERVAL)
-        print("Time delta seconds, recurring", (timezone.now() - acc.last_refreshed_recurring).total_seconds(), ACCOUNT_REFRESH_INTERVAL_RECURRING)
+        print("Time delta seconds, interval", (now - acc.last_refreshed).total_seconds(), ACCOUNT_REFRESH_INTERVAL)
+        print("Time delta seconds, recurring", (now - acc.last_refreshed_recurring).total_seconds(), ACCOUNT_REFRESH_INTERVAL_RECURRING)
 
-        if (timezone.now() - acc.last_refreshed).total_seconds() > ACCOUNT_REFRESH_INTERVAL:
+        if (now - acc.last_refreshed).total_seconds() > ACCOUNT_REFRESH_INTERVAL:
             print("Refreshing account data...")
 
             refresh_account_balances(acc)
             refresh_transactions(acc)
-            acc.last_refreshed = timezone.now()
+            acc.last_refreshed = now
             acc.save()
 
             new_data = True
@@ -143,10 +145,10 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
         else:
             print("Not refreshing account data")
 
-        if (timezone.now() - acc.last_refreshed_recurring).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
+        if (now - acc.last_refreshed_recurring).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
             print("Refreshing recurring data...")
             refresh_recurring(acc)
-            acc.last_refreshed_recurring = timezone.now()
+            acc.last_refreshed_recurring = now
             acc.save()
 
         else:

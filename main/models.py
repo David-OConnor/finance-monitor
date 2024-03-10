@@ -161,6 +161,7 @@ class Person(Model):
     account_locked = BooleanField(default=False)
     email_verified = BooleanField(default=False)
     subscribed = BooleanField(default=False)
+    # verification_token = CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
         return f"Person. id: {self.id} User: {self.user.username}"
@@ -194,9 +195,6 @@ class Person(Model):
             fail_silently=False,
             html_message=email_body,
         )
-
-        self.dt_shipped = datetime.now()
-        self.save()
 
 
 class Institution(Model):
@@ -435,6 +433,11 @@ class SnapshotAccount(Model):
     dt = DateTimeField()
     value = FloatField()
 
+    def __str__(self):
+        return (
+            f"Value snapshot. {self.account}, {self.dt}: {self.value}"
+        )
+
 
 class SnapshotPerson(Model):
     person = ForeignKey(Person, related_name="snapshots", on_delete=CASCADE)
@@ -443,7 +446,7 @@ class SnapshotPerson(Model):
 
     def __str__(self):
         return (
-            f"Value snapshot. {self.dt}: {self.value}"
+            f"Value snapshot. {self.person}, {self.dt}: {self.value}"
         )
 
 

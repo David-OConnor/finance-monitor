@@ -230,6 +230,10 @@ def post_dash_load(request: HttpRequest) -> HttpResponse:
         # Send balances and transactions to the UI, if new data is available.
         data = util.load_dash_data(request.user.person, no_preser=True)
 
+        # Save snapshots, for use with charts, etc
+        # todo: We need to make sure this is called regularly, even if the user doesn't log into the page.
+        util.take_snapshots(accounts, person)
+
     return HttpResponse(
         json.dumps(data), content_type="application/json"
     )

@@ -45,3 +45,13 @@ class TransactionAdmin(ModelAdmin):
 @admin.register(models.RecurringTransaction)
 class RecurringAdmin(ModelAdmin):
     list_display = ("description", "account", "last_date", "average_amount")
+
+
+@admin.register(models.SnapshotAccount)
+class SnapAccountAdmin(ModelAdmin):
+    list_display = ("account", "dt", "value")
+
+
+@admin.register(models.SnapshotPerson)
+class SnapPersonAdmin(ModelAdmin):
+    list_display = ("person", "dt", "value")

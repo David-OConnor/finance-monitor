@@ -5,8 +5,10 @@ from typing import List, Dict, Iterable, Optional
 from datetime import date
 
 from django.db.models import Q
+from django.utils import timezone
 
-from main.models import AccountType, FinancialAccount, Person, SubAccount, Transaction, SubAccountType
+from main.models import AccountType, FinancialAccount, Person, SubAccount, Transaction, SubAccountType, SnapshotAccount, \
+    SnapshotPerson
 
 
 def unw_helper(net_worth: float, sub_acc: SubAccount) -> float:
@@ -160,3 +162,33 @@ def load_dash_data(person: Person, no_preser: bool=False) -> Dict:
         "sub_accs": accs,
         "transactions": tran,
     }
+
+
+def take_snapshots(accounts: Iterable[FinancialAccount], person: Person):
+    now = timezone.now()
+    net_worth = 0.
+
+
+    for account in accounts:
+        for sub in account.sub_accounts.all():
+            snap = SnapshotAccount(
+                account=sub,
+                account_name=sub.name,
+                dt=now,
+                value=sub.current
+            )
+            snap.save()
+
+            print("Snap saved acct: ", snap)
+
+            net_worth = unw_helper(net_worth, sub)
+
+    snap_person = SnapshotPerson(
+        person=person,
+        dt=now,
+        value=net_worth,
+    )
+
+    print("Snap saved person: ", snap_person)
+
+    snap_person.save()
