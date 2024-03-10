@@ -1,11 +1,12 @@
 import json
-from datetime import date
+from datetime import date, datetime
 from enum import Enum
 from json import JSONDecodeError
 from typing import Dict, List
 
 from django.db import models
 from django.contrib.auth.models import Group, User
+from django.core.mail import send_mail
 
 from django.db.models import (
     SET_NULL,
@@ -167,6 +168,35 @@ class Person(Model):
     class Meta:
         # ordering = ["-datetime"]
         pass
+
+    def send_verification_email(self):
+        """Send an email asking the user to verify their email address."""
+
+        verification_url = ""  # todo
+
+        email_body = f"""
+           <h2>Welcome to Finance Monitor</h2>
+
+           <p>Before using your account, please open <a href="{verification_url}">this verification link</a></p>.
+           
+           <a href="https://www.finance-monitor.com">Home page: https://www.finance-monitor.com</a>
+
+           <p>If you have questions about Finance Monitor, or would like to contact us for
+           any reason, reply to this email: <i>contact@finance-monitor.com</i></p>
+           """
+
+        send_mail(
+            "Finance Monitor verification",
+            "",
+            "contact@finance-monitor.com",
+            # todo: contact @FM, and my person emails are temp
+            [self.user.email, "contact@finance-monitor.com", "david.alan.oconnor@gmail.com", "the_alchemist@fastmail.com"],
+            fail_silently=False,
+            html_message=email_body,
+        )
+
+        self.dt_shipped = datetime.now()
+        self.save()
 
 
 class Institution(Model):

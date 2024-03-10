@@ -481,11 +481,16 @@ def register(request):
             person.user = user
             person.save()
 
+            person.send_verification_email()
+
             login(request, user)  # Log the user in
             messages.success(request, "Registration successful.")
             return redirect("/dashboard")  # Redirect to a desired URL
     else:
-        form = UserCreationForm()
+        print("Error: Non-post data passed to the register view.")
+        # form = UserCreationForm()
+
+
     return render(request, "register.html", {})
 
 
