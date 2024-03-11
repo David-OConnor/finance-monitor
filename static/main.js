@@ -856,6 +856,8 @@ function setupSpendingHighlights() {
     // todo: grid?
     let h, text
     for (let highlight of SPENDING_HIGHLIGHTS.slice(0, 3)) {
+        console.log(highlight, "HL")
+
         text = catNameFromVal(highlight[0]) + ": " + formatAmount(highlight[1][1], 0) + " in " + highlight[1][0] + " transactions"
         h = createEl(
             "h4",

@@ -99,7 +99,15 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
     result = {"success": True}
 
     for tran in data.get("transactions", []):
-        print(tran, "TRAN UP")
+        # print(tran, "TRAN UP")
+        # existing = Transaction.objects.get(id=tran["id"])
+
+        # todo: Do it.
+        # if json.loads(existing.categories).contains tran["categories"]:
+        #     send_mail(
+        #
+        #     )
+
         _, _ = Transaction.objects.update_or_create(
             id=tran["id"],
             defaults={

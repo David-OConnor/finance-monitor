@@ -210,27 +210,28 @@ def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Pers
 
     # print(trans, "TRANS")
 
-    tran_cats = {}
+    result = {}
 
     for tran in trans:
         cats = [TransactionCategory(c) for c in json.loads(tran.categories)]
         cats = transaction_cats.cleanup_categories(cats)
+
         for cat in cats:
-            # c = TransactionCategory(cat)
             c = cat  # We serialize anyway, so no need to convert to a TransactionCategory.
-            if c not in tran_cats.keys():
-                tran_cats[c.value] = [0, 0., []]  # count, total
-            tran_cats[c.value][0] += 1
-            tran_cats[c.value][1] += tran.amount
-            tran_cats[c.value][2].append(tran.serialize())
+
+            if c not in result.keys():
+                result[c.value] = [0, 0., []]  # count, total
+            result[c.value][0] += 1
+            result[c.value][1] += tran.amount
+            result[c.value][2].append(tran.serialize())
 
     # Sort by value
-    tran_cats = sorted(tran_cats.items(), key=lambda x: x[1][1], reverse=True)
+    result = sorted(result.items(), key=lambda x: x[1][1], reverse=True)
 
-    # print("\nTran cats: ", tran_cats)
+    # print("\nTran cats: ", result)
 
     #
 
     # by_cat = trans.sort(key=lambda t: t.)
 
-    return tran_cats
+    return result
