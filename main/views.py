@@ -700,8 +700,9 @@ def password_reset_request(request):
             token = default_token_generator.make_token(user)
             reset_url = f"{request.scheme}://{request.get_host()}/password-reset-confirm/{uid}/{token}"
 
+            # Disabling click tracking is to stop Sendgrid from intercepting the links.
             email_body = f"""
-               <h2>Reset your Finance Monitor password by clicking <a href="{reset_url}">this link</a>.</h2>
+               <h2>Reset your Finance Monitor password by clicking <a href="{reset_url}" clicktracking=off>this link</a>.</h2>
                
                If you did not request this reset, please contact us immediately by replying to this email.
 

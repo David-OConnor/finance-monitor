@@ -25,6 +25,7 @@ let FILTER_END = "2040-09-09"  // todo!
 let FILTER_CAT = null
 let VALUE_THRESH = 0
 let CURRENT_PAGE = 0
+let CAT_QUICKEDIT = null  // DB ID of the transaction we are quick-editing
 
 // Whenever we change page, or filter terms, we may need to load transactions. This tracks
 // if we've already done so, for a given config
@@ -318,6 +319,69 @@ function refreshAccounts() {
     }
 }
 
+// todo: There is actually no elegant way to get a range iterator in JS...
+const vals = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
+
+const catNames = vals.map(v => [v, catNameFromVal(v)])
+
+function createCatSel(tran, autoSave) {
+    // Create a select element for categories.
+    // todo: Allow creating custom elements here, and search.
+    // todo: Alphabetic order?
+    let sel = createEl("select", {}, {})
+    for (let cat of catNames) {
+        let catPrimary = tran.categories.length > 0 ? tran.categories[0] : -1  // -1 is uncategorized
+        opt = createEl("option", {value: cat[0]}, {}, cat[1])
+        if (cat[0] === catPrimary) {
+            opt.setAttribute("selected", "")
+        }
+
+        sel.appendChild(opt)
+
+        sel.addEventListener("input", e => {
+            let updated = {
+                ...tran,
+                categories: [parseInt(e.target.value)]
+            }
+            // todo: DRY!
+            TRANSACTIONS_UPDATED[String(tran.id)] = updated
+
+            if (autoSave) {
+                // todo: DRY with setup tran edit button, although with some differences, like
+                // nulling quick edit, and refreshing transactions.
+
+                const data = {
+                    // Discard keys; we mainly use them for updating internally here.
+                    transactions: Object.values(TRANSACTIONS_UPDATED)
+                }
+
+                // Save transactions to the database.
+                fetch("/edit-transactions", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
+                    .then(result => result.json())
+                    .then(r => {
+                        if (!r.success) {
+                            // console.error("Transaction save failed")
+                        } else {
+                            // window.location.reload(); // todo temp until we can update cat in place.
+                        }
+                    });
+
+                // todo: Like in many cases, you're getting some sort of unpleasant, but not fatal recusion. Why?
+                // todo: And, only edit the specific icon div you're changing... Don't run refreshTransactions at all!
+                TRANSACTIONS = [
+                    ...TRANSACTIONS.filter(t => t.id !== tran.id),
+                    updated
+                ]
+                CAT_QUICKEDIT = null
+                refreshTransactions()
+            }
+        })
+    }
+
+    return sel
+}
+
 function refreshTransactions() {
     //[Re]populate the transactions table based on state.
     console.log("Refreshing transactions...")
@@ -327,7 +391,7 @@ function refreshTransactions() {
     let tbody = document.getElementById("transaction-tbody")
     tbody.replaceChildren();
 
-    let col, img, h, opt
+    let col, img, h, opt, sel
     for (let tran of transactions) {
         const row = createEl("tr", {},{borderBottom: "1px solid #cccccc"} )
 
@@ -340,52 +404,37 @@ function refreshTransactions() {
         ) // Icon
 
         d = createEl("div", {}, {display: "flex", alignItems: "center"})
+
         if (EDIT_MODE_TRAN) {
-            h = createEl("select", {}, {})
-            // todo: See util fromTransactionCat to see if you can remove this DRY.
-
-            // todo: There is actually no elegant way to get a range iterator in JS...
-            const vals = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-            21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
-
-            for (let cat of vals.map(v => [v, catNameFromVal(v)])) {
-                let catPrimary = tran.categories.length > 0 ? tran.categories[0] : -1  // -1 is uncategorized
-                opt = createEl("option", {value: cat[0]}, {}, cat[1])
-                if (cat[0] === catPrimary) {
-                    opt.setAttribute("selected", "")
-                }
-
-                h.appendChild(opt)
-
-                h.addEventListener("input", e => {
-                    console.log(e.target.value, "SELECT VALUE")
-                    let updated = {
-                        ...tran,
-                        categories: [parseInt(e.target.value)]
-                    }
-                    // todo: DRY!
-                    TRANSACTIONS_UPDATED[String(tran.id)] = updated
-                })
-            }
-
-            d.append(h)
+            d.append(createCatSel(tran))
             col.append(d)
-            // col.appendChild(h)
+
+        } else if (tran.id === CAT_QUICKEDIT) {
+            d.append(createCatSel(tran, true)) // Auto-save.
+            col.append(d)
         } else {
+            // Allow clicking to enter quick edit.
+            d.style.cursor = "pointer"
+            d.addEventListener("click", _ => {
+                CAT_QUICKEDIT = tran.id
+                refreshTransactions() // Hopefully-safe recursion.
+            })
+
             if (tran.logo_url.length > 0) {
                 img = createEl("img", {"src": tran.logo_url, alt: "", width: "20px"})
                 // col.appendChild(img)
                 d.append(img)
             }
 
-            // todo: Put back once the icon is sorted.
             let s
             if (TRANSACTION_ICONS) {
-                s = createEl("span", {}, {}, tran.categories_icon)
+                // s = createEl("span", {}, {}, tran.categories_icon)
+                s = createEl("span", {}, {}, tran.categories.length ? catIconFromVal(tran.categories[0]) : "")
                 // col.textContent = tran.categories_icon
             } else {
                 // col.textContent = tran.categories_text
-                s = createEl("span", {}, {}, tran.categories_text)
+                // s = createEl("span", {}, {}, tran.categories_text)
+                s = createEl("span", {}, {}, tran.categories.length ? catNameFromVal(tran.categories[0]) : "")
             }
             // col.appendChild(s)
 
@@ -581,10 +630,11 @@ function setupEditTranButton() {
                     if (!r.success) {
                         console.error("Transaction save failed")
                     } else {
-                        window.location.reload(); // todo temp until we can update cat in place.
+                        // window.location.reload(); // todo temp until we can update cat in place.
                     }
                 });
 
+            refreshTransactions()
 
 
             // Update transactions in place, so a refresh isn't required.
@@ -815,12 +865,12 @@ function setupSpendingHighlights() {
     // todo: grid?
     let h, text
 
-        h = createEl(
-            "h4",
-            {},
-            {marginRight: "40px"},
-           "Total: " + formatAmount(SPENDING_HIGHLIGHTS.total, 0)
-        )
+    h = createEl(
+        "h4",
+        {},
+        {marginRight: "40px"},
+        "Total: " + formatAmount(SPENDING_HIGHLIGHTS.total, 0)
+    )
     el.appendChild(h)
 
     for (let highlight of SPENDING_HIGHLIGHTS.by_cat.slice(0, 3)) {
@@ -936,7 +986,6 @@ function changePage(direction) {
     if (CURRENT_PAGE < 0) {
         CURRENT_PAGE = 0
     }
-    console.log("Page: ", CURRENT_PAGE)
 
     TRANSACTIONS_LOADED = false // Allows more transactions to be loaded from the server.
     refreshTransactions()

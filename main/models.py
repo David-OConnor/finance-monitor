@@ -188,12 +188,14 @@ class Person(Model):
 
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         token = default_token_generator.make_token(self.user)
+
         verification_url = f"{request.scheme}://{request.get_host()}/verify-email/{uid}/{token}"
 
+        # Disabling click tracking is to stop Sendgrid from intercepting the links.
         email_body = f"""
            <h2>Welcome to Finance Monitor</h2>
 
-           <p>Before using your account, please open <a href="{verification_url}">this verification link</a>.</p>
+           <p>Before using your account, please open <a href="{verification_url} clicktracking=off">this verification link</a>.</p>
            
            <a href="https://www.finance-monitor.com">Finance Monitor home</a>
 

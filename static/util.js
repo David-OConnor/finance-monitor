@@ -95,7 +95,7 @@ function accTypeFromNum(val) {
     }
 }
 
-function catNameFromVal(val){
+function catNameFromVal(val) {
     // See transaction_cats.py
 
     if (val === -1) {
@@ -125,7 +125,6 @@ function catNameFromVal(val){
     if (val === 7) {
         return "Transfer"
     }
-
     if (val === 8) {
         return "Desposit"
     }
@@ -150,8 +149,6 @@ function catNameFromVal(val){
     if (val === 15) {
         return "Coffee shop"
     }
-
-    // todo: Finish
     if (val === 16) {
         return "Taxi"
     }
@@ -210,6 +207,123 @@ function catNameFromVal(val){
         return "Alcohol and bars"
     }
 
-    console.error("Fallthrough on cat name")
+    console.error("Fallthrough on cat name", val)
+    return "Uncategorized"
+}
+
+// todo temp. Fill in icons.
+function catIconFromVal(val){
+    // See transaction_cats.py
+
+    if (val === -1) {
+        return ""
+    }
+    if (val === 0) {
+        return "🍎"
+    }
+    if (val === 1) {
+        return "🍴"
+    }
+    // if (val === 2) {
+    //     return "a"
+    // }
+    if (val === 3) {
+        return "✈️"
+    }
+    if (val === 4) {
+        return "✈️"
+    }
+    if (val === 5) {
+        return "⛵"
+    }
+    if (val === 6) {
+        return "🏋️"
+    }
+    if (val === 7) {
+        return "💵"
+    }
+    if (val === 8) {
+        return "💵"
+    }
+    if (val === 9) {
+        return "💵"
+    }
+    if (val === 10) {
+        return "💵"
+    }
+    if (val === 11) {
+        return "🍔"
+    }
+    if (val === 12) {
+        return "💵"
+    }
+    if (val === 13) {
+        return "🛒"
+    }
+    if (val === 14) {
+        return "💵"
+    }
+    if (val === 15) {
+        return "☕"
+    }
+    if (val === 16) {
+        return "🚕"
+    }
+    if (val === 17) {
+        return "⚽"
+    }
+    if (val === 18) {
+        return "🔌"
+    }
+    if (val === 19) {
+        return "🐕"
+    }
+    if (val === 20) {
+        return "🧒"
+    }
+    if (val === 21) {
+        return "🏠"
+    }
+    if (val === 22) {
+        return "🚗"
+    }
+    if (val === 23) {
+        return "🏡"
+    }
+    if (val === 24) {
+        return "☤"
+    }
+    if (val === 25) {
+        return "🎥"
+    }
+    if (val === 26) {
+        return "⚡"
+    }
+    if (val === 27) {
+        return "📈"
+    }
+    if (val === 28) {
+        return "💸"
+    }
+    if (val === 29) {
+        return "🏛️"
+    }
+    if (val === 30) {
+        return "📈"
+    }
+    if (val === 31) {
+        return "💵"
+    }
+    if (val === 32) {
+        return "🎁"
+    }
+    if (val === 33) {
+        return "🎓"
+    }
+    if (val === 34) {
+        return "🍺"
+    }
+
+    console.error("Fallthrough on cat icon", val)
     return "Uncategorized"
 }

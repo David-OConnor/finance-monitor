@@ -240,21 +240,26 @@ class TransactionCategory(Enum):
         if self == TransactionCategory.GYMS_AND_FITNESS_CENTERS:
             return "🏋️"
         if self == TransactionCategory.TRANSFER:
-            return "💵 ➡️"
+            # return "💵 ➡️"
+            return "💵"
         if self == TransactionCategory.DEPOSIT:
-            return "💵 ⬆️"
+            # return "💵 ⬆️"
+            return "💵"
         if self == TransactionCategory.INCOME:
-            return "💵 ⬆️"
+            # return "💵 ⬆️"
+            return "💵"
         if self == TransactionCategory.CREDIT_CARD:
-            return "💵 ⬇️"
+            # return "💵 ⬇️"
+            return "💵"
         if self == TransactionCategory.FAST_FOOD:
             return "🍔"
         if self == TransactionCategory.DEBIT:
-            return "💵 ⬇️"
+            return "💵"
+            # return "💵 ⬇️"
         if self == TransactionCategory.SHOPS:
             return "🛒"
         if self == TransactionCategory.PAYMENT:
-            return "💵 "
+            return "💵"
         if self == TransactionCategory.COFFEE_SHOP:
             return "☕"
         if self == TransactionCategory.TAXI:
@@ -280,11 +285,11 @@ class TransactionCategory(Enum):
         if self == TransactionCategory.BILLS_AND_UTILITIES:
             return "⚡"
         if self == TransactionCategory.INVESTMENTS:
-            return "👨‍📈"
+            return "📈"
         if self == TransactionCategory.FEES:
             return "💸"
         if self == TransactionCategory.TAXES:
-            return "🏛️💵 "
+            return "🏛️"
         if self == TransactionCategory.BUSINESS_SERVICES:
             return "📈"
         if self == TransactionCategory.CASH_AND_CHECKS:
@@ -308,6 +313,8 @@ replacements = [
     ("squarespace", TransactionCategory.BUSINESS_SERVICES),
     ("github", TransactionCategory.BUSINESS_SERVICES),
     ("heroku", TransactionCategory.BUSINESS_SERVICES),
+    ("domains", TransactionCategory.BUSINESS_SERVICES),
+    ("gsuite", TransactionCategory.BUSINESS_SERVICES),
     #
     ("trader joe", TransactionCategory.GROCERIES),
     ("whole foods", TransactionCategory.GROCERIES),
