@@ -111,13 +111,20 @@
 
         <div id="accounts"></div>
 
-        <div style="display: flex; flex-direction: column; align-items: center;">
-{#             todo: JS, or template? We've loaded both.#}
+        <div style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: white;
+        border-radius: 12px;
+        margin-top: 20px;
+">
+            {#             todo: JS, or template? We've loaded both.#}
             <h2>Spending highlights (last 30 days)</h2>
 
-{#            <h3 id="biggest-cats">Biggest categories(past 30 days):</h3>#}
+            {#            <h3 id="biggest-cats">Biggest categories(past 30 days):</h3>#}
             <div id="biggest-cats" style="display: flex; flex-wrap: wrap;"></div>
-{#            <h4>{{ sh.0.0 }}, {{ sh.0.1 }}, {{ sh.0.2 }}</h4>#}
+            {#            <h4>{{ sh.0.0 }}, {{ sh.0.1 }}, {{ sh.0.2 }}</h4>#}
 
             <h3>Biggest change (past 30 days):</h3>
 
@@ -143,7 +150,7 @@
                 <input
                         id="tran-filter-start"
                         type="date"
-{#                        value="19",#}
+                        {#                        value="19",#}
                         style="margin-right: 20px; width: 120px;"
                         oninput="updateTranFilter()"
                 />
@@ -152,7 +159,7 @@
                 <input
                         id="tran-filter-end"
                         type="date"
-{#                        value=FILTER_END,#}
+                        {#                        value=FILTER_END,#}
                         style="width: 120px;"
                         oninput="updateTranFilter()"
                 />
@@ -223,10 +230,10 @@
             {#            {% endfor %}#}
         </table>
 
-    <div style="display: flex; margin-top: 32px; justify-content: center;">
-        <button class="button-general" onclick="changePage(-1)">←Prev page</button>
-        <button class="button-general" onclick="changePage(1)">Next page→</button>
-    </div>
+        <div style="display: flex; margin-top: 32px; justify-content: center;">
+            <button class="button-general" onclick="changePage(-1)">←Prev page</button>
+            <button class="button-general" onclick="changePage(1)">Next page→</button>
+        </div>
 
     </div>
 

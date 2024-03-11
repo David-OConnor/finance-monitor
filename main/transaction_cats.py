@@ -294,30 +294,34 @@ class TransactionCategory(Enum):
         return "Fallthrough"
 
 
+# A mapping of keywords to manual transactions
+replacements = [
+    ("coffee", TransactionCategory.COFFEE_SHOP),
+    ("starbucks", TransactionCategory.COFFEE_SHOP),
+    ("jlcpcb", TransactionCategory.BUSINESS_SERVICES),
+    ("squarespace", TransactionCategory.BUSINESS_SERVICES),
+    ("heroku", TransactionCategory.BUSINESS_SERVICES),
+    ("trader joe", TransactionCategory.FOOD_AND_DRINK),
+    ("whole foods", TransactionCategory.FOOD_AND_DRINK),
+    ("aldi", TransactionCategory.FOOD_AND_DRINK),
+    ("food lion", TransactionCategory.FOOD_AND_DRINK),
+    ("wegman", TransactionCategory.FOOD_AND_DRINK),
+    ("at&t", TransactionCategory.BILLS_AND_UTILITIES),
+    ("comcast", TransactionCategory.BILLS_AND_UTILITIES),
+    ("bumble", TransactionCategory.ELECTRONICS),
+]
+
+
 def category_override(
     descrip: str, categories: List[TransactionCategory]
 ) -> List[TransactionCategory]:
     """Manual category overrides, based on observation. Note: This is currently handled prior to adding to the DB."""
     descrip = descrip.lower()
     # Some category overrides. Separate function A/R
-    if "coffee" in descrip:
-        categories = [TransactionCategory.COFFEE_SHOP]
 
-    if "starbucks" in descrip:
-        categories = [TransactionCategory.COFFEE_SHOP]
-
-    if "jlcpcb" in descrip:
-        categories = [TransactionCategory.BUSINESS_SERVICES]
-
-    # Prevents a restaurant style logo
-    if (
-        "trader joe" in descrip
-        or "whole foods" in descrip
-        or "aldi" in descrip
-        or "food lion" in descrip
-        or "wegman" in descrip
-    ):
-        categories = [TransactionCategory.FOOD_AND_DRINK]
+    for keyword, cat in replacements:
+        if keyword in descrip:
+            categories = [cat]
 
     return categories
 

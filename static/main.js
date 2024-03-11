@@ -154,7 +154,6 @@ function filterTransactions() {
 
     let transactions = TRANSACTIONS
 
-    console.log(transactions, "TRA")
     if (FILTER_CAT !== null) {
         transactions = transactions.filter(t => t.categories.includes(FILTER_CAT))
     }
@@ -852,9 +851,19 @@ function setupSpendingHighlights() {
     // Consider a template for this instead; it should be faster.
     let el  = document.getElementById("biggest-cats")
 
+
     // todo: grid?
     let h, text
-    for (let highlight of SPENDING_HIGHLIGHTS.slice(0, 3)) {
+
+        h = createEl(
+            "h4",
+            {},
+            {marginRight: "40px", cursor: "pointer"},
+           "Total: " + formatAmount(SPENDING_HIGHLIGHTS.total, 0)
+        )
+    el.appendChild(h)
+
+    for (let highlight of SPENDING_HIGHLIGHTS.by_cat.slice(0, 3)) {
         console.log(highlight, "HL")
 
         text = catNameFromVal(highlight[0]) + ": " + formatAmount(highlight[1][1], 0) + " in " + highlight[1][0] + " transactions"
