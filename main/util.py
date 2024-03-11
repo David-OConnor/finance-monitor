@@ -6,6 +6,8 @@ from typing import List, Dict, Iterable, Optional, Tuple
 from datetime import date, timedelta
 
 from django.db.models import Q
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render
 from django.utils import timezone
 
 from main import transaction_cats
@@ -259,3 +261,16 @@ def setup_spending_highlights(
         "by_cat": result,
         "total": total,
     }
+
+
+def check_account_status(request: HttpRequest) -> Optional[HttpResponse]:
+    """Checks that the account is verified, and that it isn't locked, before viewing account-related pages."""
+    person = request.user.person
+
+    if not person.email_verified:
+        return render(request, "not_verified.html", {})
+
+    if person.account_locked:
+        # todo
+        return HttpResponse(
+            "This account is locked due to suspicious activity. Please contact us: contact@finance-monitor.com")

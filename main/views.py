@@ -229,6 +229,11 @@ def delete_transactions(request: HttpRequest) -> HttpResponse:
 @login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
     """The main account dashboard."""
+    person = request.user.person
+
+    account_status = util.check_account_status(request)
+    if account_status is not None:
+        return account_status
 
     if request.method == "POST":
         uploaded_file = request.FILES["file"]
@@ -236,8 +241,6 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         export.import_csv_mint(file_data, request.user.person)
 
         return HttpResponseRedirect("/dashboard")
-
-    person = request.user.person
 
     spending_highlights = util.setup_spending_highlights(
         person.accounts.all(), person, 30
@@ -247,7 +250,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     context["spending_highlights"] = json.dumps(spending_highlights)
 
-    return render(request, "../templates/dashboard.html", context)
+    return render(request, "dashboard.html", context)
 
 
 @login_required
@@ -430,12 +433,20 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
 @login_required
 def spending(request: HttpRequest) -> HttpResponse:
     """Page for details on spending"""
+    account_status = util.check_account_status(request)
+    if account_status is not None:
+        return account_status
+
     return render(request, "spending.html", {})
 
 
 @login_required
 def recurring(request: HttpRequest) -> HttpResponse:
     """Page for recurring transactions"""
+
+    account_status = util.check_account_status(request)
+    if account_status is not None:
+        return account_status
 
     person = request.user.person
 
@@ -464,6 +475,11 @@ def recurring(request: HttpRequest) -> HttpResponse:
 @login_required
 def settings(request: HttpRequest) -> HttpResponse:
     """Page for adjusting account settings"""
+
+    account_status = util.check_account_status(request)
+    if account_status is not None:
+        return account_status
+
     return render(request, "settings.html", {})
 
 
@@ -520,7 +536,7 @@ def register(request):
             person.user = user
             person.save()
 
-            person.send_verification_email()
+            person.send_verification_email(request)
 
             login(request, user)  # Log the user in
             messages.success(request, "Registration successful.")
@@ -530,6 +546,7 @@ def register(request):
         # form = UserCreationForm()
 
     return render(request, "register.html", {})
+
 
 
 # def password_reset(request):
@@ -742,3 +759,35 @@ def password_reset_confirm(request, uidb64=None, token=None):
         )
     else:
         return render(request, "password_reset_invalid.html")
+
+
+def verify_email(request, uidb64=None, token=None):
+    print(f"In verify email. UId: {uidb64}, token: {token}")
+
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    # todo: Do you need/want this token_generator check?
+    if user is not None and default_token_generator.check_token(user, token) and token == user.person.email_verification_token:
+        print("\nSuccessfully verified email")
+        user.person.email_verification_token = None
+        user.person.email_verified = True
+        user.person.save()
+
+        return HttpResponseRedirect("/dashboard")
+    else:
+        return HttpResponse("Problem verifying your email address. :(")
+
+
+def send_verification(request: HttpRequest) -> HttpResponse:
+    """We use this if the user requests to re-send the verification email."""
+
+    person = request.user.person
+    person.send_verification_email(request)
+
+    print("\nRe-sending verification email")
+    return HttpResponseRedirect("/dashboard")
+

@@ -36,6 +36,8 @@ urlpatterns = [
     path("password-reset/", views.password_reset_request),
     # path("password-reset-confirm/", views.password_reset_confirm),
     path('password-reset-confirm/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
+    path('verify-email/<uidb64>/<token>/', views.verify_email, name='verify_email'),
+    path("send-verification", views.send_verification),
     path("", views.landing),
     path("dashboard", views.dashboard),
     # path("about", views.about),

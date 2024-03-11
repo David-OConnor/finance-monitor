@@ -142,7 +142,7 @@ class TransactionCategory(Enum):
             "Fallthrough in parsing transaction category: " + s,
             "contact@finance-monitor.com",
             # todo: contact @FM, and my person emails are temp
-            ["contact@finance-monitor.com", "david.alan.oconnor@gmail.com"],
+            ["contact@finance-monitor.com"],
             fail_silently=False,
             html_message="",
         )

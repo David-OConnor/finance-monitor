@@ -7,6 +7,12 @@ from typing import Dict, List
 from django.db import models
 from django.contrib.auth.models import Group, User
 from django.core.mail import send_mail
+from django.http import HttpRequest
+from django.urls import reverse
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
 
 from django.db.models import (
     SET_NULL,
@@ -165,6 +171,8 @@ class Person(Model):
     subscribed = BooleanField(default=False)
     # verification_token = CharField(max_length=20, blank=True, null=True)
     previous_emails = TextField(default="", blank=True, null=True)  # JSON list
+    # We use this token to verify the user's email address. We set it to null once the email is verified.
+    email_verification_token = CharField(max_length=60, blank=True, null=True)
 
     def __str__(self):
         return f"Person. id: {self.id} User: {self.user.username}"
@@ -173,17 +181,21 @@ class Person(Model):
         # ordering = ["-datetime"]
         pass
 
-    def send_verification_email(self):
+    def send_verification_email(self, request: HttpRequest):
         """Send an email asking the user to verify their email address."""
+        # Note: I made this up as I went, and in a similar way to password reset token validation. It's
+        # surprisingly hard to find information on this topic.
 
-        verification_url = ""  # todo
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+        verification_url = f"{request.scheme}://{request.get_host()}/verify-email/{uid}/{token}"
 
         email_body = f"""
            <h2>Welcome to Finance Monitor</h2>
 
-           <p>Before using your account, please open <a href="{verification_url}">this verification link</a></p>.
+           <p>Before using your account, please open <a href="{verification_url}">this verification link</a>.</p>
            
-           <a href="https://www.finance-monitor.com">Home page: https://www.finance-monitor.com</a>
+           <a href="https://www.finance-monitor.com">Finance Monitor home</a>
 
            <p>If you have questions about Finance Monitor, or would like to contact us for
            any reason, reply to this email: <i>contact@finance-monitor.com</i></p>
@@ -193,15 +205,13 @@ class Person(Model):
             "Finance Monitor verification",
             "",
             "contact@finance-monitor.com",
-            # todo: contact @FM, and my person emails are temp
-            [
-                self.user.email,
-                "contact@finance-monitor.com",
-                "david.alan.oconnor@gmail.com",
-            ],
+            [self.user.email],
             fail_silently=False,
             html_message=email_body,
         )
+
+        self.email_verification_token = token
+        self.save()
 
 
 class Institution(Model):

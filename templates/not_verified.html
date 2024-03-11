@@ -1,0 +1,29 @@
+{% extends 'base.html'  %}
+
+{% block head_contents %}
+    <title>Finance Monitor</title>
+{% endblock %}
+
+{% block contents %}
+
+    <div class="home-body">
+
+        <div style="display: flex; align-items: center; justify-content: center">
+            <h1 style="text-align: center;">Thank you for registering!</h1>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: center">
+            <h2>For security, please verify your email address. To re-send
+                the verification email, <a href="/send-verification">click here.</a></h2>
+
+        </div>
+
+
+
+    </div>
+
+    <script>
+        document.getElementById("menu-recurring").classList.add("menu-highlighted")
+    </script>
+
+{% endblock %}
