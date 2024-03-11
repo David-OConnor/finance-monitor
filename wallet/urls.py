@@ -22,18 +22,20 @@ from django.urls import path, include
 from main import views
 
 urlpatterns = [
-    path("accounts/", include("django.contrib.auth.urls")),
-    path('password_reset/',
-         auth_views.PasswordResetView.as_view(
-             template_name='password_reset.html'
-         ),
-         name='password_reset'
-         ),
+    # path("accounts/", include("django.contrib.auth.urls")),
+    # path('password_reset/',
+    #      auth_views.PasswordResetView.as_view(
+    #          template_name='password_reset.html'
+    #      ),
+    #      name='password_reset'
+    #      ),
     path("admin/", admin.site.urls),
     path("login/", views.user_login, name="login"),
     path("logout/", views.user_logout, name="logout"),
     path("register/", views.register, name="register"),
-    path("password-reset/", views.password_reset),
+    path("password-reset/", views.password_reset_request),
+    # path("password-reset-confirm/", views.password_reset_confirm),
+    path('password-reset-confirm/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
     path("", views.landing),
     path("dashboard", views.dashboard),
     # path("about", views.about),

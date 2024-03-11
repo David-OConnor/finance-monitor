@@ -18,7 +18,9 @@ from plaid.model.institutions_get_request import InstitutionsGetRequest
 from plaid.model.investments_holdings_get_request import InvestmentsHoldingsGetRequest
 
 from plaid.model.products import Products
-from plaid.model.transactions_recurring_get_request import TransactionsRecurringGetRequest
+from plaid.model.transactions_recurring_get_request import (
+    TransactionsRecurringGetRequest,
+)
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from django.db import IntegrityError
 
@@ -28,7 +30,10 @@ from .models import (
     SubAccount,
     AccountType,
     SubAccountType,
-    Transaction, Person, RecurringTransaction, RecurringDirection,
+    Transaction,
+    Person,
+    RecurringTransaction,
+    RecurringDirection,
 )
 from .transaction_cats import TransactionCategory
 from wallet.settings import PLAID_SECRET, PLAID_CLIENT_ID, PLAID_MODE, PlaidMode
@@ -69,11 +74,11 @@ ACCOUNT_REFRESH_INTERVAL_RECURRING = 48 * HOUR  # seconds.
 # todo: I still don't understand this.
 # Note: We don't use assets! That's used to qualify for a loan. Maybe see if Transactions only works?
 # PRODUCTS = [Products(p)for p in ["assets", "transactions"]]
-PRODUCTS = [Products(p)for p in ["transactions", "recurring_transactions"]]
+PRODUCTS = [Products(p) for p in ["transactions", "recurring_transactions"]]
 # PRODUCTS = [Products(p)for p in ["assets"]]
-PRODUCTS_REQUIRED_IF_SUPPORTED = [Products(p)for p in []]
-PRODUCTS_OPTIONAL = [Products(p)for p in []]
-PRODUCTS_ADDITIONAL_CONSENTED = [Products(p)for p in []]
+PRODUCTS_REQUIRED_IF_SUPPORTED = [Products(p) for p in []]
+PRODUCTS_OPTIONAL = [Products(p) for p in []]
+PRODUCTS_ADDITIONAL_CONSENTED = [Products(p) for p in []]
 
 PLAID_COUNTRY_CODES = ["US"]
 PLAID_REDIRECT_URI = "https://financial-monitor-783ae5ca6965.herokuapp.com/dashboard"
@@ -122,15 +127,23 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
 
 def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     """Update all account balances and related information. Return sub accounts, and net worth.
-    Returns `True if there is new data. """
+    Returns `True if there is new data."""
     # Update account info, if we are due for a refresh
     new_data = False
     now = timezone.now()
-    
+
     for acc in accounts:
         print(f"\nAcc timing: {acc.last_refreshed}, {acc.last_refreshed_recurring}")
-        print("Time delta seconds, interval", (now - acc.last_refreshed).total_seconds(), ACCOUNT_REFRESH_INTERVAL)
-        print("Time delta seconds, recurring", (now - acc.last_refreshed_recurring).total_seconds(), ACCOUNT_REFRESH_INTERVAL_RECURRING)
+        print(
+            "Time delta seconds, interval",
+            (now - acc.last_refreshed).total_seconds(),
+            ACCOUNT_REFRESH_INTERVAL,
+        )
+        print(
+            "Time delta seconds, recurring",
+            (now - acc.last_refreshed_recurring).total_seconds(),
+            ACCOUNT_REFRESH_INTERVAL_RECURRING,
+        )
 
         if (now - acc.last_refreshed).total_seconds() > ACCOUNT_REFRESH_INTERVAL:
             print("Refreshing account data...")
@@ -145,7 +158,9 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
         else:
             print("Not refreshing account data")
 
-        if (now - acc.last_refreshed_recurring).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
+        if (
+            now - acc.last_refreshed_recurring
+        ).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
             print("Refreshing recurring data...")
             refresh_recurring(acc)
             acc.last_refreshed_recurring = now
@@ -280,12 +295,13 @@ def refresh_recurring(account: FinancialAccount) -> List[RecurringTransaction]:
 
     # todo: Use your own logic instead of paying Plaid for this API.
 
-    sub_accs = account.sub_accounts.all()  # todo: Filter A/R based on which have transactions
+    sub_accs = (
+        account.sub_accounts.all()
+    )  # todo: Filter A/R based on which have transactions
     account_ids = [s.plaid_id for s in sub_accs]
 
     request = TransactionsRecurringGetRequest(
-        access_token=account.access_token,
-        account_ids=account_ids
+        access_token=account.access_token, account_ids=account_ids
     )
 
     response = CLIENT.transactions_recurring_get(request)

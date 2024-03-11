@@ -9,8 +9,16 @@ from django.db.models import Q
 from django.utils import timezone
 
 from main import transaction_cats
-from main.models import AccountType, FinancialAccount, Person, SubAccount, Transaction, SubAccountType, SnapshotAccount, \
-    SnapshotPerson
+from main.models import (
+    AccountType,
+    FinancialAccount,
+    Person,
+    SubAccount,
+    Transaction,
+    SubAccountType,
+    SnapshotAccount,
+    SnapshotPerson,
+)
 from main.transaction_cats import TransactionCategory
 
 
@@ -38,21 +46,19 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
 
 
 def get_transaction_data(
-        start_i: Optional[int],
-        end_i: Optional[int],
-        accounts: Iterable[FinancialAccount],
-        person: Person,
-        search_text: Optional[str],
-        start: Optional[date],
-        end: Optional[date],
+    start_i: Optional[int],
+    end_i: Optional[int],
+    accounts: Iterable[FinancialAccount],
+    person: Person,
+    search_text: Optional[str],
+    start: Optional[date],
+    end: Optional[date],
 ) -> List[Transaction]:
     """Create a set of transactions, serialized for use with the frontend. These
     are combined from all sub-accounts."""
     # todo: Pending? Would have to parse into the DB.
 
-    trans = Transaction.objects.filter(
-        Q(account__in=accounts) | Q(person=person)
-    )
+    trans = Transaction.objects.filter(Q(account__in=accounts) | Q(person=person))
 
     if search_text:
         trans = trans.filter(
@@ -71,7 +77,7 @@ def get_transaction_data(
     return trans
 
 
-def load_dash_data(person: Person, no_preser: bool=False) -> Dict:
+def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
     """Load account balances, transactions, and totals."""
 
     # todo: Rethink totals.
@@ -81,7 +87,7 @@ def load_dash_data(person: Person, no_preser: bool=False) -> Dict:
         Q(account__person=person) | Q(person=person)
     )
 
-    net_worth = 0.
+    net_worth = 0.0
     for acc in sub_accounts:
         net_worth = unw_helper(net_worth, acc)
 
@@ -97,7 +103,7 @@ def load_dash_data(person: Person, no_preser: bool=False) -> Dict:
     }
 
     for sub_acc in SubAccount.objects.filter(
-            Q(account__person=person) | Q(person=person)
+        Q(account__person=person) | Q(person=person)
     ):
         if sub_acc.ignored:
             continue
@@ -170,16 +176,12 @@ def load_dash_data(person: Person, no_preser: bool=False) -> Dict:
 
 def take_snapshots(accounts: Iterable[FinancialAccount], person: Person):
     now = timezone.now()
-    net_worth = 0.
-
+    net_worth = 0.0
 
     for account in accounts:
         for sub in account.sub_accounts.all():
             snap = SnapshotAccount(
-                account=sub,
-                account_name=sub.name,
-                dt=now,
-                value=sub.current
+                account=sub, account_name=sub.name, dt=now, value=sub.current
             )
             snap.save()
 
@@ -199,10 +201,12 @@ def take_snapshots(accounts: Iterable[FinancialAccount], person: Person):
 
 
 # def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Person, num_days: int) -> List[Tuple[TransactionCategory, List[int, float, Dict[str, str]]]]:
-def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Person, num_days: int):
+def setup_spending_highlights(
+    accounts: Iterable[FinancialAccount], person: Person, num_days: int
+):
     """Find the biggest recent spending highlights."""
     end = timezone.now().date()
-    start = (end - timedelta(days=num_days))
+    start = end - timedelta(days=num_days)
 
     # todo: We likely have already loaded these transactions. Optimize later.
     # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
@@ -212,7 +216,7 @@ def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Pers
 
     result = {}
 
-    total = 0.
+    total = 0.0
 
     for tran in trans:
         total += tran.amount
@@ -224,13 +228,19 @@ def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Pers
             c = cat  # We serialize anyway, so no need to convert to a TransactionCategory.
 
             # Remove categories that don't categorize spending well.
-            if c in [TransactionCategory.PAYMENT, TransactionCategory.INCOME, TransactionCategory.TRANSFER,
-                     TransactionCategory.UNCATEGORIZED, TransactionCategory.DEPOSIT, TransactionCategory.DEBIT,
-                     TransactionCategory.CREDIT_CARD]:
+            if c in [
+                TransactionCategory.PAYMENT,
+                TransactionCategory.INCOME,
+                TransactionCategory.TRANSFER,
+                TransactionCategory.UNCATEGORIZED,
+                TransactionCategory.DEPOSIT,
+                TransactionCategory.DEBIT,
+                TransactionCategory.CREDIT_CARD,
+            ]:
                 continue
 
             if c.value not in result.keys():
-                result[c.value] = [0, 0., []]  # count, total, transactions serialized
+                result[c.value] = [0, 0.0, []]  # count, total, transactions serialized
 
             result[c.value][0] += 1
             result[c.value][1] += tran.amount

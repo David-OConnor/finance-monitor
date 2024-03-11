@@ -24,6 +24,7 @@ from django.db.models import (
 
 from main.transaction_cats import TransactionCategory, cleanup_categories
 
+
 def enum_choices(cls):
     """Required to make Python enums work with Django integer fields"""
 
@@ -193,7 +194,11 @@ class Person(Model):
             "",
             "contact@finance-monitor.com",
             # todo: contact @FM, and my person emails are temp
-            [self.user.email, "contact@finance-monitor.com", "david.alan.oconnor@gmail.com"],
+            [
+                self.user.email,
+                "contact@finance-monitor.com",
+                "david.alan.oconnor@gmail.com",
+            ],
             fail_silently=False,
             html_message=email_body,
         )
@@ -316,7 +321,7 @@ class SubAccount(Model):
             "iso_currency_code": self.iso_currency_code,
             # todo: Consider a "name_display" that is based on if nick, and name_official are avail.
             # "current": f"{self.current:,.0f}",
-            "current": self.current if self.current else 0.,
+            "current": self.current if self.current else 0.0,
             "ignored": json.dumps(self.ignored),
             "manual": self.person is not None,
             # Note Use current_val if handling this in JS vice template
@@ -367,7 +372,9 @@ class Transaction(Model):
     notes = CharField(max_length=200, default="", blank=True, null=True)
     # todo: Cache these image URLs somewhere, then use a numeric identifier. Also, host them locally.
     logo_url = CharField(max_length=100, default="", blank=True, null=True)
-    plaid_category_icon_url = CharField(max_length=100, default="", blank=True, null=True)
+    plaid_category_icon_url = CharField(
+        max_length=100, default="", blank=True, null=True
+    )
 
     def serialize(self) -> Dict[str, str]:
         """For use in the web page."""
@@ -429,16 +436,16 @@ class Transaction(Model):
 
 
 class SnapshotAccount(Model):
-    account = ForeignKey(SubAccount, related_name="snapshots", on_delete=SET_NULL, blank=True, null=True)
+    account = ForeignKey(
+        SubAccount, related_name="snapshots", on_delete=SET_NULL, blank=True, null=True
+    )
     # Used if the account gets deleted etc.
     account_name = CharField(max_length=30)
     dt = DateTimeField()
     value = FloatField()
 
     def __str__(self):
-        return (
-            f"Value snapshot. {self.account}, {self.dt}: {self.value}"
-        )
+        return f"Value snapshot. {self.account}, {self.dt}: {self.value}"
 
 
 class SnapshotPerson(Model):
@@ -447,9 +454,7 @@ class SnapshotPerson(Model):
     value = FloatField()
 
     def __str__(self):
-        return (
-            f"Value snapshot. {self.person}, {self.dt}: {self.value}"
-        )
+        return f"Value snapshot. {self.person}, {self.dt}: {self.value}"
 
 
 class CategoryCustom(Model):
@@ -457,9 +462,7 @@ class CategoryCustom(Model):
     name = CharField(max_length=30)
 
     def __str__(self):
-        return (
-            f"Custom cat. {self.person}, {self.name}"
-        )
+        return f"Custom cat. {self.person}, {self.name}"
 
 
 class RecurringTransaction(Model):
@@ -481,9 +484,7 @@ class RecurringTransaction(Model):
         ordering = ["-last_date"]
 
     def __str__(self):
-        return (
-            f"Recurring {self.account}, {self.average_amount}, Last: {self.last_date}, {self.description}"
-        )
+        return f"Recurring {self.account}, {self.average_amount}, Last: {self.last_date}, {self.description}"
 
     def serialize(self) -> Dict[str, str]:
         # todo: DRY with tran serializer
@@ -528,7 +529,7 @@ class RecurringTransaction(Model):
 
     def cats_cleaned(self) -> str:
         """Since we don't apply the serializer as we do with transactions on the dash, apply the
-         post-processing category code here. (DRY from serialize)"""
+        post-processing category code here. (DRY from serialize)"""
         try:
             cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
         except JSONDecodeError as e:

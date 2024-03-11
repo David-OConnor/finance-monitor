@@ -48,7 +48,6 @@ if DEPLOYED:
     EMAIL_HOST_PASSWORD = os.environ["SENDGRID_KEY"]
 else:
     DEBUG = True
-    DEBUG = False  # todo temp
     SECRET_KEY = "django-insecure-kt#8(6pid*k1u6b9!yh(70^7s41ydqu=_!#%l79n8nm-os*$b)"
 
     try:

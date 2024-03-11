@@ -7,24 +7,29 @@
 {% block contents %}
 
     <div class="home-body" style="justify-content: center">
+
         <div style="display: flex; align-items: center; justify-content: center">
             <h1>Login</h1>
             {#        <img src="{% static "log.png" %}" height="40" style="margin-left: 20px" />#}
         </div>
 
         <div class="form-block" style="display: flex; justify-content: center;">
-            <form id="login_form" method="post" action="/login/"
-                  style="display: flex; flex-direction: column; align-items: center;">
+            <form
+                    id="login_form"
+                    method="post"
+                    action="/login/"
+                  style="display: flex; flex-direction: column; align-items: center;"
+            >
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.GET.next }}">
 
                 <label for="username">Email:</label>
-                <input id="username" class="form-control" type="email" name="username" value="" size="30"
+                <input id="username" class="form-control" type="email" autocomplete="email" name="username" value="" size="30"
                        style="width: 180px; margin-bottom: 20px;"
                 />
 
                 <label for="password">Password:</label>
-                <input id="password" class="form-control" type="password" name="password" value="" size="30"
+                <input id="password" class="form-control" type="password" name="password" autocomplete="password" value="" size="30"
                        style="width: 180px; margin-bottom: 40px;" />
 
                 <button

@@ -144,7 +144,7 @@ class TransactionCategory(Enum):
             # todo: contact @FM, and my person emails are temp
             ["contact@finance-monitor.com", "david.alan.oconnor@gmail.com"],
             fail_silently=False,
-            html_message=""
+            html_message="",
         )
 
         return cls.UNCATEGORIZED
@@ -339,7 +339,7 @@ replacements = [
 
 
 def category_override(
-        descrip: str, categories: List[TransactionCategory]
+    descrip: str, categories: List[TransactionCategory]
 ) -> List[TransactionCategory]:
     """Manual category overrides, based on observation. Note: This is currently handled prior to adding to the DB."""
     descrip = descrip.lower()
@@ -361,8 +361,8 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
     cats = list(set(cats))  # Remove duplicates.
 
     if (
-            TransactionCategory.TRAVEL in cats
-            and TransactionCategory.AIRLINES_AND_AVIATION_SERVICES in cats
+        TransactionCategory.TRAVEL in cats
+        and TransactionCategory.AIRLINES_AND_AVIATION_SERVICES in cats
     ):
         cats.remove(TransactionCategory.TRAVEL)
 
@@ -376,49 +376,43 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
         cats.remove(TransactionCategory.INCOME)
 
     if (
-            TransactionCategory.RESTAURANTS in cats
-            and TransactionCategory.GROCERIES in cats
+        TransactionCategory.RESTAURANTS in cats
+        and TransactionCategory.GROCERIES in cats
     ):
         cats.remove(TransactionCategory.GROCERIES)
 
     if (
-            TransactionCategory.RESTAURANTS in cats
-            and TransactionCategory.COFFEE_SHOP in cats
+        TransactionCategory.RESTAURANTS in cats
+        and TransactionCategory.COFFEE_SHOP in cats
     ):
         cats.remove(TransactionCategory.RESTAURANTS)
 
-    if (
-            TransactionCategory.FAST_FOOD in cats
-            and TransactionCategory.GROCERIES in cats
-    ):
+    if TransactionCategory.FAST_FOOD in cats and TransactionCategory.GROCERIES in cats:
         cats.remove(TransactionCategory.GROCERIES)
 
     if (
-            TransactionCategory.RESTAURANTS in cats
-            and TransactionCategory.FAST_FOOD in cats
+        TransactionCategory.RESTAURANTS in cats
+        and TransactionCategory.FAST_FOOD in cats
     ):
         cats.remove(TransactionCategory.RESTAURANTS)
 
     if (
-            TransactionCategory.GYMS_AND_FITNESS_CENTERS in cats
-            and TransactionCategory.RECREATION in cats
+        TransactionCategory.GYMS_AND_FITNESS_CENTERS in cats
+        and TransactionCategory.RECREATION in cats
     ):
         cats.remove(TransactionCategory.RECREATION)
 
     # Lots of bogus food+drink cats inserted by Plaid.
     if (
-            TransactionCategory.GROCERIES in cats
-            and TransactionCategory.CREDIT_CARD in cats
+        TransactionCategory.GROCERIES in cats
+        and TransactionCategory.CREDIT_CARD in cats
     ):
         cats.remove(TransactionCategory.GROCERIES)
 
     if TransactionCategory.PAYMENT in cats and TransactionCategory.CREDIT_CARD in cats:
         cats.remove(TransactionCategory.PAYMENT)
 
-    if (
-            TransactionCategory.GROCERIES in cats
-            and TransactionCategory.TRANSFER in cats
-    ):
+    if TransactionCategory.GROCERIES in cats and TransactionCategory.TRANSFER in cats:
         cats.remove(TransactionCategory.GROCERIES)
 
     if TransactionCategory.GROCERIES in cats and TransactionCategory.SHOPS in cats:
@@ -433,10 +427,7 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
     if TransactionCategory.RESTAURANTS in cats and TransactionCategory.SHOPS in cats:
         cats.remove(TransactionCategory.RESTAURANTS)
 
-    if (
-            TransactionCategory.GROCERIES in cats
-            and TransactionCategory.TRAVEL in cats
-    ):
+    if TransactionCategory.GROCERIES in cats and TransactionCategory.TRAVEL in cats:
         cats.remove(TransactionCategory.GROCERIES)
 
     if TransactionCategory.TAXI in cats and TransactionCategory.TRAVEL in cats:

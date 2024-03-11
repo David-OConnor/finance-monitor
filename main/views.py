@@ -2,9 +2,12 @@ import json
 from datetime import date
 from io import TextIOWrapper
 
+from django.contrib.auth.views import PasswordResetView
 from django.db.models import Q
 from django import forms
 import time
+
+from django.urls import reverse_lazy
 
 from . import export
 
@@ -21,6 +24,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.csrf import requires_csrf_token
 from django.contrib.auth.models import User
+from django.shortcuts import render
+from django.core.mail import send_mail
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.http import HttpResponseRedirect
+from django.contrib.auth.forms import SetPasswordForm
 
 from main.models import (
     FinancialAccount,
@@ -29,7 +42,8 @@ from main.models import (
     Person,
     SubAccount,
     AccountType,
-    SubAccountType, RecurringTransaction,
+    SubAccountType,
+    RecurringTransaction,
 )
 
 import plaid
@@ -43,7 +57,12 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 
 
 from main import plaid_, util
-from main.plaid_ import CLIENT, PLAID_COUNTRY_CODES, PLAID_REDIRECT_URI, ACCOUNT_REFRESH_INTERVAL_RECURRING
+from main.plaid_ import (
+    CLIENT,
+    PLAID_COUNTRY_CODES,
+    PLAID_REDIRECT_URI,
+    ACCOUNT_REFRESH_INTERVAL_RECURRING,
+)
 from .transaction_cats import TransactionCategory
 
 MAX_LOGIN_ATTEMPTS = 5
@@ -82,7 +101,9 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     else:
         end = None
 
-    tran = util.get_transaction_data(start_i, end_i, accounts, person, search, start, end)
+    tran = util.get_transaction_data(
+        start_i, end_i, accounts, person, search, start, end
+    )
 
     transactions = {
         "transactions": [t.serialize() for t in tran],
@@ -169,7 +190,8 @@ def add_account_manual(request: HttpRequest) -> HttpResponse:
 
     # return HttpResponseRedirect("/dashboard")
     return HttpResponse(
-        json.dumps({"success": success, "account": account.serialize()}), content_type="application/json"
+        json.dumps({"success": success, "account": account.serialize()}),
+        content_type="application/json",
     )
 
 
@@ -217,7 +239,9 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
     person = request.user.person
 
-    spending_highlights = util.setup_spending_highlights(person.accounts.all(), person, 30)
+    spending_highlights = util.setup_spending_highlights(
+        person.accounts.all(), person, 30
+    )
 
     context = util.load_dash_data(request.user.person)
 
@@ -248,9 +272,7 @@ def post_dash_load(request: HttpRequest) -> HttpResponse:
         # todo: We need to make sure this is called regularly, even if the user doesn't log into the page.
         util.take_snapshots(accounts, person)
 
-    return HttpResponse(
-        json.dumps(data), content_type="application/json"
-    )
+    return HttpResponse(json.dumps(data), content_type="application/json")
 
 
 @login_required
@@ -419,18 +441,17 @@ def recurring(request: HttpRequest) -> HttpResponse:
 
     # Note: This is also checked in post_load.
     for acc in person.accounts.all():
-    #     if (timezone.now() - acc.last_refreshed_recurring).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
-    #         plaid_.refresh_recurring(acc)
-    #         acc.last_refreshed_recurring = timezone.now()
+        #     if (timezone.now() - acc.last_refreshed_recurring).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
+        #         plaid_.refresh_recurring(acc)
+        #         acc.last_refreshed_recurring = timezone.now()
 
         pass
     # todo temp
     #     plaid_.refresh_recurring(acc)
 
     recur = RecurringTransaction.objects.filter(
-            Q(account__person=person) |
-            Q(account__account__person=person)
-        ).filter(is_active=True)
+        Q(account__person=person) | Q(account__account__person=person)
+    ).filter(is_active=True)
 
     context = {
         # "recurring": json.dumps([r.serialize() for r in recur])
@@ -508,33 +529,32 @@ def register(request):
         print("Error: Non-post data passed to the register view.")
         # form = UserCreationForm()
 
-
     return render(request, "register.html", {})
 
 
-def password_reset(request):
-    if request.method == "POST":
-        pass
-        # form = UserCreationForm(request.POST)
-        # if form.is_valid():
-        #     user = form.save()
-        #     user.email = user.username
-        #     user.save()
-        #
-        #     person = Person()
-        #     person.user = user
-        #     person.save()
-        #
-        #     person.send_verification_email()
-        #
-        #     login(request, user)  # Log the user in
-        #     messages.success(request, "Registration successful.")
-        #     return redirect("/dashboard")  # Redirect to a desired URL
+# def password_reset(request):
+#     if request.method == "POST":
+#         pass
+#         # form = UserCreationForm(request.POST)
+#         # if form.is_valid():
+#         #     user = form.save()
+#         #     user.email = user.username
+#         #     user.save()
+#         #
+#         #     person = Person()
+#         #     person.user = user
+#         #     person.save()
+#         #
+#         #     person.send_verification_email()
+#         #
+#         #     login(request, user)  # Log the user in
+#         #     messages.success(request, "Registration successful.")
+#         #     return redirect("/dashboard")  # Redirect to a desired URL
+#
+#     return render(request, "password_reset.html", {})
 
-    return render(request, "password_reset.html", {})
 
-
-@requires_csrf_token
+# @requires_csrf_token
 def user_login(request):
     if request.method == "POST":
         username = request.POST["username"]
@@ -568,7 +588,6 @@ def user_login(request):
                     person.unsuccessful_login_attempts = 0
                     person.save()
 
-
             # # if (dt.date.today() - person.last_changed_password).days > 180:
             # # This is the default date; so, require a PW change if this is the first login.
             # # Note that this is skippable in its current form...
@@ -588,23 +607,23 @@ def user_login(request):
         return render(request, "login.html")
 
 
-@requires_csrf_token
-def password_change_done(request):
-    """Thin wrapper around the Django default PasswordChangeDone"""
-    # return auth_views.PasswordChangeDoneView.as_view(),
-    # return auth_views.PasswordChangeDoneView,
-    # try:
-    #     person = request.user.person
-    # except Person.DoesNotExist:
-    #     return HttpResponse(
-    #         "No person associated with your account; please "
-    #         "contact a training or scheduling shop member."
-    #     )
-
-    # person.last_changed_password = date.today()
-    # person.save()
-
-    return HttpResponseRedirect("/dashboard")
+# @requires_csrf_token
+# def password_change_done(request):
+#     """Thin wrapper around the Django default PasswordChangeDone"""
+#     # return auth_views.PasswordChangeDoneView.as_view(),
+#     # return auth_views.PasswordChangeDoneView,
+#     # try:
+#     #     person = request.user.person
+#     # except Person.DoesNotExist:
+#     #     return HttpResponse(
+#     #         "No person associated with your account; please "
+#     #         "contact a training or scheduling shop member."
+#     #     )
+#
+#     # person.last_changed_password = date.today()
+#     # person.save()
+#
+#     return HttpResponseRedirect("/dashboard")
 
 
 # Use the login_required() decorator to ensure only those logged in can access the view.
@@ -638,3 +657,88 @@ def export_(request: HttpRequest) -> HttpResponse:
     )
 
     return response
+
+
+# class CustomPasswordResetView(PasswordResetView):
+#     print("\nCustom PW view")
+#     template_name = 'password_reset.html'
+#     email_template_name = 'registration/custom_password_reset_email.html'
+#     subject_template_name = 'registration/custom_password_reset_subject.txt'
+#     success_url = reverse_lazy('password_reset_done')
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         # Add custom context data here
+#         context['custom_data'] = 'This is custom data'
+#         return context
+
+
+def password_reset_request(request):
+    if request.method == "POST":
+        email = request.POST.get("email", "")
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_url = f"{request.scheme}://{request.get_host()}/password-reset-confirm/{uid}/{token}"
+
+            email_body = f"""
+               <h2>Reset your Finance Monitor password by clicking <a href="{reset_url}">this link</a>.</h2>
+               
+               If you did not request this reset, please contact us immediately by replying to this email.
+
+               <p>If you have questions about Finance Monitor, or would like to contact us for
+               any reason, reply to this email: <i>contact@finance-monitor.com</i></p>
+               """
+
+            # email = render_to_string(email_template_name, c)
+            try:
+
+                send_mail(
+                    "Password reset: Finance Monitor",
+                    "",
+                    "contact@finance-monitor.com",
+                    [user.email],
+                    fail_silently=False,
+                    html_message=email_body,
+                )
+
+            except Exception as e:
+                print("Error sending email")
+                return HttpResponse("Invalid header found.")
+
+            print("Success on reset; redirecting")
+            return HttpResponseRedirect("/login")
+
+    print("\nRendering PW request form")
+
+    # return render(request, template_name="registration/password_reset_form.html")
+    return render(request, "password_reset.html")
+
+
+def password_reset_confirm(request, uidb64=None, token=None):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == "POST":
+            form = SetPasswordForm(user, request.POST)
+
+            if form.is_valid():
+                form.save()
+                return HttpResponseRedirect("/login")
+            else:
+                print("Pw is not valid!")
+                pass  # todo?
+        else:
+            form = SetPasswordForm(user)
+
+        return render(
+            request, "password_reset_confirm.html", {"form": form}
+        )
+    else:
+        return render(request, "password_reset_invalid.html")
