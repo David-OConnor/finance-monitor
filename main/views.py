@@ -512,7 +512,6 @@ def register(request):
     return render(request, "register.html", {})
 
 
-
 def password_reset(request):
     if request.method == "POST":
         pass
