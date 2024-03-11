@@ -22,6 +22,7 @@ let LINK_TOKEN = ""
 let SEARCH_TEXT = ""
 let FILTER_START = "1999-09-09"  // todo!
 let FILTER_END = "2040-09-09"  // todo!
+let FILTER_CAT = null
 let VALUE_THRESH = 0
 let CURRENT_PAGE = 0
 
@@ -151,13 +152,17 @@ function filterTransactions() {
         end = new Date(FILTER_END)
     }
 
-    let transactions
-    // todo: Use TRANSACTIONS_DISPLAYED?
+    let transactions = TRANSACTIONS
+
+    console.log(transactions, "TRA")
+    if (FILTER_CAT !== null) {
+        console.log("FILTERING")
+        transactions = transactions.filter(t => t.categories.includes(FILTER_CAT))
+    }
+
     // Note: This truthy statement catches both an empty string, and an undefined we get on init.
-    if (!searchText) {
-        transactions = TRANSACTIONS
-    } else {
-        transactions = TRANSACTIONS.filter(t => {
+    if (searchText) {
+        transactions = transactions.filter(t => {
             return t.description.toLowerCase().includes(searchText) ||
                 t.notes.toLowerCase().includes(searchText) ||
                 t.categories_text.join().toLowerCase().includes(searchText)
@@ -849,9 +854,20 @@ function setupSpendingHighlights() {
     let el  = document.getElementById("biggest-cats")
 
     // todo: grid?
-    let h
+    let h, text
     for (let highlight of SPENDING_HIGHLIGHTS.slice(0, 3)) {
-        h = createEl("h4", {}, {marginRight: "40px"}, catNameFromVal(highlight[0]) + ": " + formatAmount(highlight[1][1], 0) + " in " + highlight[1][0] + " transactions")
+        text = catNameFromVal(highlight[0]) + ": " + formatAmount(highlight[1][1], 0) + " in " + highlight[1][0] + " transactions"
+        h = createEl(
+            "h4",
+            {},
+            {marginRight: "40px", cursor: "pointer"},
+            text
+        )
+
+        h.addEventListener("click", _ => {
+            FILTER_CAT = highlight[0]
+            updateTranFilter()
+        })
         el.appendChild(h)
     }
 }

@@ -24,7 +24,6 @@ from django.db.models import (
 
 from main.transaction_cats import TransactionCategory, cleanup_categories
 
-
 def enum_choices(cls):
     """Required to make Python enums work with Django integer fields"""
 

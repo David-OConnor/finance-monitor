@@ -8,6 +8,7 @@ from datetime import date, timedelta
 from django.db.models import Q
 from django.utils import timezone
 
+from main import transaction_cats
 from main.models import AccountType, FinancialAccount, Person, SubAccount, Transaction, SubAccountType, SnapshotAccount, \
     SnapshotPerson
 from main.transaction_cats import TransactionCategory
@@ -212,14 +213,16 @@ def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Pers
     tran_cats = {}
 
     for tran in trans:
-        for cat in json.loads(tran.categories):
+        cats = [TransactionCategory(c) for c in json.loads(tran.categories)]
+        cats = transaction_cats.cleanup_categories(cats)
+        for cat in cats:
             # c = TransactionCategory(cat)
             c = cat  # We serialize anyway, so no need to convert to a TransactionCategory.
             if c not in tran_cats.keys():
-                tran_cats[c] = [0, 0., []]  # count, total
-            tran_cats[c][0] += 1
-            tran_cats[c][1] += tran.amount
-            tran_cats[c][2].append(tran.serialize())
+                tran_cats[c.value] = [0, 0., []]  # count, total
+            tran_cats[c.value][0] += 1
+            tran_cats[c.value][1] += tran.amount
+            tran_cats[c.value][2].append(tran.serialize())
 
     # Sort by value
     tran_cats = sorted(tran_cats.items(), key=lambda x: x[1][1], reverse=True)
