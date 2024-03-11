@@ -219,8 +219,9 @@ def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Pers
         for cat in cats:
             c = cat  # We serialize anyway, so no need to convert to a TransactionCategory.
 
-            if c not in result.keys():
-                result[c.value] = [0, 0., []]  # count, total
+            if c.value not in result.keys():
+                result[c.value] = [0, 0., []]  # count, total, transactions serialized
+
             result[c.value][0] += 1
             result[c.value][1] += tran.amount
             result[c.value][2].append(tran.serialize())

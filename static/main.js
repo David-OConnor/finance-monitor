@@ -156,7 +156,6 @@ function filterTransactions() {
 
     console.log(transactions, "TRA")
     if (FILTER_CAT !== null) {
-        console.log("FILTERING")
         transactions = transactions.filter(t => t.categories.includes(FILTER_CAT))
     }
 

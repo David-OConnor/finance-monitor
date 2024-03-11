@@ -297,15 +297,17 @@ class TransactionCategory(Enum):
 def category_override(
     descrip: str, categories: List[TransactionCategory]
 ) -> List[TransactionCategory]:
-    """Manual category overrides, based on observation."""
+    """Manual category overrides, based on observation. Note: This is currently handled prior to adding to the DB."""
     descrip = descrip.lower()
     # Some category overrides. Separate function A/R
     if "coffee" in descrip:
         categories = [TransactionCategory.COFFEE_SHOP]
 
     if "starbucks" in descrip:
-        print("STAR")
         categories = [TransactionCategory.COFFEE_SHOP]
+
+    if "jlcpcb" in descrip:
+        categories = [TransactionCategory.BUSINESS_SERVICES]
 
     # Prevents a restaurant style logo
     if (
@@ -323,7 +325,9 @@ def category_override(
 def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCategory]:
     """Simplify a category list if multiple related are listed together by the API.
     In general, we return the more specific of the categories.
-    Return the result, due to Python's sloppy mutation-in-place."""
+    Return the result, due to Python's sloppy mutation-in-place.
+
+    Note: This is currently handled post-processing; after loading from the DB."""
     cats = list(set(cats))  # Remove duplicates.
 
     if (

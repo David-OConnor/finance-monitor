@@ -19,6 +19,7 @@ class InstitionAdmin(ModelAdmin):
 @admin.register(models.FinancialAccount)
 class FinancialAccountAdmin(ModelAdmin):
     list_display = ("person", "institution", "item_id", "name", "access_token")
+    search = ("item_id", "name")
 
 
 @admin.register(models.SubAccount)
@@ -35,11 +36,13 @@ class SubAccountAdmin(ModelAdmin):
         "limit",
         "ignored",
     )
+    search = ("name", "plaid_id", "name_official")
 
 
 @admin.register(models.Transaction)
 class TransactionAdmin(ModelAdmin):
     list_display = ("description", "account", "amount", "categories", "date")
+    search = ("description", "notes")
 
 
 @admin.register(models.RecurringTransaction)
