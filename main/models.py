@@ -314,8 +314,8 @@ class SubAccount(Model):
             "iso_currency_code": self.iso_currency_code,
             # todo: Consider a "name_display" that is based on if nick, and name_official are avail.
             # "current": f"{self.current:,.0f}",
-            "current": self.current,
-            "ignored": self.ignored,
+            "current": self.current if self.current else 0.,
+            "ignored": json.dumps(self.ignored),
             "manual": self.person is not None,
             # Note Use current_val if handling this in JS vice template
             # "current_val": self.current,

@@ -2,6 +2,8 @@
 from enum import Enum
 from typing import List
 
+from django.core.mail import send_mail
+
 
 # todo: C+P from main.models due ot circular import concern
 def enum_choices(cls):
@@ -129,6 +131,20 @@ class TransactionCategory(Enum):
             return cls.EDUCATION
 
         print("Fallthrough in parsing transaction category: ", s)
+
+        # Send an email, so we know and can add it.
+
+        send_mail(
+            "Finance Monitor error",
+            "Fallthrough in parsing transaction category: " + s,
+            "contact@finance-monitor.com",
+            # todo: contact @FM, and my person emails are temp
+            ["contact@finance-monitor.com", "david.alan.oconnor@gmail.com",
+             "the_alchemist@fastmail.com"],
+            fail_silently=False,
+            html_message=""
+        )
+
         return cls.UNCATEGORIZED
 
     def to_str(self) -> str:

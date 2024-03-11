@@ -207,7 +207,13 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
         return HttpResponseRedirect("/dashboard")
 
+    person = request.user.person
+
+    spending_highlights = util.setup_spending_highlights(person.accounts.all(), person, 30)
+
     context = util.load_dash_data(request.user.person)
+
+    context["spending_highlights"] = json.dumps(spending_highlights)
 
     return render(request, "../templates/dashboard.html", context)
 

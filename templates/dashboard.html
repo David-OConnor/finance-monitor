@@ -111,8 +111,17 @@
 
         <div id="accounts"></div>
 
-        <div style="display: flex; flex-wrap: wrap; align-items: center;">
-            <h2>Spending highlights</h2>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+{#             todo: JS, or template? We've loaded both.#}
+            <h2>Spending highlights (last 30 days)</h2>
+
+{#            <h3 id="biggest-cats">Biggest categories(past 30 days):</h3>#}
+            <div id="biggest-cats" style="display: flex; flex-wrap: wrap;"></div>
+{#            <h4>{{ sh.0.0 }}, {{ sh.0.1 }}, {{ sh.0.2 }}</h4>#}
+
+            <h3>Biggest change (past 30 days):</h3>
+
+            <h3>Recent large purchases:</h3>
         </div>
 
         <div style="display: flex; flex-wrap: wrap; align-items: center;">
@@ -226,10 +235,14 @@
         // Run this before loading `main.js.
         document.getElementById("menu-dashboard").classList.add("menu-highlighted")
 
-
+        {# Load template variables into JS. #}
         let ACCOUNTS = {{ sub_accs|safe }};
         let TRANSACTIONS = {{ transactions|safe }};
         let TOTALS = {{ totals|safe }};
+        let SPENDING_HIGHLIGHTS = {{ spending_highlights|safe }};
+
+        console.log("SH", SPENDING_HIGHLIGHTS)
+
     </script>
 
     {# todo: Load locally. #}

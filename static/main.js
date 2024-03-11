@@ -210,7 +210,7 @@ function filterTransactions() {
     return transactions
 }
 
-function formatNumber(number, decimals) {
+function formatAmount(number, decimals) {
     // Format a currency value with commas, and either 2, or 0 decimals.
     let options = decimals ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } :
         { minimumFractionDigits: 0, maximumFractionDigits: 0 }
@@ -243,7 +243,7 @@ function createAccRow(acc, type) {
     const valClass = val > 0 ? "tran_pos" : "tran_neg"
 
     // Format with a comma, and no decimal places
-    const valueFormatted = formatNumber(val, false)
+    const valueFormatted = formatAmount(val, false)
     let h_b = createEl("h4", {class: "acct-hdg " + valClass}, {}, valueFormatted)
 
     div.appendChild(h_a)
@@ -298,7 +298,7 @@ function refreshAccounts() {
 
             // todo: Remove minus sign for cleanness?
             const class_ = total > 0 ? "tran_pos" : "tran_neg"
-            totalFormatted = formatNumber(total, false)
+            totalFormatted = formatAmount(total, false)
             h2 = createEl("h2", {class: class_}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, totalFormatted) // total todo
 
             div.appendChild(h1)
@@ -339,44 +339,52 @@ function refreshTransactions() {
         d = createEl("div", {}, {display: "flex", alignItems: "center"})
         if (EDIT_MODE_TRAN) {
             h = createEl("select", {}, {})
-            for (let cat of [
-                // See models.py
-                [-1, "Uncategorized"],
-                [0, "Food and drink"],
-                [1, "Restauants"],
-                // [2, "ASC"],
-                [3, "Travel"],
-                [4, "Airlines"],
-                [5, "Recreation"],
-                [6, "Gyms"],
-                [7, "Transfer"],
-                [8, "Deposit"],
-                [9, "Payroll"],
-                [10, "Credit card"],
-                [11, "Fast food"],
-                [12, "Debit card"],
-                [13, "Shops"],
-                [14, "Payment"],
-                [15, "Coffee shop"],
-                [16, "Taxi"],
-                [17, "Sporting goods"],
-                [18, "Electronics"],
-                [19, "Pets"],
-                [20, "Children"],
-                [21, "Mortgage and rent"],
-                [22, "Car"],
-                [23, "Home and garden"],
-                [24, "Medical"],
-                [25, "Entertainment"],
-                [26, "Bills and utilities"],
-                [27, "Investments"],
-                [28, "Fees"],
-                [29, "Taxes"],
-                [30, "Business services"],
-                [31, "Cash and checks"],
-                [32, "Gift"],
-                [33, "Education"]
-            ]) {
+            // todo: See util fromTransactionCat to see if you can remove this DRY.
+
+            // todo: There is actually no elegant way to get a range iterator in JS...
+            const vals = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+            21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
+
+            for (let cat of vals.map(v => [v, catNameFromVal(v)])) {
+            //
+            // for (let cat of [
+            //     // See models.py
+            //     [-1, "Uncategorized"],
+            //     [0, "Food and drink"],
+            //     [1, "Restauants"],
+            //     // [2, "ASC"],
+            //     [3, "Travel"],
+            //     [4, "Airlines"],
+            //     [5, "Recreation"],
+            //     [6, "Gyms"],
+            //     [7, "Transfer"],
+            //     [8, "Deposit"],
+            //     [9, "Payroll"],
+            //     [10, "Credit card"],
+            //     [11, "Fast food"],
+            //     [12, "Debit card"],
+            //     [13, "Shops"],
+            //     [14, "Payment"],
+            //     [15, "Coffee shop"],
+            //     [16, "Taxi"],
+            //     [17, "Sporting goods"],
+            //     [18, "Electronics"],
+            //     [19, "Pets"],
+            //     [20, "Children"],
+            //     [21, "Mortgage and rent"],
+            //     [22, "Car"],
+            //     [23, "Home and garden"],
+            //     [24, "Medical"],
+            //     [25, "Entertainment"],
+            //     [26, "Bills and utilities"],
+            //     [27, "Investments"],
+            //     [28, "Fees"],
+            //     [29, "Taxes"],
+            //     [30, "Business services"],
+            //     [31, "Cash and checks"],
+            //     [32, "Gift"],
+            //     [33, "Education"]
+            // ]) {
 
                 let catPrimary = tran.categories.length > 0 ? tran.categories[0] : -1  // -1 is uncategorized
                 opt = createEl("option", {value: cat[0]}, {}, cat[1])
@@ -493,7 +501,7 @@ function refreshTransactions() {
         } else {
             h = createEl("h4",
                 {class: "tran-heading " +  tran.amount_class},
-                {textAlign: "right", marginRight: "40px"}, formatNumber(tran.amount, true)
+                {textAlign: "right", marginRight: "40px"}, formatAmount(tran.amount, true)
             )
         }
 
@@ -836,6 +844,18 @@ function setupAccEditForm(id) {
     form.appendChild(d)
 }
 
+function setupSpendingHighlights() {
+    // Consider a template for this instead; it should be faster.
+    let el  = document.getElementById("biggest-cats")
+
+    // todo: grid?
+    let h
+    for (let highlight of SPENDING_HIGHLIGHTS.slice(0, 3)) {
+        h = createEl("h4", {}, {marginRight: "40px"}, catNameFromVal(highlight[0]) + ": " + formatAmount(highlight[1][1], 0) + " in " + highlight[1][0] + " transactions")
+        el.appendChild(h)
+    }
+}
+
 function init() {
     // We run this on page load
     document.getElementById("link-button").addEventListener("click", _ => {
@@ -902,8 +922,9 @@ function init() {
                     tran_new
                 ]
             }
-
         });
+
+    setupSpendingHighlights()
 }
 
 init()

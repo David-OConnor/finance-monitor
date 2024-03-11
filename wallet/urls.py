@@ -27,7 +27,7 @@ urlpatterns = [
     path("register/", views.register, name="register"),
     path("", views.landing),
     path("dashboard", views.dashboard),
-    path("about", views.about),
+    # path("about", views.about),
     path("spending", views.spending),
     path("recurring", views.recurring),
     path("settings", views.settings),

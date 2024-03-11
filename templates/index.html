@@ -7,7 +7,7 @@
 
 {% block contents %}
 
-{#     Check other applications for examples. Wilbur, Rocket money, Monarch etc.#}
+    {#     Check other applications for examples. Wilbur, Rocket money, Monarch etc.#}
 
     <div class="home-body">
         <h1>Finance Monitor</h1>
@@ -23,18 +23,18 @@
             No cookies.
         </p>
 
-        {#    screenshot here#}
-
         <h2 class="home-h">Account balances and transactions</h2>
         <p class="home-p">View account balances and transaction data. Edit transaction data. Identify trends,
-        and spending by category. View recurring transactions.</p>
+            and spending by category. View recurring transactions.</p>
 
         <h2 class="home-h">Secure authentication</h2>
         <p class="home-p">We use <a href="https://plaid.com/">Plaid</a> to safely and quickly link to your financial accounts.
             We don't store your financial account login details. Plaid is designed for security: It meets or exceeds industry
             standards, and connects in seconds. All connections occur using secure socket layer (SSL) encryption.</p>
 
-        <img src="{% static 'images/dash-example.png' %}" alt="Dashboard example" width=800 height="auto" />
+        <div style="margin-top: 40px; margin-bottom: 40px;">
+            <img src="{% static 'images/dash-example.png' %}" alt="Dashboard example" width=800 height="auto" />
+        </div>
 
         <h2 class="home-h">Low cost</h2>
         <p class="home-p">Currently free. Our upcoming $5 monthly subscription for more features is cheaper than alternatives.
@@ -55,14 +55,16 @@
 
         <h2>Read only</h2>
         <p class="home-p">Finance Monitor has no access to make transactions, or alter your accounts: It connects only to read balance and
-        transaction data.</p>
+            transaction data.</p>
 
         <h2 class="home-h">Import transactions from Mint</h2>
 
         <h2 class="home-h">Customer-oriented</h2>
         <p class="home-p">Do you have any suggestions? Is something not working as you expect?
             <a href="mailto: contact@finance-monitor.com">Send us an email</a>. We want to hear from you what's working well,
-        and how we can do better.</p>
+            and how we can do better.</p>
+
+        <p class="home-p">We are continuously adding features and improving user experience.</p>
 
         {#    <h2>Finance Monitor shows you all </h2>#}
 

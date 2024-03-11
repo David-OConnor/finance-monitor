@@ -94,3 +94,119 @@ function accTypeFromNum(val) {
         return "Roth"
     }
 }
+
+function catNameFromVal(val){
+    // See transaction_cats.py
+
+    if (val === -1) {
+        return "Uncategorized"
+    }
+    if (val === 0) {
+        return "Food and drink"
+    }
+    if (val === 1) {
+        return "Restaurants"
+    }
+    // if (val === 2) {
+    //     return "a"
+    // }
+    if (val === 3) {
+        return "Travel"
+    }
+    if (val === 4) {
+        return "Airlines"
+    }
+    if (val === 5) {
+        return "Recreation"
+    }
+    if (val === 6) {
+        return "Gyms"
+    }
+    if (val === 7) {
+        return "Transfer"
+    }
+
+    if (val === 8) {
+        return "Desposit"
+    }
+    if (val === 9) {
+        return "Payroll"
+    }
+    if (val === 10) {
+        return "Credit card"
+    }
+    if (val === 11) {
+        return "Fast food"
+    }
+    if (val === 12) {
+        return "Debit card"
+    }
+    if (val === 13) {
+        return "Shops"
+    }
+    if (val === 14) {
+        return "Payment"
+    }
+    if (val === 15) {
+        return "Coffee shop"
+    }
+
+    // todo: Finish
+    if (val === 16) {
+        return "Taxi"
+    }
+    if (val === 17) {
+        return "Sporting goods"
+    }
+    if (val === 18) {
+        return "Electronics"
+    }
+    if (val === 19) {
+        return "Pets"
+    }
+    if (val === 20) {
+        return "Children"
+    }
+    if (val === 21) {
+        return "Mortgage and rent"
+    }
+    if (val === 22) {
+        return "Car"
+    }
+    if (val === 23) {
+        return "Home and garden"
+    }
+    if (val === 24) {
+        return "Medical"
+    }
+    if (val === 25) {
+        return "Entertainment"
+    }
+    if (val === 26) {
+        return "Bills and utilities"
+    }
+    if (val === 27) {
+        return "Investments"
+    }
+    if (val === 28) {
+        return "Fees"
+    }
+    if (val === 29) {
+        return "Taxes"
+    }
+    if (val === 30) {
+        return "Business  services"
+    }
+    if (val === 31) {
+        return "Cash and checks"
+    }
+    if (val === 32) {
+        return "Gifts"
+    }
+    if (val === 33) {
+        return "Education"
+    }
+
+    console.error("Fallthrough on cat name")
+    return "Uncategorized"
+}

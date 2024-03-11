@@ -1,14 +1,16 @@
 # Misc / utility functions
 import json
+from collections import defaultdict
 from io import TextIOWrapper
-from typing import List, Dict, Iterable, Optional
-from datetime import date
+from typing import List, Dict, Iterable, Optional, Tuple
+from datetime import date, timedelta
 
 from django.db.models import Q
 from django.utils import timezone
 
 from main.models import AccountType, FinancialAccount, Person, SubAccount, Transaction, SubAccountType, SnapshotAccount, \
     SnapshotPerson
+from main.transaction_cats import TransactionCategory
 
 
 def unw_helper(net_worth: float, sub_acc: SubAccount) -> float:
@@ -35,8 +37,8 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
 
 
 def get_transaction_data(
-        start_i: int,
-        end_i: int,
+        start_i: Optional[int],
+        end_i: Optional[int],
         accounts: Iterable[FinancialAccount],
         person: Person,
         search_text: Optional[str],
@@ -63,7 +65,9 @@ def get_transaction_data(
     if end is not None:
         trans = trans.filter(date__lte=end)
 
-    return [tran for tran in trans[start_i:end_i]]
+    if start_i is not None and end_i is not None:
+        return trans[start_i:end_i]
+    return trans
 
 
 def load_dash_data(person: Person, no_preser: bool=False) -> Dict:
@@ -158,7 +162,6 @@ def load_dash_data(person: Person, no_preser: bool=False) -> Dict:
 
     return {
         "totals": totals_display,
-        # "sub_accs": json.dumps([s.serialize() for s in sub_accounts]),
         "sub_accs": accs,
         "transactions": tran,
     }
@@ -192,3 +195,39 @@ def take_snapshots(accounts: Iterable[FinancialAccount], person: Person):
     print("Snap saved person: ", snap_person)
 
     snap_person.save()
+
+
+# def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Person, num_days: int) -> List[Tuple[TransactionCategory, List[int, float, Dict[str, str]]]]:
+def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Person, num_days: int):
+    """Find the biggest recent spending highlights."""
+    end = timezone.now().date()
+    start = (end - timedelta(days=num_days))
+
+    # todo: We likely have already loaded these transactions. Optimize later.
+    # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
+    trans = get_transaction_data(None, None, accounts, person, "", start, end)
+
+    # print(trans, "TRANS")
+
+    tran_cats = {}
+
+    for tran in trans:
+        for cat in json.loads(tran.categories):
+            # c = TransactionCategory(cat)
+            c = cat  # We serialize anyway, so no need to convert to a TransactionCategory.
+            if c not in tran_cats.keys():
+                tran_cats[c] = [0, 0., []]  # count, total
+            tran_cats[c][0] += 1
+            tran_cats[c][1] += tran.amount
+            tran_cats[c][2].append(tran.serialize())
+
+    # Sort by value
+    tran_cats = sorted(tran_cats.items(), key=lambda x: x[1][1], reverse=True)
+
+    # print("\nTran cats: ", tran_cats)
+
+    #
+
+    # by_cat = trans.sort(key=lambda t: t.)
+
+    return tran_cats
