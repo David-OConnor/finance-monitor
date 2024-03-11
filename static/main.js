@@ -349,46 +349,6 @@ function refreshTransactions() {
             21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
 
             for (let cat of vals.map(v => [v, catNameFromVal(v)])) {
-            //
-            // for (let cat of [
-            //     // See models.py
-            //     [-1, "Uncategorized"],
-            //     [0, "Food and drink"],
-            //     [1, "Restauants"],
-            //     // [2, "ASC"],
-            //     [3, "Travel"],
-            //     [4, "Airlines"],
-            //     [5, "Recreation"],
-            //     [6, "Gyms"],
-            //     [7, "Transfer"],
-            //     [8, "Deposit"],
-            //     [9, "Payroll"],
-            //     [10, "Credit card"],
-            //     [11, "Fast food"],
-            //     [12, "Debit card"],
-            //     [13, "Shops"],
-            //     [14, "Payment"],
-            //     [15, "Coffee shop"],
-            //     [16, "Taxi"],
-            //     [17, "Sporting goods"],
-            //     [18, "Electronics"],
-            //     [19, "Pets"],
-            //     [20, "Children"],
-            //     [21, "Mortgage and rent"],
-            //     [22, "Car"],
-            //     [23, "Home and garden"],
-            //     [24, "Medical"],
-            //     [25, "Entertainment"],
-            //     [26, "Bills and utilities"],
-            //     [27, "Investments"],
-            //     [28, "Fees"],
-            //     [29, "Taxes"],
-            //     [30, "Business services"],
-            //     [31, "Cash and checks"],
-            //     [32, "Gift"],
-            //     [33, "Education"]
-            // ]) {
-
                 let catPrimary = tran.categories.length > 0 ? tran.categories[0] : -1  // -1 is uncategorized
                 opt = createEl("option", {value: cat[0]}, {}, cat[1])
                 if (cat[0] === catPrimary) {
@@ -858,7 +818,7 @@ function setupSpendingHighlights() {
         h = createEl(
             "h4",
             {},
-            {marginRight: "40px", cursor: "pointer"},
+            {marginRight: "40px"},
            "Total: " + formatAmount(SPENDING_HIGHLIGHTS.total, 0)
         )
     el.appendChild(h)
@@ -875,6 +835,7 @@ function setupSpendingHighlights() {
         )
 
         h.addEventListener("click", _ => {
+            CURRENT_PAGE = 0
             FILTER_CAT = highlight[0]
             updateTranFilter()
         })

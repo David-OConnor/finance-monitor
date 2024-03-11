@@ -512,6 +512,29 @@ def register(request):
     return render(request, "register.html", {})
 
 
+
+def password_reset(request):
+    if request.method == "POST":
+        pass
+        # form = UserCreationForm(request.POST)
+        # if form.is_valid():
+        #     user = form.save()
+        #     user.email = user.username
+        #     user.save()
+        #
+        #     person = Person()
+        #     person.user = user
+        #     person.save()
+        #
+        #     person.send_verification_email()
+        #
+        #     login(request, user)  # Log the user in
+        #     messages.success(request, "Registration successful.")
+        #     return redirect("/dashboard")  # Redirect to a desired URL
+
+    return render(request, "password_reset.html", {})
+
+
 @requires_csrf_token
 def user_login(request):
     if request.method == "POST":
@@ -523,21 +546,21 @@ def user_login(request):
             "in a row, your account may have been temporarily locked. Click here to unlock it."
         )
 
+        print("A", request.POST)
         user = authenticate(request, username=username.lower(), password=password)
+        print("B", user)
+
+        # Try authenticating using the email address; ie if email changed.
+        # if user is None:
+        #     print("\nTrying email....")
+        #     user = authenticate(request, email=username.lower(), password=password)
+
         if user is not None:
             login(request, user)
 
             # todo: How do we log unsuccessful attempts?
 
-            # Once authenticated, make sure the user's password isn't expired. We perform this check to make
-            # 4FW Comm and IG happier; agreed on a 180-day expiration for now. (2021-09-27).
-            try:
-                person = user.person
-            except Person.DoesNotExist:
-                return HttpResponse(
-                    "No person associated with your account; please "
-                    "contact a training or scheduling shop member."
-                )
+            person = user.person
 
             if person.account_locked:
                 return HttpResponse(unsuccessful_msg)
@@ -545,6 +568,7 @@ def user_login(request):
                 if person.unsuccessful_login_attempts > 0:
                     person.unsuccessful_login_attempts = 0
                     person.save()
+
 
             # # if (dt.date.today() - person.last_changed_password).days > 180:
             # # This is the default date; so, require a PW change if this is the first login.
@@ -558,7 +582,8 @@ def user_login(request):
             return HttpResponseRedirect("/dashboard")
         else:
             # Return an 'invalid login' error message.
-            return HttpResponse(unsuccessful_msg)
+            # return HttpResponse(unsuccessful_msg)
+            return render(request, "login_fail.html")
 
     else:
         return render(request, "login.html")

@@ -102,7 +102,7 @@ function catNameFromVal(val){
         return "Uncategorized"
     }
     if (val === 0) {
-        return "Food and drink"
+        return "Groceries"
     }
     if (val === 1) {
         return "Restaurants"
@@ -130,7 +130,7 @@ function catNameFromVal(val){
         return "Desposit"
     }
     if (val === 9) {
-        return "Payroll"
+        return "Income"
     }
     if (val === 10) {
         return "Credit card"
@@ -159,7 +159,7 @@ function catNameFromVal(val){
         return "Sporting goods"
     }
     if (val === 18) {
-        return "Electronics"
+        return "Electronics and software"
     }
     if (val === 19) {
         return "Pets"
@@ -201,10 +201,13 @@ function catNameFromVal(val){
         return "Cash and checks"
     }
     if (val === 32) {
-        return "Gifts"
+        return "Gifts and donations"
     }
     if (val === 33) {
         return "Education"
+    }
+    if (val === 34) {
+        return "Alcohol and bars"
     }
 
     console.error("Fallthrough on cat name")

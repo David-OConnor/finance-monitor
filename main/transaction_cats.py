@@ -22,7 +22,7 @@ class TransactionCategory(Enum):
     """These are types as reported by Plaid"""
 
     UNCATEGORIZED = -1
-    FOOD_AND_DRINK = 0
+    GROCERIES = 0
     RESTAURANTS = 1
     TRAVEL = 3
     AIRLINES_AND_AVIATION_SERVICES = 4
@@ -30,7 +30,7 @@ class TransactionCategory(Enum):
     GYMS_AND_FITNESS_CENTERS = 6
     TRANSFER = 7
     DEPOSIT = 8
-    PAYROLL = 9
+    INCOME = 9
     CREDIT_CARD = 10
     FAST_FOOD = 11  # todo: Move up
     DEBIT = 12
@@ -53,18 +53,19 @@ class TransactionCategory(Enum):
     TAXES = 29
     BUSINESS_SERVICES = 30
     CASH_AND_CHECKS = 31
-    GIFT = 32
+    GIFTS = 32
     EDUCATION = 33
+    ALCOHOL = 34
 
     @classmethod
     def from_str(cls, s: str) -> "TransactionCategory":
         """A little loose. We currently use it for both Plaid, and mint."""
         s = s.lower()
 
-        if "uncategorized" == s:
+        if "uncategorized" == s or "misc expenses" in s:
             return cls.UNCATEGORIZED
         if "food" in s or "grocer" in s:
-            return cls.FOOD_AND_DRINK
+            return cls.GROCERIES
         if "restau" in s:
             return cls.RESTAURANTS
         if "travel" in s:
@@ -80,7 +81,7 @@ class TransactionCategory(Enum):
         if "deposit" in s:
             return cls.DEPOSIT
         if "payroll" in s or "income" in s:
-            return cls.PAYROLL
+            return cls.INCOME
         if "credit c" in s:
             return cls.CREDIT_CARD
         if "fast food" in s:
@@ -125,10 +126,12 @@ class TransactionCategory(Enum):
             return cls.BUSINESS_SERVICES
         if "cash" in s or "check" in s:
             return cls.CASH_AND_CHECKS
-        if "gift" in s:
-            return cls.GIFT
+        if "gift" in s or "donation" in s:
+            return cls.GIFTS
         if "education" in s:
             return cls.EDUCATION
+        if "alcohol" in s or "bar" in s:
+            return cls.ALCOHOL
 
         print("Fallthrough in parsing transaction category: ", s)
 
@@ -139,8 +142,7 @@ class TransactionCategory(Enum):
             "Fallthrough in parsing transaction category: " + s,
             "contact@finance-monitor.com",
             # todo: contact @FM, and my person emails are temp
-            ["contact@finance-monitor.com", "david.alan.oconnor@gmail.com",
-             "the_alchemist@fastmail.com"],
+            ["contact@finance-monitor.com", "david.alan.oconnor@gmail.com"],
             fail_silently=False,
             html_message=""
         )
@@ -150,8 +152,8 @@ class TransactionCategory(Enum):
     def to_str(self) -> str:
         if self == TransactionCategory.UNCATEGORIZED:
             return "Uncategorized"
-        if self == TransactionCategory.FOOD_AND_DRINK:
-            return "Food and drink"
+        if self == TransactionCategory.GROCERIES:
+            return "Groceries"
         if self == TransactionCategory.RESTAURANTS:
             return "Restaurants"
         if self == TransactionCategory.TRAVEL:
@@ -166,8 +168,8 @@ class TransactionCategory(Enum):
             return "Transfer"
         if self == TransactionCategory.DEPOSIT:
             return "Deposit"
-        if self == TransactionCategory.PAYROLL:
-            return "Payroll"
+        if self == TransactionCategory.INCOME:
+            return "Income"
         if self == TransactionCategory.CREDIT_CARD:
             return "Credit card"
         if self == TransactionCategory.FAST_FOOD:
@@ -184,8 +186,8 @@ class TransactionCategory(Enum):
             return "Taxi"
         if self == TransactionCategory.SPORTING_GOODS:
             return "Sporting goods"
-        if self == TransactionCategory.ELECTRONICS:
-            return "Electronics"
+        if self == TransactionCategory.ELECTRONICS:  # todo: Separate software cat?
+            return "Electronics and software"
         if self == TransactionCategory.PETS:
             return "Pets"
         if self == TransactionCategory.CHILDREN:
@@ -213,9 +215,11 @@ class TransactionCategory(Enum):
         if self == TransactionCategory.CASH_AND_CHECKS:
             return "Cash and checks"
         if self == TransactionCategory.GIFTS:
-            return "Gifts"
+            return "Gifts and donations"
         if self == TransactionCategory.EDUCATION:
             return "Education"
+        if self == TransactionCategory.ALCOHOL:
+            return "Alcohol and bars"
 
         print("Fallthrough on cat to string", self)
         return "Fallthrough"
@@ -223,7 +227,7 @@ class TransactionCategory(Enum):
     def to_icon(self) -> str:
         if self == TransactionCategory.UNCATEGORIZED:
             return ""
-        if self == TransactionCategory.FOOD_AND_DRINK:
+        if self == TransactionCategory.GROCERIES:
             return "🍎"
         if self == TransactionCategory.RESTAURANTS:
             return "🍴"
@@ -239,7 +243,7 @@ class TransactionCategory(Enum):
             return "💵 ➡️"
         if self == TransactionCategory.DEPOSIT:
             return "💵 ⬆️"
-        if self == TransactionCategory.PAYROLL:
+        if self == TransactionCategory.INCOME:
             return "💵 ⬆️"
         if self == TransactionCategory.CREDIT_CARD:
             return "💵 ⬇️"
@@ -289,6 +293,8 @@ class TransactionCategory(Enum):
             return "🎁"
         if self == TransactionCategory.EDUCATION:
             return "🎓"
+        if self == TransactionCategory.ALCOHOL:
+            return "🍺"
 
         print("Fallthrough on cat to icon", self)
         return "Fallthrough"
@@ -300,20 +306,40 @@ replacements = [
     ("starbucks", TransactionCategory.COFFEE_SHOP),
     ("jlcpcb", TransactionCategory.BUSINESS_SERVICES),
     ("squarespace", TransactionCategory.BUSINESS_SERVICES),
+    ("github", TransactionCategory.BUSINESS_SERVICES),
     ("heroku", TransactionCategory.BUSINESS_SERVICES),
-    ("trader joe", TransactionCategory.FOOD_AND_DRINK),
-    ("whole foods", TransactionCategory.FOOD_AND_DRINK),
-    ("aldi", TransactionCategory.FOOD_AND_DRINK),
-    ("food lion", TransactionCategory.FOOD_AND_DRINK),
-    ("wegman", TransactionCategory.FOOD_AND_DRINK),
+    #
+    ("trader joe", TransactionCategory.GROCERIES),
+    ("whole foods", TransactionCategory.GROCERIES),
+    ("aldi", TransactionCategory.GROCERIES),
+    ("food lion", TransactionCategory.GROCERIES),
+    ("wegman", TransactionCategory.GROCERIES),
+    #
     ("at&t", TransactionCategory.BILLS_AND_UTILITIES),
     ("comcast", TransactionCategory.BILLS_AND_UTILITIES),
+    ("comcast", TransactionCategory.BILLS_AND_UTILITIES),
+    ("google fi", TransactionCategory.BILLS_AND_UTILITIES),
+    #
     ("bumble", TransactionCategory.ELECTRONICS),
+    # todo: Could be a restaurant too
+    ("audible", TransactionCategory.ELECTRONICS),
+    ("midjourney", TransactionCategory.ELECTRONICS),
+    ("openai", TransactionCategory.ELECTRONICS),
+    ("youtubeprem", TransactionCategory.ELECTRONICS),
+    ("spotify", TransactionCategory.ELECTRONICS),
+    ("sparkfun", TransactionCategory.ELECTRONICS),
+    ("kagi inc", TransactionCategory.ELECTRONICS),
+    #
+    ("mcdonald's", TransactionCategory.FAST_FOOD),
+    ("kfc", TransactionCategory.FAST_FOOD),
+    #
+    ("bar", TransactionCategory.ALCOHOL),
+    ("beer garden", TransactionCategory.ALCOHOL),
 ]
 
 
 def category_override(
-    descrip: str, categories: List[TransactionCategory]
+        descrip: str, categories: List[TransactionCategory]
 ) -> List[TransactionCategory]:
     """Manual category overrides, based on observation. Note: This is currently handled prior to adding to the DB."""
     descrip = descrip.lower()
@@ -335,8 +361,8 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
     cats = list(set(cats))  # Remove duplicates.
 
     if (
-        TransactionCategory.TRAVEL in cats
-        and TransactionCategory.AIRLINES_AND_AVIATION_SERVICES in cats
+            TransactionCategory.TRAVEL in cats
+            and TransactionCategory.AIRLINES_AND_AVIATION_SERVICES in cats
     ):
         cats.remove(TransactionCategory.TRAVEL)
 
@@ -346,56 +372,56 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
     if TransactionCategory.TRANSFER in cats and TransactionCategory.DEBIT in cats:
         cats.remove(TransactionCategory.TRANSFER)
 
-    if TransactionCategory.TRANSFER in cats and TransactionCategory.PAYROLL in cats:
-        cats.remove(TransactionCategory.PAYROLL)
+    if TransactionCategory.TRANSFER in cats and TransactionCategory.INCOME in cats:
+        cats.remove(TransactionCategory.INCOME)
 
     if (
-        TransactionCategory.RESTAURANTS in cats
-        and TransactionCategory.FOOD_AND_DRINK in cats
+            TransactionCategory.RESTAURANTS in cats
+            and TransactionCategory.GROCERIES in cats
     ):
-        cats.remove(TransactionCategory.FOOD_AND_DRINK)
+        cats.remove(TransactionCategory.GROCERIES)
 
     if (
-        TransactionCategory.RESTAURANTS in cats
-        and TransactionCategory.COFFEE_SHOP in cats
-    ):
-        cats.remove(TransactionCategory.RESTAURANTS)
-
-    if (
-        TransactionCategory.FAST_FOOD in cats
-        and TransactionCategory.FOOD_AND_DRINK in cats
-    ):
-        cats.remove(TransactionCategory.FOOD_AND_DRINK)
-
-    if (
-        TransactionCategory.RESTAURANTS in cats
-        and TransactionCategory.FAST_FOOD in cats
+            TransactionCategory.RESTAURANTS in cats
+            and TransactionCategory.COFFEE_SHOP in cats
     ):
         cats.remove(TransactionCategory.RESTAURANTS)
 
     if (
-        TransactionCategory.GYMS_AND_FITNESS_CENTERS in cats
-        and TransactionCategory.RECREATION in cats
+            TransactionCategory.FAST_FOOD in cats
+            and TransactionCategory.GROCERIES in cats
+    ):
+        cats.remove(TransactionCategory.GROCERIES)
+
+    if (
+            TransactionCategory.RESTAURANTS in cats
+            and TransactionCategory.FAST_FOOD in cats
+    ):
+        cats.remove(TransactionCategory.RESTAURANTS)
+
+    if (
+            TransactionCategory.GYMS_AND_FITNESS_CENTERS in cats
+            and TransactionCategory.RECREATION in cats
     ):
         cats.remove(TransactionCategory.RECREATION)
 
     # Lots of bogus food+drink cats inserted by Plaid.
     if (
-        TransactionCategory.FOOD_AND_DRINK in cats
-        and TransactionCategory.CREDIT_CARD in cats
+            TransactionCategory.GROCERIES in cats
+            and TransactionCategory.CREDIT_CARD in cats
     ):
-        cats.remove(TransactionCategory.FOOD_AND_DRINK)
+        cats.remove(TransactionCategory.GROCERIES)
 
     if TransactionCategory.PAYMENT in cats and TransactionCategory.CREDIT_CARD in cats:
         cats.remove(TransactionCategory.PAYMENT)
 
     if (
-        TransactionCategory.FOOD_AND_DRINK in cats
-        and TransactionCategory.TRANSFER in cats
+            TransactionCategory.GROCERIES in cats
+            and TransactionCategory.TRANSFER in cats
     ):
-        cats.remove(TransactionCategory.FOOD_AND_DRINK)
+        cats.remove(TransactionCategory.GROCERIES)
 
-    if TransactionCategory.FOOD_AND_DRINK in cats and TransactionCategory.SHOPS in cats:
+    if TransactionCategory.GROCERIES in cats and TransactionCategory.SHOPS in cats:
         cats.remove(TransactionCategory.SHOPS)
 
     if TransactionCategory.SPORTING_GOODS in cats and TransactionCategory.SHOPS in cats:
@@ -408,10 +434,10 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
         cats.remove(TransactionCategory.RESTAURANTS)
 
     if (
-        TransactionCategory.FOOD_AND_DRINK in cats
-        and TransactionCategory.TRAVEL in cats
+            TransactionCategory.GROCERIES in cats
+            and TransactionCategory.TRAVEL in cats
     ):
-        cats.remove(TransactionCategory.FOOD_AND_DRINK)
+        cats.remove(TransactionCategory.GROCERIES)
 
     if TransactionCategory.TAXI in cats and TransactionCategory.TRAVEL in cats:
         cats.remove(TransactionCategory.TRAVEL)

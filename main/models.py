@@ -154,6 +154,8 @@ class AccountType(Enum):
 
 
 class Person(Model):
+    """Associated with a user account."""
+
     # If we don't change on_delete, deleting a user will delete the associated person.
     user = models.OneToOneField(User, related_name="person", on_delete=CASCADE)
     unsuccessful_login_attempts = IntegerField(default=0)
@@ -161,6 +163,7 @@ class Person(Model):
     email_verified = BooleanField(default=False)
     subscribed = BooleanField(default=False)
     # verification_token = CharField(max_length=20, blank=True, null=True)
+    previous_emails = TextField(default="", blank=True, null=True)  # JSON list
 
     def __str__(self):
         return f"Person. id: {self.id} User: {self.user.username}"
@@ -190,7 +193,7 @@ class Person(Model):
             "",
             "contact@finance-monitor.com",
             # todo: contact @FM, and my person emails are temp
-            [self.user.email, "contact@finance-monitor.com", "david.alan.oconnor@gmail.com", "the_alchemist@fastmail.com"],
+            [self.user.email, "contact@finance-monitor.com", "david.alan.oconnor@gmail.com"],
             fail_silently=False,
             html_message=email_body,
         )

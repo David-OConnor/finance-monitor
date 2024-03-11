@@ -224,7 +224,9 @@ def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Pers
             c = cat  # We serialize anyway, so no need to convert to a TransactionCategory.
 
             # Remove categories that don't categorize spending well.
-            if c in [TransactionCategory.PAYMENT, TransactionCategory.PAYROLL, TransactionCategory.TRANSFER]:
+            if c in [TransactionCategory.PAYMENT, TransactionCategory.INCOME, TransactionCategory.TRANSFER,
+                     TransactionCategory.UNCATEGORIZED, TransactionCategory.DEPOSIT, TransactionCategory.DEBIT,
+                     TransactionCategory.CREDIT_CARD]:
                 continue
 
             if c.value not in result.keys():
