@@ -316,6 +316,7 @@ replacements = [
     ("heroku", TransactionCategory.BUSINESS_SERVICES),
     ("domains", TransactionCategory.BUSINESS_SERVICES),
     ("gsuite", TransactionCategory.BUSINESS_SERVICES),
+    ("pirate ship", TransactionCategory.BUSINESS_SERVICES),
     #
     ("trader joe", TransactionCategory.GROCERIES),
     ("whole foods", TransactionCategory.GROCERIES),

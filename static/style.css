@@ -335,6 +335,28 @@ img {
     padding: 8px;
 }
 
+@media (max-width : 800px) {
+    .account-type {
+        width: 100%
+    }
+}
+
+.account-heading {
+    display: flex;
+}
+
+@media (max-width : 800px) {
+    .account-heading {
+        justify-content: space-between;
+    }
+}
+
+@media (min-width : 800px) {
+    .account-heading {
+        flex-direction: column;
+    }
+}
+
 /* This surrounds the account-types above*/
 #accounts {
     display: flex;

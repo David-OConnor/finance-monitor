@@ -288,6 +288,8 @@ function refreshAccounts() {
     ]) {
         if (accs[0].length > 0) {
             div = createEl("div", {class: "account-type"})
+
+            let d2 = createEl("div", {class: "account-heading"}) // to change horizontal/vertical mobile/desktop
             h1 = createEl("h2", {}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, accs[1])
 
             // note: We also calcualte this server side
@@ -305,8 +307,9 @@ function refreshAccounts() {
             totalFormatted = formatAmount(total, false)
             h2 = createEl("h2", {class: class_}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, totalFormatted) // total todo
 
-            div.appendChild(h1)
-            div.appendChild(h2)
+            d2.appendChild(h1)
+            d2.appendChild(h2)
+            div.appendChild(d2)
         }
 
         for (let acc of accs[0]) {
@@ -396,7 +399,7 @@ function refreshTransactions() {
     let tbody = document.getElementById("transaction-tbody")
     tbody.replaceChildren();
 
-    let col, img, h, opt, sel
+    let col, img, h, opt, sel, d
     for (let tran of transactions) {
         const row = createEl("tr", {},{borderBottom: "1px solid #cccccc"} )
 
@@ -411,12 +414,20 @@ function refreshTransactions() {
         d = createEl("div", {}, {display: "flex", alignItems: "center"})
 
         if (EDIT_MODE_TRAN) {
-            d.append(createCatSel(tran))
-            col.append(d)
+            d.appendChild(createCatSel(tran))
+            col.appendChild(d)
 
         } else if (tran.id === CAT_QUICKEDIT) {
-            d.append(createCatSel(tran, true)) // Auto-save.
-            col.append(d)
+            d.appendChild(createCatSel(tran, true)) // Auto-save.
+
+            h = createEl("h4", {}, {}, "🔎")
+            d.appendChild(h)
+
+            let search = createEl("input", {}, {width: "70px"},)
+            search.addEventListener("input", e => {
+            })
+            d.appendChild(search)
+            col.appendChild(d)
         } else {
             // Allow clicking to enter quick edit.
             d.style.cursor = "pointer"
@@ -427,24 +438,18 @@ function refreshTransactions() {
 
             if (tran.logo_url.length > 0) {
                 img = createEl("img", {"src": tran.logo_url, alt: "", width: "20px"})
-                // col.appendChild(img)
-                d.append(img)
+                d.appendChild(img)
             }
 
             let s
             if (TRANSACTION_ICONS) {
-                // s = createEl("span", {}, {}, tran.categories_icon)
                 s = createEl("span", {}, {}, tran.categories.length ? catIconFromVal(tran.categories[0]) : "")
-                // col.textContent = tran.categories_icon
             } else {
-                // col.textContent = tran.categories_text
-                // s = createEl("span", {}, {}, tran.categories_text)
                 s = createEl("span", {}, {}, tran.categories.length ? catNameFromVal(tran.categories[0]) : "")
             }
-            // col.appendChild(s)
 
-            d.append(s)
-            col.append(d)
+            d.appendChild(s)
+            col.appendChild(d)
         }
 
         row.appendChild(col)
@@ -455,7 +460,7 @@ function refreshTransactions() {
         h = createEl(
             "h4",
             {class: "tran-heading"},
-            {fontWeight: "normal", marginLeft: "40px"},
+            {fontWeight: "normal", marginLeft: "0px"},
             tran.description
         )
 
@@ -911,29 +916,25 @@ function init() {
             });
     });
 
-    document.getElementById('export').addEventListener('click', function() {
-        window.location.href = '/export'
-    })
-
-    document.getElementById('export').addEventListener('click', function() {
-        window.location.href = '/export'
-    })
+    // document.getElementById('export').addEventListener('click', function() {
+    //     window.location.href = '/export'
+    // })
 
     // Set up the import start
-    const importStart = document.getElementById('import-start')
-    importStart.addEventListener('click', function() {
-        // importStart.
-        const importForm = document.getElementById("import-form")
-        if (importForm.style.visibility === "collapse") {
-            importForm.style.visibility = "visible"
-            // importStart.style.visibility = "collapse"
-            importStart.textContent = "Cancel import"
-        } else {
-            importForm.style.visibility = "collapse"
-            importStart.textContent = "Import ↑"
-        }
-
-    })
+    // const importStart = document.getElementById('import-start')
+    // importStart.addEventListener('click', function() {
+    //     // importStart.
+    //     const importForm = document.getElementById("import-form")
+    //     if (importForm.style.visibility === "collapse") {
+    //         importForm.style.visibility = "visible"
+    //         // importStart.style.visibility = "collapse"
+    //         importStart.textContent = "Cancel import"
+    //     } else {
+    //         importForm.style.visibility = "collapse"
+    //         importStart.textContent = "Import ↑"
+    //     }
+    //
+    // })
 
     refreshAccounts()
     refreshTransactions()
@@ -995,3 +996,10 @@ function changePage(direction) {
     TRANSACTIONS_LOADED = false // Allows more transactions to be loaded from the server.
     refreshTransactions()
 }
+
+document.addEventListener("keydown",function(e){
+  if(e.key === "Escape") {
+      CAT_QUICKEDIT = null
+      refreshTransactions() // todo: Don't refresh all. just the text edit in question.
+  }
+});
