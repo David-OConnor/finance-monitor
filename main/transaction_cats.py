@@ -4,6 +4,8 @@ from typing import List
 
 from django.core.mail import send_mail
 
+from wallet import settings
+
 
 # todo: C+P from main.models due ot circular import concern
 def enum_choices(cls):
@@ -17,12 +19,43 @@ def enum_choices(cls):
     return cls
 
 
+class TransactionCategoryDiscret(Enum):
+    """Our broadest grouping"""
+    DISCRETIONARY = 0
+    # Housing, bills etc
+    NON_DISCRETIONARY = 1
+
+
+class TransactionCategoryGeneral(Enum):
+    """We group each category into one of these more general categories"""
+    UNCATEGORIZED = -1
+    TRAVEL = 0
+    CONSUMER_PRODUCTS = 1
+    BUSINESS = 2
+    FOOD_AND_DRINK = 3
+
+    @classmethod
+    def from_cat(cls, cat: "TransactionCategory") -> "TransactionCategoryGeneral":
+        if cat == TransactionCategory.UNCATEGORIZED:
+            return cls.UNCATEGORIZED
+        if cat in [TransactionCategory.TRAVEL, TransactionCategory.AIRLINES_AND_AVIATION_SERVICES]:
+            return cls.TRAVEL
+        if cat in [CONSUMER_PRODUCTS]:
+            return cls.CONSUMER_PRODUCTS
+        if cat in [CONSUMER_PRODUCTS]:
+            return cls.BUSINESS
+        if cat in [TransactionCategory.GROCERIES, TransactionCategory.ALCOHOL, TransactionCategory.RESTAURANTS,
+                   TransactionCategory.COFFEE_SHOP]:
+            return cls.FOOD_AND_DRINK
+
+
+
 @enum_choices
 class TransactionCategory(Enum):
     """These are types as reported by Plaid"""
 
     UNCATEGORIZED = -1
-    UNCATEGORIZED2 = 2  # todo: We got this accidentally
+    SOFTWARE_SUBSCRIPTIONS = 2
     GROCERIES = 0
     RESTAURANTS = 1
     TRAVEL = 3
@@ -67,9 +100,11 @@ class TransactionCategory(Enum):
             return cls.UNCATEGORIZED
         if "food" in s or "grocer" in s:
             return cls.GROCERIES
+        if "software subscription" in s or "digital purchase" in s:
+            return cls.SOFTWARE_SUBSCRIPTIONS
         if "restau" in s:
             return cls.RESTAURANTS
-        if "travel" in s:
+        if "travel" in s or "lodging" in s:
             return cls.TRAVEL
         if "airlines" in s:
             return cls.AIRLINES_AND_AVIATION_SERVICES
@@ -83,13 +118,13 @@ class TransactionCategory(Enum):
             return cls.DEPOSIT
         if "payroll" in s or "income" in s:
             return cls.INCOME
-        if "credit c" in s:
+        if "credit" in s:
             return cls.CREDIT_CARD
         if "fast food" in s:
             return cls.FAST_FOOD
         if "debit" in s:
             return cls.DEBIT
-        if "shop" in s:
+        if "shop" in s or "bookstore" in s or "hardware" in s or "clothing" in s or "merchandise" in s:
             return cls.SHOPS
         if "payment" == s:
             return cls.PAYMENT
@@ -99,7 +134,7 @@ class TransactionCategory(Enum):
             return cls.TAXI
         if "sporting" in s:
             return cls.SPORTING_GOODS
-        if "electron" in s:
+        if "electron" in s or "video games" in s:
             return cls.ELECTRONICS
         if "pet" in s:
             return cls.PETS
@@ -107,15 +142,15 @@ class TransactionCategory(Enum):
             return cls.CHILDREN
         if "mortgate" in s or "rent" in s:
             return cls.MORTGAGE_AND_RENT
-        if "car" in s or "auto" in s:
+        if "car" in s or "auto" in s or "gas station" in s:
             return cls.CAR
         if "home" in s or "garden" in s:
             return cls.HOME_AND_GARDEN
         if "medical" in s:
             return cls.MEDICAL
-        if "entertainment" in s:
+        if "entertainment" in s or "dance" in s or "music" in s:
             return cls.ENTERTAINMENT
-        if "bill" in s or "utility" in s:
+        if "bill" in s or "utility" in s or "telecommunication serv" in s:
             return cls.BILLS_AND_UTILITIES
         if "invest" in s:
             return cls.INVESTMENTS
@@ -123,7 +158,8 @@ class TransactionCategory(Enum):
             return cls.FEES
         if "taxes" in s:
             return cls.TAXES
-        if "business" in s:
+        # todo: Sort out "service"
+        if "business" in s or "shipping" in s or "service" in s:
             return cls.BUSINESS_SERVICES
         if "cash" in s or "check" in s:
             return cls.CASH_AND_CHECKS
@@ -138,15 +174,16 @@ class TransactionCategory(Enum):
 
         # Send an email, so we know and can add it.
 
-        send_mail(
-            "Finance Monitor error",
-            "Fallthrough in parsing transaction category: " + s,
-            "contact@finance-monitor.com",
-            # todo: contact @FM, and my person emails are temp
-            ["contact@finance-monitor.com"],
-            fail_silently=False,
-            html_message="",
-        )
+        if settings.DEPLOYED:
+            send_mail(
+                "Finance Monitor error",
+                "Fallthrough in parsing transaction category: " + s,
+                "contact@finance-monitor.com",
+                # todo: contact @FM, and my person emails are temp
+                ["contact@finance-monitor.com"],
+                fail_silently=False,
+                html_message="",
+            )
 
         return cls.UNCATEGORIZED
 
@@ -155,6 +192,8 @@ class TransactionCategory(Enum):
             return "Uncategorized"
         if self == TransactionCategory.GROCERIES:
             return "Groceries"
+        if self == TransactionCategory.SOFTWARE_SUBSCRIPTIONS:
+            return "Software subscriptions"
         if self == TransactionCategory.RESTAURANTS:
             return "Restaurants"
         if self == TransactionCategory.TRAVEL:
@@ -230,6 +269,8 @@ class TransactionCategory(Enum):
             return ""
         if self == TransactionCategory.GROCERIES:
             return "🍎"
+        if self == TransactionCategory.SOFTWARE_SUBSCRIPTIONS:
+            return "📅"
         if self == TransactionCategory.RESTAURANTS:
             return "🍴"
         if self == TransactionCategory.TRAVEL:
@@ -310,6 +351,7 @@ class TransactionCategory(Enum):
 replacements = [
     ("coffee", TransactionCategory.COFFEE_SHOP),
     ("starbucks", TransactionCategory.COFFEE_SHOP),
+    #
     ("jlcpcb", TransactionCategory.BUSINESS_SERVICES),
     ("squarespace", TransactionCategory.BUSINESS_SERVICES),
     ("github", TransactionCategory.BUSINESS_SERVICES),
@@ -317,27 +359,33 @@ replacements = [
     ("domains", TransactionCategory.BUSINESS_SERVICES),
     ("gsuite", TransactionCategory.BUSINESS_SERVICES),
     ("pirate ship", TransactionCategory.BUSINESS_SERVICES),
+    ("polycase", TransactionCategory.BUSINESS_SERVICES),
     #
     ("trader joe", TransactionCategory.GROCERIES),
     ("whole foods", TransactionCategory.GROCERIES),
     ("aldi", TransactionCategory.GROCERIES),
     ("food lion", TransactionCategory.GROCERIES),
     ("wegman", TransactionCategory.GROCERIES),
+    ("hello fresh", TransactionCategory.GROCERIES),
     #
     ("at&t", TransactionCategory.BILLS_AND_UTILITIES),
     ("comcast", TransactionCategory.BILLS_AND_UTILITIES),
     ("comcast", TransactionCategory.BILLS_AND_UTILITIES),
     ("google fi", TransactionCategory.BILLS_AND_UTILITIES),
     #
-    ("bumble", TransactionCategory.ELECTRONICS),
+    ("bumble", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     # todo: Could be a restaurant too
-    ("audible", TransactionCategory.ELECTRONICS),
-    ("midjourney", TransactionCategory.ELECTRONICS),
-    ("openai", TransactionCategory.ELECTRONICS),
-    ("youtubeprem", TransactionCategory.ELECTRONICS),
-    ("spotify", TransactionCategory.ELECTRONICS),
+    ("audible", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("midjourney", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("openai", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("youtubeprem", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("spotify", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("kagi inc", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("google stor", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    #
     ("sparkfun", TransactionCategory.ELECTRONICS),
-    ("kagi inc", TransactionCategory.ELECTRONICS),
+    ("digikey", TransactionCategory.ELECTRONICS),
+    ("mouser", TransactionCategory.ELECTRONICS),
     #
     ("mcdonald's", TransactionCategory.FAST_FOOD),
     ("kfc", TransactionCategory.FAST_FOOD),

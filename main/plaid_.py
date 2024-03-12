@@ -71,11 +71,9 @@ ACCOUNT_REFRESH_INTERVAL_RECURRING = 48 * HOUR  # seconds.
 # From experimenting: products= investments only allows access to Vanguard
 # products = assets only allows access to novo, Amex
 
-# todo: I still don't understand this.
 # Note: We don't use assets! That's used to qualify for a loan. Maybe see if Transactions only works?
-# PRODUCTS = [Products(p)for p in ["assets", "transactions"]]
-PRODUCTS = [Products(p) for p in ["transactions", "recurring_transactions"]]
-# PRODUCTS = [Products(p)for p in ["assets"]]
+# PRODUCTS = [Products(p) for p in ["transactions", "recurring_transactions"]]
+PRODUCTS = [Products(p) for p in ["transactions"]]
 PRODUCTS_REQUIRED_IF_SUPPORTED = [Products(p) for p in []]
 PRODUCTS_OPTIONAL = [Products(p) for p in []]
 PRODUCTS_ADDITIONAL_CONSENTED = [Products(p) for p in []]
@@ -254,6 +252,11 @@ def refresh_transactions(account: FinancialAccount) -> None:
         categories = [TransactionCategory.from_str(cat) for cat in tran.category]
         categories = transaction_cats.category_override(tran.name, categories)
 
+        cat_detailed = tran.personal_finance_category.detailed
+        cat_primary = tran.personal_finance_category.primary
+
+        print(f"\n Description: {tran.name}, Cat prim: {cat_primary}, Cat detailed: {cat_detailed} Cat isolated: {tran.category}\n")
+
         tran_db = Transaction(
             account=account,
             categories=json.dumps([cat.value for cat in categories]),
@@ -267,6 +270,7 @@ def refresh_transactions(account: FinancialAccount) -> None:
             pending=tran.pending,
             logo_url=tran.logo_url,
             plaid_category_icon_url="",  # todo: A/R
+            institution_name=account.institution.name,
         )
         try:
             tran_db.save()
@@ -288,7 +292,7 @@ def refresh_transactions(account: FinancialAccount) -> None:
     account.save()
 
 
-def refresh_recurring(account: FinancialAccount) -> List[RecurringTransaction]:
+def refresh_recurring(account: FinancialAccount):
     # Run this on all sub-accounts that have recent transactions.\
     # The docs have some interesting notes; I'm not yet sure how to impl them.
     # https://plaid.com/docs/api/products/transactions/#transactionsrecurringget

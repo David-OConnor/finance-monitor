@@ -56,6 +56,7 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
             date=date,
             currency_code="USD",  # todo: Allow the user to select this A/R.
             notes=row[8],
+            institution_name=row[6],
         )
         try:
             transaction.save()
@@ -104,6 +105,7 @@ def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str
 
         # Writing the row according to Mint's CSV format
         # Assuming `transaction.description` maps to both "Description" and "Original Description" as per Mint's format
+
         writer.writerow(
             [
                 transaction.date,
@@ -113,7 +115,7 @@ def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str
                 transaction_type,
                 category,
                 # todo: Sub-account info?
-                transaction.account.institution.name,
+                transaction.institution_name,
                 "",  # Labels are skipped as per the provided code snippet
                 transaction.notes,
             ]

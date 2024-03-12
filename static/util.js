@@ -107,9 +107,9 @@ function catNameFromVal(val) {
     if (val === 1) {
         return "Restaurants"
     }
-    // if (val === 2) {
-    //     return "a"
-    // }
+    if (val === 2) {
+        return "Software subscriptions"
+    }
     if (val === 3) {
         return "Travel"
     }
@@ -224,9 +224,9 @@ function catIconFromVal(val){
     if (val === 1) {
         return "🍴"
     }
-    // if (val === 2) {
-    //     return "a"
-    // }
+    if (val === 2) {
+        return "📅"
+    }
     if (val === 3) {
         return "✈️"
     }
@@ -326,4 +326,40 @@ function catIconFromVal(val){
 
     console.error("Fallthrough on cat icon", val)
     return "❓"
+}
+
+const FETCH_HEADERS_GET = {
+    method: "GET",
+    mode: "cors",
+    credentials: "same-origin",
+    headers: {
+        "X-CSRFToken": getCrsfToken(),
+        Accept: "application/json",
+    },
+}
+const FETCH_HEADERS_POST = {
+    method: "POST",
+    mode: "cors",
+    credentials: "same-origin",
+    headers: {
+        "X-CSRFToken": getCrsfToken(),
+        Accept: "application/json",
+    },
+}
+
+function getCrsfToken() {
+    // For CRSF compatibility
+    let name_ = "csrftoken"
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name_.length + 1) === (name_ + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name_.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }

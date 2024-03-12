@@ -1,22 +1,3 @@
-const FETCH_HEADERS_GET = {
-    method: "GET",
-    mode: "cors",
-    credentials: "same-origin",
-    headers: {
-        "X-CSRFToken": getCrsfToken(),
-        Accept: "application/json",
-    },
-}
-const FETCH_HEADERS_POST = {
-    method: "POST",
-    mode: "cors",
-    credentials: "same-origin",
-    headers: {
-        "X-CSRFToken": getCrsfToken(),
-        Accept: "application/json",
-    },
-}
-
 // Global mutal variables
 let LINK_TOKEN = ""
 let SEARCH_TEXT = ""
@@ -180,7 +161,9 @@ function filterTransactions() {
     transactions.sort((b, a) => new Date(a.date) - new Date(b.date))
 
     const startI = CURRENT_PAGE * PAGE_SIZE
-    const endI = CURRENT_PAGE * PAGE_SIZE + PAGE_SIZE
+    // const endI = CURRENT_PAGE * PAGE_SIZE + PAGE_SIZE
+    // todo: Kludge for sometimes not loading enough. Fix this.
+    const endI = CURRENT_PAGE * PAGE_SIZE + 2*PAGE_SIZE
 
     transactions = transactions.slice(startI, endI)
 
@@ -428,6 +411,13 @@ function refreshTransactions() {
             })
             d.appendChild(search)
             col.appendChild(d)
+
+            let btn =  createEl("button", {class: "button-small"}, {}, "cancel")
+            btn.addEventListener("click", _ => {
+                CAT_QUICKEDIT = null
+                refreshTransactions()
+            })
+            d.appendChild(btn)
         } else {
             // Allow clicking to enter quick edit.
             d.style.cursor = "pointer"
@@ -573,23 +563,6 @@ function updateTranFilter() {
     refreshTransactions()
 }
 
-
-function getCrsfToken() {
-    // For CRSF compatibility
-    let name_ = "csrftoken"
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name_.length + 1) === (name_ + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name_.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
 
 function addAccountManual() {
     // We use this when submitting a new manual account
@@ -916,26 +889,6 @@ function init() {
             });
     });
 
-    // document.getElementById('export').addEventListener('click', function() {
-    //     window.location.href = '/export'
-    // })
-
-    // Set up the import start
-    // const importStart = document.getElementById('import-start')
-    // importStart.addEventListener('click', function() {
-    //     // importStart.
-    //     const importForm = document.getElementById("import-form")
-    //     if (importForm.style.visibility === "collapse") {
-    //         importForm.style.visibility = "visible"
-    //         // importStart.style.visibility = "collapse"
-    //         importStart.textContent = "Cancel import"
-    //     } else {
-    //         importForm.style.visibility = "collapse"
-    //         importStart.textContent = "Import ↑"
-    //     }
-    //
-    // })
-
     refreshAccounts()
     refreshTransactions()
 
@@ -998,8 +951,8 @@ function changePage(direction) {
 }
 
 document.addEventListener("keydown",function(e){
-  if(e.key === "Escape") {
-      CAT_QUICKEDIT = null
-      refreshTransactions() // todo: Don't refresh all. just the text edit in question.
-  }
+    if(e.key === "Escape") {
+        CAT_QUICKEDIT = null
+        refreshTransactions() // todo: Don't refresh all. just the text edit in question.
+    }
 });

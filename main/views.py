@@ -204,9 +204,17 @@ def delete_accounts(request: HttpRequest) -> HttpResponse:
     # todo: Unlink etc if not manual
     for id_ in data.get("ids", []):
         try:
-            SubAccount.objects.get(id=id_).account.delete()
+            acc = SubAccount.objects.get(id=id_).account
         except SubAccount.DoesNotExist:
             result["success"] = False
+        else:
+            # Associate the transactions with the person, so it will still be loaded.
+            for tran in acc.transactions.all():
+                tran.person = request.user.person
+                tran.save()
+
+            acc.delete()
+
 
     return HttpResponse(json.dumps(result), content_type="application/json")
 
@@ -389,6 +397,7 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         access_token=access_token,
         item_id=item_id,
         last_refreshed=timezone.now(),
+        last_refreshed_recurring=timezone.now(),
     )
     # todo: We can add subaccounts here if we wish, using metadata["accounts"].
     # todo: Sub-keys
@@ -476,11 +485,21 @@ def recurring(request: HttpRequest) -> HttpResponse:
 def settings(request: HttpRequest) -> HttpResponse:
     """Page for adjusting account settings"""
 
+    if request.method == "POST":
+        form = SetPasswordForm(request.user, request.POST)
+
+        if form.is_valid():
+            form.save()
+            return render(request, "settings.html", {"password_change": True, "password_change_success": True})
+        else:
+            return render(request, "settings.html", {"password_change": True, "password_change_success": False})
+
+
     account_status = util.check_account_status(request)
     if account_status is not None:
         return account_status
 
-    return render(request, "settings.html", {})
+    return render(request, "settings.html", {"password_change": False})
 
 
 def about(request: HttpRequest) -> HttpResponse:
@@ -547,8 +566,6 @@ def register(request):
 
     return render(request, "register.html", {})
 
-
-
 # def password_reset(request):
 #     if request.method == "POST":
 #         pass
@@ -571,7 +588,6 @@ def register(request):
 #     return render(request, "password_reset.html", {})
 
 
-# @requires_csrf_token
 def user_login(request):
     if request.method == "POST":
         username = request.POST["username"]
@@ -762,7 +778,7 @@ def password_reset_confirm(request, uidb64=None, token=None):
         return render(request, "password_reset_invalid.html")
 
 
-def verify_email(request, uidb64=None, token=None):
+def verify_email(request: HttpRequest, uidb64=None, token=None):
     print(f"In verify email. UId: {uidb64}, token: {token}")
 
     try:
@@ -791,4 +807,3 @@ def send_verification(request: HttpRequest) -> HttpResponse:
 
     print("\nRe-sending verification email")
     return HttpResponseRedirect("/dashboard")
-

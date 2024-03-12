@@ -10,7 +10,19 @@
 
         <h2>Categorization rules</h2>
 
-        <h2>Change password</h2>
+        <h2 style="text-align: center;">Change password</h2>
+
+        {% if password_change %}
+            {% if password_change_success %}
+                <h2 style="color: green; text-align: center">
+                    Password successfully changed
+                </h2>
+            {% else %}
+                <h2 style="color: #8d4a1f; text-align: center">
+                    Password change failed; please try again.
+                </h2>
+            {% endif %}
+        {% endif %}
 
         <div class="form-block" style="display: flex; justify-content: center;">
             <form
@@ -50,42 +62,82 @@
 
                 {#                <span class="helptext" id="id_password2_helptext">Enter the same password as before, for verification.</span>#}
 
-                <button class="button-general" type="submit"
+                <button
+                        class="button-general"
+                        type="submit"
                         style="margin-top: 32px; width: 180px; margin-bottom: 40px;"
                 >Change your password</button>
             </form>
         </div>
 
-        <h2>Import and export transactions</h2>
+        <h2 style="text-align: center;">Import and export transactions</h2>
 
-        {#            Import / export form #}
-        <form
-                id="import-form"
-                method="post"
-                enctype="multipart/form-data"
-                {#                    collapse vis a/r#}
-                style="display: flex; align-items: center; visibility: collapse;"
-        >
-            {% csrf_token %}
-            {#                <input#}
-            {#                    style="color: black; background-color: #aaaaaa; height: 38px;"#}
-            {#                    type="file"#}
-            {#                    accept="text/csv"#}
-            {#                />#}
-            <input type="file" name="file" required id="id_file"
-                   style="color: black; background-color: #aaaaaa; height: 38px;">
-            <button type="submit" class="button-general">Import from Mint</button>
-        </form>
+        <div style="display: flex; justify-content: center;">
+            {#            Import / export form #}
+            <form
+                    id="import-form"
+                    method="post"
+                    enctype="multipart/form-data"
+                    {#                    collapse vis a/r#}
+                    style="display: flex; align-items: center; visibility: visible;"
+            >
+                {% csrf_token %}
+                {#                <input#}
+                {#                    style="color: black; background-color: #aaaaaa; height: 38px;"#}
+                {#                    type="file"#}
+                {#                    accept="text/csv"#}
+                {#                />#}
+                <input type="file" name="file" required id="id_file"
+                       style="color: black; background-color: #aaaaaa; height: 38px;">
+            </form>
 
-        <button id="import-start" class="button-general">Import ↑</button>
-        {#            Have a button show the import dialog#}
-        <button id="export" class="button-general">Export ↓</button>
+            <button id="import-start" class="button-general">Import from Mint ↑</button>
+            {#            Have a button show the import dialog#}
+            <button id="export" class="button-general">Export ↓</button>
+        </div>
     </div>
 
-
-
+    <script src="../static/util.js"></script>
     <script>
         document.getElementById("menu-settings").classList.add("menu-highlighted")
+
+        document.getElementById('export').addEventListener('click', function() {
+            window.location.href = '/export'
+        })
+
+        {#Set up the import start#}
+        const importStart = document.getElementById('import-start')
+        importStart.addEventListener('click', function() {
+            {#importStart.#}
+            const importForm = document.getElementById("import-form")
+            if (importForm.style.visibility === "collapse") {
+                importForm.style.visibility = "visible"
+                importStart.style.visibility = "collapse"
+                importStart.textContent = "Cancel import"
+            } else {
+                importForm.style.visibility = "collapse"
+                importStart.textContent = "Import ↑"
+            }
+            //
+        })
+
+        {#function changePassword() {#}
+        {#    console.log("CHANGING PW")#}
+        {#    let payload = {#}
+        {#        password1: document.getElementById("id_new_password1"),#}
+        {#        password2: document.getElementById("id_new_password2"),#}
+        {#    }#}
+        {#    fetch("/password-change/", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })#}
+        {#        .then(result => result.json())#}
+        {#        .then(r => {#}
+        {#            if (r.success) {#}
+        {#                console.log("Password change complete")#}
+        {#                document.getElementById("pw-change-success").style.visibility = "visible"#}
+        {#            } else {#}
+        {#                console.error("Password change failed")#}
+        {#            }#}
+        {#        });#}
+        {#}#}
     </script>
 
 {% endblock %}

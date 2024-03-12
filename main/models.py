@@ -236,7 +236,7 @@ class FinancialAccount(Model):
 
     person = ForeignKey(Person, related_name="accounts", on_delete=CASCADE)
     institution = ForeignKey(
-        Institution, on_delete=CASCADE, related_name="institutions"
+        Institution, on_delete=SET_NULL, related_name="institutions", blank=True, null=True
     )
     # A user-entered nickname for the account.
     name = CharField(max_length=100, blank=True)
@@ -369,6 +369,7 @@ class Transaction(Model):
         blank=True,
         on_delete=SET_NULL,
     )
+    institution_name = CharField(max_length=50) # In case the transaction is disconnected from an account.
     # We generally have 1-2 categories.
     # todo: Consider just u sing a Textfield here; you're not using the wrapping json object
     categories = TextField()  # List of category enums, eg [0, 2]
