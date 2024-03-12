@@ -320,18 +320,23 @@ function refreshAccounts() {
 }
 
 // todo: There is actually no elegant way to get a range iterator in JS...
-const vals = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+const vals = [-1, 0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
     21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
 
-const catNames = vals.map(v => [v, catNameFromVal(v)])
+let catNames = vals.map(v => [v, catNameFromVal(v)])
+console.log(catNames)
+// Sort alphabetically, by cat name.
+catNames.sort((a, b) =>(a[1].localeCompare(b[1])))
 
 function createCatSel(tran, autoSave) {
     // Create a select element for categories.
     // todo: Allow creating custom elements here, and search.
-    // todo: Alphabetic order?
     let sel = createEl("select", {}, {})
+
+    let opt
     for (let cat of catNames) {
         let catPrimary = tran.categories.length > 0 ? tran.categories[0] : -1  // -1 is uncategorized
+
         opt = createEl("option", {value: cat[0]}, {}, cat[1])
         if (cat[0] === catPrimary) {
             opt.setAttribute("selected", "")

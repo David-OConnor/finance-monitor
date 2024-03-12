@@ -22,6 +22,7 @@ class TransactionCategory(Enum):
     """These are types as reported by Plaid"""
 
     UNCATEGORIZED = -1
+    UNCATEGORIZED2 = 2  # todo: We got this accidentally
     GROCERIES = 0
     RESTAURANTS = 1
     TRAVEL = 3

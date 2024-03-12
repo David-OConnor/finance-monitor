@@ -216,7 +216,7 @@ function catIconFromVal(val){
     // See transaction_cats.py
 
     if (val === -1) {
-        return ""
+        return "❓"
     }
     if (val === 0) {
         return "🍎"
@@ -325,5 +325,5 @@ function catIconFromVal(val){
     }
 
     console.error("Fallthrough on cat icon", val)
-    return "Uncategorized"
+    return "❓"
 }

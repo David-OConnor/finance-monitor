@@ -205,12 +205,11 @@ ADMINS = (("admin", "contact@finance-monitor.com"),)
 MANAGERS = ADMINS
 
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "quals"  # todo: What should this be?
+LOGIN_REDIRECT_URL = "dashboard" # I don't think this is currently used.
 
-# todo temp; put back!
-# if DEPLOYED:
-#     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-#     SECURE_SSL_REDIRECT = True
+if DEPLOYED:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
 
 EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_HOST_USER = "apikey"
