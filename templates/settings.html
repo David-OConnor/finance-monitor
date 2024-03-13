@@ -9,14 +9,55 @@
     <div class="home-body">
 
         <h2 style="text-align: center">Categorization rules</h2>
-        <div style="display: flex;">
+        <div style="display: flex; flex-direction: column; align-items: center">
+
+            <button class="button-general" onclick="saveRules()" style="margin-bottom: 12px;">Save rules</button>
+
             {% for rule in rules %}
-                {{ rule.description }}
-                {{ rule.category }}
+                <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                    <input
+                            id="rule-descrip-{{ rule.id }}"
+                            style="width: 200px; margin-right: 10px;"
+                            value="{{ rule.description }}"
+                            oninput="updateRule({{ rule.id }})" />
+
+                    <h4 style="margin-top: 0; margin-bottom: 0">➡</h4>
+                    <select
+                            id="rule-category-{{ rule.id }}"
+                            style="margin-left: 10px;">
+                        {{ rule.category }}
+                    </select>
+                </div>
             {% endfor %}
         </div>
 
-        <h2 style="text-align: center;">Change password</h2>
+        <h2 style="text-align: center; margin-top: 60px;">Import and export transactions</h2>
+
+        <div style="display: flex; justify-content: center;">
+            {#            Import / export form #}
+            <form
+                    id="import-form"
+                    method="post"
+                    enctype="multipart/form-data"
+                    {#                    collapse vis a/r#}
+                    style="display: flex; align-items: center; visibility: visible;"
+            >
+                {% csrf_token %}
+                {#                <input#}
+                {#                    style="color: black; background-color: #aaaaaa; height: 38px;"#}
+                {#                    type="file"#}
+                {#                    accept="text/csv"#}
+                {#                />#}
+                <input type="file" name="file" required id="id_file"
+                       style="color: black; background-color: #aaaaaa; height: 38px;">
+            </form>
+
+            <button id="import-start" class="button-general">Import from Mint ↑</button>
+            {#            Have a button show the import dialog#}
+            <button id="export" class="button-general">Export ↓</button>
+        </div>
+
+        <h2 style="text-align: center; margin-top: 60px; margin-bottom: 0;">Change password</h2>
 
         {% if password_change %}
             {% if password_change_success %}
@@ -33,7 +74,7 @@
         <div class="form-block" style="display: flex; justify-content: center;">
             <form
                     method="post"
-                    style="display: flex; flex-direction: column; align-items: center;">
+                    style="display: flex; flex-direction: column; align-items: center; margin-top: 0;">
 
                 {#                todo: C+P with little change from login and reset confirm!#}
                 {% csrf_token %}
@@ -75,32 +116,6 @@
                 >Change your password</button>
             </form>
         </div>
-
-        <h2 style="text-align: center;">Import and export transactions</h2>
-
-        <div style="display: flex; justify-content: center;">
-            {#            Import / export form #}
-            <form
-                    id="import-form"
-                    method="post"
-                    enctype="multipart/form-data"
-                    {#                    collapse vis a/r#}
-                    style="display: flex; align-items: center; visibility: visible;"
-            >
-                {% csrf_token %}
-                {#                <input#}
-                {#                    style="color: black; background-color: #aaaaaa; height: 38px;"#}
-                {#                    type="file"#}
-                {#                    accept="text/csv"#}
-                {#                />#}
-                <input type="file" name="file" required id="id_file"
-                       style="color: black; background-color: #aaaaaa; height: 38px;">
-            </form>
-
-            <button id="import-start" class="button-general">Import from Mint ↑</button>
-            {#            Have a button show the import dialog#}
-            <button id="export" class="button-general">Export ↓</button>
-        </div>
     </div>
 
     <script src="../static/util.js"></script>
@@ -110,6 +125,8 @@
         document.getElementById('export').addEventListener('click', function() {
             window.location.href = '/export'
         })
+
+        let rulesUpdated = {}
 
         {#Set up the import start#}
         const importStart = document.getElementById('import-start')
@@ -127,23 +144,19 @@
             //
         })
 
-        {#function changePassword() {#}
-        {#    console.log("CHANGING PW")#}
-        {#    let payload = {#}
-        {#        password1: document.getElementById("id_new_password1"),#}
-        {#        password2: document.getElementById("id_new_password2"),#}
-        {#    }#}
-        {#    fetch("/password-change/", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })#}
-        {#        .then(result => result.json())#}
-        {#        .then(r => {#}
-        {#            if (r.success) {#}
-        {#                console.log("Password change complete")#}
-        {#                document.getElementById("pw-change-success").style.visibility = "visible"#}
-        {#            } else {#}
-        {#                console.error("Password change failed")#}
-        {#            }#}
-        {#        });#}
-        {#}#}
+        function updateRule(id) {
+            rulesUpdated[id] = {
+                descrip: document.getElementById("rule-descrip-" + id.toString()).value,
+                category: parseInt(document.getElementById("rule-category-" + id.toString()).value),
+            }
+
+            console.log("Updated: ", rulesUpdated)
+        }
+
+        function saveRules() {
+
+        }
+
     </script>
 
 {% endblock %}

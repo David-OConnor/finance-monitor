@@ -393,7 +393,226 @@ function createCatEdit(tran, autoSave, searchText) {
     return sel
 }
 
+function createTranRow(tran) {
+    // Return a single transaction row.
+    const row = createEl("tr", {id: "tran-row-" + tran.id.toString()},{borderBottom: "1px solid #cccccc"} )
+
+    col = createEl(
+        "td",
+        {class: "transaction-cell"},
+        // todo: We can only do one or both of this , and descrip flex. We need this to center teh icon,
+        // todo and descrip to be horizontal with pending...
+        {paddingLeft: "12px", color: "black"}
+    ) // Icon
+
+    d = createEl("div", {}, {display: "flex", alignItems: "center"})
+
+    if (EDIT_MODE_TRAN) {
+        d.appendChild(createCatEdit(tran))
+        col.appendChild(d)
+
+    } else if (tran.id === CAT_QUICKEDIT) {
+        d.appendChild(createCatEdit(tran, true, QUICK_CAT_SEARCH)) // Auto-save.
+
+        // h = createEl("h4", {}, {}, "🔎")
+        // d.appendChild(h)
+
+        // todo: Put this back.
+        // let search = createEl("input", {id: "quick-cat-search"}, {width: "70px"},)
+        // search.addEventListener("input", e => {
+        //     QUICK_CAT_SEARCH = e.target.value
+        //     refreshTransactions()
+        // })
+        // d.appendChild(search)
+
+        col.appendChild(d)
+
+        let btn = createEl("button", {id: "always-btn", class: "button-small"}, {}, "Always")
+
+        if (CAT_ALWAYS) {
+            btn.style.border = "2px solid #3cd542"
+            btn.style.fontWeight = "bold"
+            // btn.style.backroundColor = "#4f6b4d"
+        }
+
+        btn.addEventListener("click", _ => {
+            CAT_ALWAYS = !CAT_ALWAYS
+            refreshTransactions()
+        })
+        d.appendChild(btn)
+
+        btn =  createEl("button", {class: "button-small"}, {}, "Cancel")
+        btn.addEventListener("click", _ => {
+            CAT_QUICKEDIT = null
+            CAT_ALWAYS = false
+            refreshTransactions()
+        })
+        d.appendChild(btn)
+    } else {
+        // Allow clicking to enter quick edit.
+        d.style.cursor = "pointer"
+        d.addEventListener("click", _ => {
+            CAT_QUICKEDIT = tran.id
+            refreshTransactions() // Hopefully-safe recursion.
+        })
+
+        if (tran.logo_url.length > 0) {
+            img = createEl("img", {"src": tran.logo_url, alt: "", width: "20px"})
+            d.appendChild(img)
+        }
+
+        let s
+        if (TRANSACTION_ICONS) {
+            s = createEl("span", {}, {}, tran.categories.length ? catIconFromVal(tran.categories[0]) : "")
+        } else {
+            s = createEl("span", {}, {}, tran.categories.length ? catNameFromVal(tran.categories[0]) : "")
+        }
+
+        d.appendChild(s)
+        col.appendChild(d)
+    }
+
+    row.appendChild(col)
+
+    // Flex for pending indicator.
+    col = createEl("td", {class: "transaction-cell"}, {display: "flex"})
+
+    if (EDIT_MODE_TRAN) {
+        ip = createEl(
+            "input",
+            {value: tran.description},
+            // {width: "200px"},
+        )
+
+        ip.addEventListener("input", e => {
+            let updated = {
+                ...tran,
+                description: e.target.value
+            }
+            // todo: DRY!
+            TRANSACTIONS_UPDATED[String(tran.id)] = updated
+        })
+
+        col.appendChild(ip)
+    } else {
+        h = createEl(
+            "h4",
+            {class: "tran-heading"},
+            {fontWeight: "normal", marginLeft: "0px"},
+            tran.description
+        )
+        col.appendChild(h)
+
+        if (tran.pending) {
+            col.appendChild(createEl(
+                "h4",
+                {class: "tran-heading"},
+                {color: "#999999", fontWeight: "normal", marginLeft: "8px"},
+                "| Pending")
+            )
+        }
+    }
+
+    row.appendChild(col)
+
+    col = createEl("td", {class: "transaction-cell"}, {})
+    if (EDIT_MODE_TRAN) {
+        h = createEl("input", {value: tran.notes}, {marginRight: "30px"})
+
+        h.addEventListener("input", e => {
+            let updated = {
+                ...tran,
+                notes: e.target.value
+            }
+            // todo: DRY!
+            TRANSACTIONS_UPDATED[String(tran.id)] = updated
+        })
+    } else {
+        h = createEl(
+            "h4",
+            {class: "tran-heading"},
+            {fontWeight: "normal", color: "#444444", marginRight: "60px"},
+            tran.notes
+        )
+    }
+
+    col.appendChild(h)
+    row.appendChild(col)
+
+    col = createEl("td", {class: "transaction-cell"})
+    if (EDIT_MODE_TRAN) {
+        h = createEl(
+            "input",
+            { value: tran.amount},
+            {width: "80px", marginRight: "30px"},
+        )
+
+        h.addEventListener("input", e => {
+            if (isValidNumber(e.target.value)) {
+                let updated = {
+                    ...tran,
+                    amount: parseFloat(e.target.value)
+                }
+                // todo: DRY!
+                TRANSACTIONS_UPDATED[String(tran.id)] = updated
+            }
+        })
+
+    } else {
+        h = createEl("h4",
+            {class: "tran-heading " +  tran.amount_class},
+            {textAlign: "right", marginRight: "40px"}, formatAmount(tran.amount, true)
+        )
+    }
+
+    col.appendChild(h)
+    row.appendChild(col)
+
+    col = createEl("td", {class: "transaction-cell"})
+    if (EDIT_MODE_TRAN) {
+        d = createEl("div", {}, {display: "flex"})
+        h = createEl("input", {type: "date", value: tran.date}, {width: "120px"})
+
+        h.addEventListener("input", e => {
+            let updated = {
+                ...tran,
+                date: e.target.value
+            }
+            // todo: DRY!
+            TRANSACTIONS_UPDATED[String(tran.id)] = updated
+        })
+
+        let delBtn = createEl("button", {class: "button-small"}, {cursor: "pointer"}, "❌")
+        delBtn.addEventListener("click", _ => {
+            const data = {ids: [tran.id]}
+            fetch("/delete-transactions", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("Error deleting this transactcion: ", tran)
+                    }
+                });
+            let row = document.getElementById("tran-row-" + tran.id.toString())
+            row.remove()
+
+            TRANSACTIONS = TRANSACTIONS.filter(t => t.id !== tran.id)
+        })
+
+        d.appendChild(h)
+        d.appendChild(delBtn)
+        col.appendChild(d)
+    } else {
+        h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
+        col.appendChild(h)
+    }
+
+    row.appendChild(col)
+
+    return row
+}
+
 function refreshTransactions() {
+    // todo: Try to reduce calls to this function as much as possible, eg when only editing one row or column in a row.
     //[Re]populate the transactions table based on state.
     console.log("Refreshing transactions...")
     QUICK_CAT_SEARCH = ""
@@ -405,219 +624,7 @@ function refreshTransactions() {
 
     let col, img, h, opt, sel, d, ip
     for (let tran of transactions) {
-        const row = createEl("tr", {id: "tran-row-" + tran.id.toString()},{borderBottom: "1px solid #cccccc"} )
-
-        col = createEl(
-            "td",
-            {class: "transaction-cell"},
-            // todo: We can only do one or both of this , and descrip flex. We need this to center teh icon,
-            // todo and descrip to be horizontal with pending...
-            {paddingLeft: "12px", color: "black"}
-        ) // Icon
-
-        d = createEl("div", {}, {display: "flex", alignItems: "center"})
-
-        if (EDIT_MODE_TRAN) {
-            d.appendChild(createCatEdit(tran))
-            col.appendChild(d)
-
-        } else if (tran.id === CAT_QUICKEDIT) {
-            d.appendChild(createCatEdit(tran, true, QUICK_CAT_SEARCH)) // Auto-save.
-
-            // h = createEl("h4", {}, {}, "🔎")
-            // d.appendChild(h)
-
-            // todo: Put this back.
-            // let search = createEl("input", {id: "quick-cat-search"}, {width: "70px"},)
-            // search.addEventListener("input", e => {
-            //     QUICK_CAT_SEARCH = e.target.value
-            //     refreshTransactions()
-            // })
-            // d.appendChild(search)
-
-            col.appendChild(d)
-
-            let btn = createEl("button", {id: "always-btn", class: "button-small"}, {}, "Always")
-
-            if (CAT_ALWAYS) {
-                btn.style.border = "2px solid #3cd542"
-                btn.style.fontWeight = "bold"
-                // btn.style.backroundColor = "#4f6b4d"
-            }
-
-            btn.addEventListener("click", _ => {
-                CAT_ALWAYS = !CAT_ALWAYS
-                refreshTransactions()
-            })
-            d.appendChild(btn)
-
-            btn =  createEl("button", {class: "button-small"}, {}, "Cancel")
-            btn.addEventListener("click", _ => {
-                CAT_QUICKEDIT = null
-                CAT_ALWAYS = false
-                refreshTransactions()
-            })
-            d.appendChild(btn)
-        } else {
-            // Allow clicking to enter quick edit.
-            d.style.cursor = "pointer"
-            d.addEventListener("click", _ => {
-                CAT_QUICKEDIT = tran.id
-                refreshTransactions() // Hopefully-safe recursion.
-            })
-
-            if (tran.logo_url.length > 0) {
-                img = createEl("img", {"src": tran.logo_url, alt: "", width: "20px"})
-                d.appendChild(img)
-            }
-
-            let s
-            if (TRANSACTION_ICONS) {
-                s = createEl("span", {}, {}, tran.categories.length ? catIconFromVal(tran.categories[0]) : "")
-            } else {
-                s = createEl("span", {}, {}, tran.categories.length ? catNameFromVal(tran.categories[0]) : "")
-            }
-
-            d.appendChild(s)
-            col.appendChild(d)
-        }
-
-        row.appendChild(col)
-
-        // Flex for pending indicator.
-        col = createEl("td", {class: "transaction-cell"}, {display: "flex"})
-
-        if (EDIT_MODE_TRAN) {
-            ip = createEl(
-                "input",
-                {value: tran.description},
-                // {width: "200px"},
-            )
-
-            ip.addEventListener("input", e => {
-                let updated = {
-                    ...tran,
-                    description: e.target.value
-                }
-                // todo: DRY!
-                TRANSACTIONS_UPDATED[String(tran.id)] = updated
-            })
-
-            col.appendChild(ip)
-        } else {
-            h = createEl(
-                "h4",
-                {class: "tran-heading"},
-                {fontWeight: "normal", marginLeft: "0px"},
-                tran.description
-            )
-            col.appendChild(h)
-
-            if (tran.pending) {
-                col.appendChild(createEl(
-                    "h4",
-                    {class: "tran-heading"},
-                    {color: "#999999", fontWeight: "normal", marginLeft: "8px"},
-                    "| Pending")
-                )
-            }
-        }
-
-        row.appendChild(col)
-
-        col = createEl("td", {class: "transaction-cell"}, {})
-        if (EDIT_MODE_TRAN) {
-            h = createEl("input", {value: tran.notes}, {marginRight: "30px"})
-
-            h.addEventListener("input", e => {
-                let updated = {
-                    ...tran,
-                    notes: e.target.value
-                }
-                // todo: DRY!
-                TRANSACTIONS_UPDATED[String(tran.id)] = updated
-            })
-        } else {
-            h = createEl(
-                "h4",
-                {class: "tran-heading"},
-                {fontWeight: "normal", color: "#444444", marginRight: "60px"},
-                tran.notes
-            )
-        }
-
-        col.appendChild(h)
-        row.appendChild(col)
-
-        col = createEl("td", {class: "transaction-cell"})
-        if (EDIT_MODE_TRAN) {
-            h = createEl(
-                "input",
-                { value: tran.amount},
-                {width: "80px", marginRight: "30px"},
-            )
-
-            h.addEventListener("input", e => {
-                if (isValidNumber(e.target.value)) {
-                    let updated = {
-                        ...tran,
-                        amount: parseFloat(e.target.value)
-                    }
-                    // todo: DRY!
-                    TRANSACTIONS_UPDATED[String(tran.id)] = updated
-                }
-            })
-
-        } else {
-            h = createEl("h4",
-                {class: "tran-heading " +  tran.amount_class},
-                {textAlign: "right", marginRight: "40px"}, formatAmount(tran.amount, true)
-            )
-        }
-
-        col.appendChild(h)
-        row.appendChild(col)
-
-        col = createEl("td", {class: "transaction-cell"})
-        if (EDIT_MODE_TRAN) {
-            d = createEl("div", {}, {display: "flex"})
-            h = createEl("input", {type: "date", value: tran.date}, {width: "120px"})
-
-            h.addEventListener("input", e => {
-                let updated = {
-                    ...tran,
-                    date: e.target.value
-                }
-                // todo: DRY!
-                TRANSACTIONS_UPDATED[String(tran.id)] = updated
-            })
-
-            let delBtn = createEl("button", {class: "button-small"}, {cursor: "pointer"}, "❌")
-            delBtn.addEventListener("click", _ => {
-                const data = {ids: [tran.id]}
-                fetch("/delete-transactions", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
-                    .then(result => result.json())
-                    .then(r => {
-                        if (!r.success) {
-                            console.error("Error deleting this transactcion: ", tran)
-                        }
-                    });
-                let row = document.getElementById("tran-row-" + tran.id.toString())
-                row.remove()
-
-                TRANSACTIONS = TRANSACTIONS.filter(t => t.id !== tran.id)
-                refreshTransactions() // todo: Del row in place
-            })
-
-            d.appendChild(h)
-            d.appendChild(delBtn)
-            col.appendChild(d)
-        } else {
-            h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
-            col.appendChild(h)
-        }
-
-        row.appendChild(col)
+        const row = createTranRow(tran)
 
         tbody.appendChild(row)
     }
@@ -1034,6 +1041,8 @@ function addTranManual() {
     // const tempId = parseInt(Math.random() * 10_000)
 
     // Ensure the name is unique, or the DB will refuse to save it due to a unique_together constraint.
+
+    // todo: This will fail if you hit 10; Fix this.
     let highestNum = 0
     for (let tran of TRANSACTIONS) {
         if (tran.description.includes("New transaction")) {
@@ -1079,15 +1088,15 @@ function addTranManual() {
                     ...newTran,
                     id: r.ids[0],
                 })
-                // todo: Add to the top with a function; don't refresh all!
-                refreshTransactions()
+
+                // todo: For a snapier response, consider adding immediatley, and retroactively changing its id.
+                const row = createTranRow(newTran)
+                document.getElementById("transaction-tbody").prepend(row)
             } else {
                 console.error("Problem adding this transaction")
                 // (We've just removed it from the state above)
             }
         });
-
-    refreshTransactions()
 }
 
 function toggleAddManual() {

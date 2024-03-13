@@ -443,6 +443,8 @@ class Transaction(Model):
         ordering = ["-date"]
         # Unique together here prevents duplicates, eg from importing a file multiple times.
         # How does unique together work with float?
+
+        # todo: This will falsely prevent multiple transactions on the same day of the same descrip and amount.
         unique_together = [
             ["date", "description", "amount", "account"],
             ["date", "description", "amount", "person"],
