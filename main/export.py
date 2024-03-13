@@ -50,7 +50,7 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
             # Associate this transaction directly with the person, vice the account.
             person=person,
             # Exactly one category, including "Uncategorized" is reported by Mint
-            categories=json.dumps([c.value for c in categories]),
+            categories=[c.value for c in categories],
             amount=amount,
             description=description,
             date=date,

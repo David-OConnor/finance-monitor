@@ -259,7 +259,7 @@ def refresh_transactions(account: FinancialAccount) -> None:
 
         tran_db = Transaction(
             account=account,
-            categories=json.dumps([cat.value for cat in categories]),
+            categories=[cat.value for cat in categories],
             amount=tran.amount,
             # Note: Other fields like "merchange_name" are available, but aren't used on many transactcions.
             description=tran.name,
