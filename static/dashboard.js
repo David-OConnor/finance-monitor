@@ -405,7 +405,7 @@ function refreshTransactions() {
 
     let col, img, h, opt, sel, d, ip
     for (let tran of transactions) {
-        const row = createEl("tr", {},{borderBottom: "1px solid #cccccc"} )
+        const row = createEl("tr", {id: "tran-row-" + tran.id.toString()},{borderBottom: "1px solid #cccccc"} )
 
         col = createEl(
             "td",
@@ -558,7 +558,6 @@ function refreshTransactions() {
             )
 
             h.addEventListener("input", e => {
-
                 if (isValidNumber(e.target.value)) {
                     let updated = {
                         ...tran,
@@ -568,6 +567,7 @@ function refreshTransactions() {
                     TRANSACTIONS_UPDATED[String(tran.id)] = updated
                 }
             })
+
         } else {
             h = createEl("h4",
                 {class: "tran-heading " +  tran.amount_class},
@@ -576,11 +576,11 @@ function refreshTransactions() {
         }
 
         col.appendChild(h)
-
         row.appendChild(col)
 
         col = createEl("td", {class: "transaction-cell"})
         if (EDIT_MODE_TRAN) {
+            d = createEl("div", {}, {display: "flex"})
             h = createEl("input", {type: "date", value: tran.date}, {width: "120px"})
 
             h.addEventListener("input", e => {
@@ -591,10 +591,31 @@ function refreshTransactions() {
                 // todo: DRY!
                 TRANSACTIONS_UPDATED[String(tran.id)] = updated
             })
+
+            let delBtn = createEl("button", {class: "button-small"}, {cursor: "pointer"}, "❌")
+            delBtn.addEventListener("click", _ => {
+                const data = {ids: [tran.id]}
+                fetch("/delete-transactions", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
+                    .then(result => result.json())
+                    .then(r => {
+                        if (!r.success) {
+                            console.error("Error deleting this transactcion: ", tran)
+                        }
+                    });
+                let row = document.getElementById("tran-row-" + tran.id.toString())
+                row.remove()
+
+                TRANSACTIONS = TRANSACTIONS.filter(t => t.id !== tran.id)
+                refreshTransactions() // todo: Del row in place
+            })
+
+            d.appendChild(h)
+            d.appendChild(delBtn)
+            col.appendChild(d)
         } else {
             h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
+            col.appendChild(h)
         }
-        col.appendChild(h)
 
         row.appendChild(col)
 
