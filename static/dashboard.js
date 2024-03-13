@@ -163,9 +163,9 @@ function filterTransactions() {
     }
 
     transactions.sort((b, a) => {
-        // This sort by date, then description prevents rows shifting for like dates.
+        // This sort by date, then DB ID prevents rows shifting for like dates.
         if (a.date === b.date) {
-            return b.description.localeCompare(a.description)
+            return a.id - b.id
         }
         return new Date(a.date) - new Date(b.date)
     })
@@ -403,7 +403,7 @@ function refreshTransactions() {
     let tbody = document.getElementById("transaction-tbody")
     tbody.replaceChildren();
 
-    let col, img, h, opt, sel, d
+    let col, img, h, opt, sel, d, ip
     for (let tran of transactions) {
         const row = createEl("tr", {},{borderBottom: "1px solid #cccccc"} )
 
@@ -487,22 +487,40 @@ function refreshTransactions() {
         // Flex for pending indicator.
         col = createEl("td", {class: "transaction-cell"}, {display: "flex"})
 
-        h = createEl(
-            "h4",
-            {class: "tran-heading"},
-            {fontWeight: "normal", marginLeft: "0px"},
-            tran.description
-        )
+        if (EDIT_MODE_TRAN) {
+            ip = createEl(
+                "input",
+                {value: tran.description},
+                // {width: "200px"},
+            )
 
-        col.appendChild(h)
+            ip.addEventListener("input", e => {
+                let updated = {
+                    ...tran,
+                    description: e.target.value
+                }
+                // todo: DRY!
+                TRANSACTIONS_UPDATED[String(tran.id)] = updated
+            })
 
-        if (tran.pending) {
-            col.appendChild(createEl(
+            col.appendChild(ip)
+        } else {
+            h = createEl(
                 "h4",
                 {class: "tran-heading"},
-                {color: "#999999", fontWeight: "normal", marginLeft: "8px"},
-                "| Pending")
+                {fontWeight: "normal", marginLeft: "0px"},
+                tran.description
             )
+            col.appendChild(h)
+
+            if (tran.pending) {
+                col.appendChild(createEl(
+                    "h4",
+                    {class: "tran-heading"},
+                    {color: "#999999", fontWeight: "normal", marginLeft: "8px"},
+                    "| Pending")
+                )
+            }
         }
 
         row.appendChild(col)
@@ -989,25 +1007,65 @@ function init() {
 
 init()
 
-function addTran() {
+function addTranManual() {
     // Add a transaction, eg from clicking the Add button
-    console.log(TRANSACTIONS)
-    TRANSACTIONS.push(
-        {
-            amount: 0.,
-            amount_class: "tran_pos",
-            categories: [-1],
-            // categories_icon: [],
-            // categories_text: [],
-            date: new Date().toISOString(),
-            date_display: "03/11",
-            description: "New transaction",
-            id: -999,
-            logo_url: "",
-            notes: "",
-            pending: false
+    // We use this temporary ID to keep track of this transaction until it's assigned a real one by the server.
+    // const tempId = parseInt(Math.random() * 10_000)
+
+    // Ensure the name is unique, or the DB will refuse to save it due to a unique_together constraint.
+    let highestNum = 0
+    for (let tran of TRANSACTIONS) {
+        if (tran.description.includes("New transaction")) {
+            let number = parseInt(tran.description.charAt(tran.description.length - 1))
+            if ( !Number.isNaN(number) && number > highestNum) {
+                highestNum = number
+            }
         }
-    )
+    }
+    let tran_name = "New transaction " + (highestNum + 1).toString()
+
+    const newTran =  {
+        // id: tempId,
+        amount: 0.,
+        amount_class: "tran_pos",
+        categories: [-1],
+        // categories_icon: [],
+        // categories_text: [],
+        date: new Date().toISOString().split('T')[0],
+        date_display: "03/11",
+        description: tran_name,
+        id: -999,
+        logo_url: "",
+        notes: "",
+        currency_code: "USD",
+        institution_name: "",
+        pending: false
+    }
+    // TRANSACTIONS.push(newTran)
+
+    const payload = {transactions: [newTran]}
+
+    fetch("/add-transactions", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+        .then(result => result.json())
+        .then(r => {
+            // // We could just hold off on adding the transaction to the UI, but I think this approach
+            // // will feel more responsive due to showing the tran immediately.
+            // TRANSACTIONS = TRANSACTIONS.filter(t => t.id !== tempId0)
+
+            if (r.success) {
+                console.log("Add resp: ", r)
+                TRANSACTIONS.push({
+                    ...newTran,
+                    id: r.ids[0],
+                })
+                // todo: Add to the top with a function; don't refresh all!
+                refreshTransactions()
+            } else {
+                console.error("Problem adding this transaction")
+                // (We've just removed it from the state above)
+            }
+        });
+
     refreshTransactions()
 }
 

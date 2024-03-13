@@ -137,6 +137,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
             id=tran["id"],
             defaults={
                 "categories": tran["categories"],
+                "description": tran["description"],
                 "notes": tran["notes"],
                 "amount": tran["amount"],
                 "date": tran["date"],
@@ -151,6 +152,45 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
             )
 
             print("Rule saved!")
+
+    return HttpResponse(json.dumps(result), content_type="application/json")
+
+
+@login_required
+def add_transactions(request: HttpRequest) -> HttpResponse:
+    """Add one or more transactions, eg manually added by the user on the UI."""
+    data = json.loads(request.body.decode("utf-8"))
+
+    for tran in data.get("transactions", []):
+        print("Tran adding: ", tran)
+        # todo: Do it.
+
+        tran_db = Transaction(
+            account=None,
+            person=request.user.person,
+            institution_name=tran["institution_name"],
+            categories=tran["categories"],
+            amount=tran["amount"],
+            description=tran["description"],
+            date=tran["date"],
+            currency_code=tran["currency_code"],
+            pending=False,
+        )
+
+        try:
+            tran_db.save()
+
+            # todo: This id setup is not set up to handle multiple. Fine for now.
+            result = {
+                "success": True,
+                "ids": [tran_db.id]
+            }
+
+        except IntegrityError:
+            print("Integrity error saving new transaction manually added")
+            result = {
+                "success": False,
+            }
 
     return HttpResponse(json.dumps(result), content_type="application/json")
 

@@ -419,7 +419,8 @@ class Transaction(Model):
             "id": self.id,  # DB primary key.
             "categories": [cat.value for cat in cats],
             # "categories_icon": [cat.to_icon() for cat in cats],
-            # "categories_text": [cat.to_str() for cat in cats],
+            # Currently just used for search on FE. Could be replaced their by JS fns we already have.
+            "categories_text": [cat.to_str() for cat in cats],
             "description": description,
             "notes": self.notes,
             "amount": self.amount,
@@ -540,6 +541,19 @@ class RecurringTransaction(Model):
             "categories_text": [cat.to_str() for cat in cats],
             "notes": self.notes,
         }
+
+    def cats_cleaned(self) -> str:
+        """Since we don't apply the serializer as we do with transactions on the dash, apply the
+        post-processing category code here. (DRY from serialize)"""
+        try:
+            cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
+        except JSONDecodeError as e:
+            print("Problem decoding categories during serialization", self.categories)
+            cats = [TransactionCategory.UNCATEGORIZED]
+
+        cats = cleanup_categories(cats)
+        return ",".join([cat.to_icon() for cat in cats])
+
 
 class CategoryRule(Model):
     """Map transaction descriptions to categories automatically, by user selection."""
