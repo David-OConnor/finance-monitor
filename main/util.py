@@ -47,7 +47,7 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
     return net_worth
 
 
-def get_transaction_data(
+def load_transactions(
     start_i: Optional[int],
     end_i: Optional[int],
     accounts: Iterable[FinancialAccount],
@@ -55,10 +55,14 @@ def get_transaction_data(
     search_text: Optional[str],
     start: Optional[date],
     end: Optional[date],
+    # categories: Optional[List[TransactionCategory]]
+    category: Optional[TransactionCategory]
 ) -> List[Transaction]:
     """Create a set of transactions, serialized for use with the frontend. These
     are combined from all sub-accounts."""
     # todo: Pending? Would have to parse into the DB.
+
+    print("\n loading transaction data: ", start_i, end_i, start, end)
 
     trans = Transaction.objects.filter(Q(account__in=accounts) | Q(person=person))
 
@@ -73,6 +77,10 @@ def get_transaction_data(
         trans = trans.filter(date__gte=start)
     if end is not None:
         trans = trans.filter(date__lte=end)
+
+    # This filter takes advantage of `categories` being a JSON Field.
+    if category is not None:
+        trans = trans.filter(categories__contains=category.value)
 
     if start_i is not None and end_i is not None:
         return trans[start_i:end_i]
@@ -151,7 +159,7 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         totals_display[k] = f"{v:,.0f}"
 
     count = 60  # todo: Set this elsewhere
-    transactions = get_transaction_data(0, count, accounts, person, None, None, None)
+    transactions = load_transactions(0, count, accounts, person, None, None, None, None)
     #
     # print("Returning: ",{
     #     "totals": totals_display,
@@ -212,7 +220,7 @@ def setup_spending_highlights(
 
     # todo: We likely have already loaded these transactions. Optimize later.
     # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
-    trans = get_transaction_data(None, None, accounts, person, "", start, end)
+    trans = load_transactions(None, None, accounts, person, "", start, end, None)
 
     # print(trans, "TRANS")
 
@@ -223,7 +231,7 @@ def setup_spending_highlights(
     for tran in trans:
         total += tran.amount
 
-        cats = [TransactionCategory(c) for c in json.loads(tran.categories)]
+        cats = [TransactionCategory(c) for c in tran.categories]
         cats = transaction_cats.cleanup_categories(cats)
 
         for cat in cats:

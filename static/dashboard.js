@@ -137,7 +137,8 @@ function filterTransactions() {
 
     let transactions = TRANSACTIONS
 
-    if (FILTER_CAT !== null) {
+    // -2 is the "any" selection of the main filter.
+    if (FILTER_CAT !== null && FILTER_CAT != -2) {
         transactions = transactions.filter(t => t.categories.includes(FILTER_CAT))
     }
 
@@ -168,9 +169,9 @@ function filterTransactions() {
     })
 
     const startI = CURRENT_PAGE * PAGE_SIZE
-    // const endI = CURRENT_PAGE * PAGE_SIZE + PAGE_SIZE
+    const endI = CURRENT_PAGE * PAGE_SIZE + PAGE_SIZE
     // todo: Kludge for sometimes not loading enough. Fix this.
-    const endI = CURRENT_PAGE * PAGE_SIZE + 2*PAGE_SIZE
+    // const endI = CURRENT_PAGE * PAGE_SIZE + 2*PAGE_SIZE
 
     transactions = transactions.slice(startI, endI)
 
@@ -181,7 +182,14 @@ function filterTransactions() {
         // If, after filtering, we don't have a full page of information, request more from the backend.
         if (transactions.length < PAGE_SIZE) {
             console.log("Requesting more transactions...")
-            const data = {start_i: startI, end_i: endI, search: SEARCH_TEXT, start: FILTER_START, end: FILTER_END} // todo: Doesn't have to be page size.
+            const data = {
+                start_i: startI,
+                end_i: endI,
+                search: SEARCH_TEXT,
+                start: FILTER_START,
+                end: FILTER_END,
+                category: FILTER_CAT,
+            }
 
             fetch("/load-transactions", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
                 .then(result => result.json())
@@ -890,6 +898,32 @@ function setupSpendingHighlights() {
     }
 }
 
+function setupCatFilter(searchText) {
+    // Set up the main transaction category filter. Done in JS for consistency with other CAT filters.
+    let div = document.getElementById("tran-cat-filter")
+
+    let sel = createEl("select", {}, {height: "40px"})
+
+    let opt = createEl("option", {value: -2}, {}, "All")
+    sel.appendChild(opt)
+    for (let cat of catNames) {
+        if (searchText) {
+            console.log("Search text")
+        }
+
+        opt = createEl("option", {value: cat[0]}, {}, cat[1])
+        sel.appendChild(opt)
+    }
+
+    sel.addEventListener("input", e => {
+        FILTER_CAT = parseInt(e.target.value)
+        TRANSACTIONS_LOADED = false
+        refreshTransactions()
+    })
+
+    div.appendChild(sel)
+}
+
 function init() {
     // We run this on page load
     document.getElementById("link-button").addEventListener("click", _ => {
@@ -935,6 +969,7 @@ function init() {
         });
 
     setupSpendingHighlights()
+    setupCatFilter()
 }
 
 init()

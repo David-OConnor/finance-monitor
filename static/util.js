@@ -156,7 +156,7 @@ function catNameFromVal(val) {
         return "Sporting goods"
     }
     if (val === 18) {
-        return "Electronics and software"
+        return "Electronics/software"
     }
     if (val === 19) {
         return "Pets"

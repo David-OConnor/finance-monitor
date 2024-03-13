@@ -88,7 +88,7 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     start_i = data["start_i"]
     end_i = data["end_i"]
     search = data.get("search")
-    categories = data.get("categories")
+    category = data.get("category")
     start = data.get("start")
     end = data.get("end")
 
@@ -101,8 +101,11 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     else:
         end = None
 
-    tran = util.get_transaction_data(
-        start_i, end_i, accounts, person, search, start, end
+    if category is not None:
+        category = TransactionCategory(category)
+
+    tran = util.load_transactions(
+        start_i, end_i, accounts, person, search, start, end, category
     )
 
     transactions = {

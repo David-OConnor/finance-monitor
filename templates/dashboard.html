@@ -145,6 +145,10 @@
                 />
             </div>
 
+{#            This cat filtelr is populated by JS to prevent DRY between JS and templates. #}
+
+            <div id="tran-cat-filter"></div>
+
             <div style="display: flex; align-items: center; margin-right: 32px;">
                 <h4>Start:</h4>
                 <input
@@ -233,5 +237,5 @@
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
 
     <script src="../static/util.js"></script>
-    <script src="../static/main.js"></script>
+    <script src="../static/dashboard.js"></script>
 {% endblock %}

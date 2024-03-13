@@ -25,7 +25,7 @@ from django.db.models import (
     TextField,
     Model,
     BooleanField,
-    ForeignKey,
+    ForeignKey, JSONField,
 )
 
 from main.transaction_cats import TransactionCategory, cleanup_categories
@@ -371,8 +371,8 @@ class Transaction(Model):
     )
     institution_name = CharField(max_length=50) # In case the transaction is disconnected from an account.
     # We generally have 1-2 categories.
-    # todo: Consider just u sing a Textfield here; you're not using the wrapping json object
-    categories = TextField()  # List of category enums, eg [0, 2]
+    # JSONField here allows for filtering by category
+    categories = JSONField()  # List of category enums, eg [0, 2]
     amount = FloatField()
     description = TextField()
     date = DateField()  # It appears we don't have datetimes available from plaid
@@ -393,7 +393,7 @@ class Transaction(Model):
         """For use in the web page."""
 
         try:
-            cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
+            cats = [TransactionCategory(cat) for cat in self.categories]
         except JSONDecodeError as e:
             print("Problem decoding categories during serialization", self.categories)
             cats = [TransactionCategory.UNCATEGORIZED]
@@ -489,6 +489,7 @@ class RecurringTransaction(Model):
     merchant_name = CharField(max_length=50)
     is_active = BooleanField(default=True)
     status = CharField(max_length=15)  # Plaid string. Use an enum or remove A/R
+    # todo: JSONField A/R, like Transaction.
     categories = TextField()  # List of category enums, eg [0, 2]
     # User notes
     notes = TextField()
