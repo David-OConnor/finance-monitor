@@ -8,7 +8,13 @@
 
     <div class="home-body">
 
-        <h2>Categorization rules</h2>
+        <h2 style="text-align: center">Categorization rules</h2>
+        <div style="display: flex;">
+            {% for rule in rules %}
+                {{ rule.description }}
+                {{ rule.category }}
+            {% endfor %}
+        </div>
 
         <h2 style="text-align: center;">Change password</h2>
 

@@ -7,6 +7,8 @@ let FILTER_CAT = null
 let VALUE_THRESH = 0
 let CURRENT_PAGE = 0
 let CAT_QUICKEDIT = null  // DB ID of the transaction we are quick-editing
+// If true, always recategorize the currently quickediting item, based on description, and selected cat.
+let CAT_ALWAYS = false
 let QUICK_CAT_SEARCH = ""
 
 // Whenever we change page, or filter terms, we may need to load transactions. This tracks
@@ -321,7 +323,7 @@ function refreshAccounts() {
 }
 
 // todo: There is actually no elegant way to get a range iterator in JS...
-const vals = [-1, 0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+const vals = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
     21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
 
 let catNames = vals.map(v => [v, catNameFromVal(v)])
@@ -329,7 +331,7 @@ console.log(catNames)
 // Sort alphabetically, by cat name.
 catNames.sort((a, b) =>(a[1].localeCompare(b[1])))
 
-function createCatSel(tran, autoSave, searchText) {
+function createCatEdit(tran, autoSave, searchText) {
     // Create a select element for categories.
     // todo: Allow creating custom elements here, and search.
     let sel = createEl("select", {}, {})
@@ -363,7 +365,8 @@ function createCatSel(tran, autoSave, searchText) {
 
                 const data = {
                     // Discard keys; we mainly use them for updating internally here.
-                    transactions: Object.values(TRANSACTIONS_UPDATED)
+                    transactions: Object.values(TRANSACTIONS_UPDATED),
+                    create_rule: CAT_ALWAYS,
                 }
 
                 // Save transactions to the database.
@@ -384,6 +387,7 @@ function createCatSel(tran, autoSave, searchText) {
                     updated
                 ]
                 CAT_QUICKEDIT = null
+                CAT_ALWAYS = false
                 refreshTransactions()
             }
         })
@@ -417,11 +421,11 @@ function refreshTransactions() {
         d = createEl("div", {}, {display: "flex", alignItems: "center"})
 
         if (EDIT_MODE_TRAN) {
-            d.appendChild(createCatSel(tran))
+            d.appendChild(createCatEdit(tran))
             col.appendChild(d)
 
         } else if (tran.id === CAT_QUICKEDIT) {
-            d.appendChild(createCatSel(tran, true, QUICK_CAT_SEARCH)) // Auto-save.
+            d.appendChild(createCatEdit(tran, true, QUICK_CAT_SEARCH)) // Auto-save.
 
             // h = createEl("h4", {}, {}, "🔎")
             // d.appendChild(h)
@@ -436,9 +440,24 @@ function refreshTransactions() {
 
             col.appendChild(d)
 
-            let btn =  createEl("button", {class: "button-small"}, {}, "cancel")
+            let btn = createEl("button", {id: "always-btn", class: "button-small"}, {}, "Always")
+
+            if (CAT_ALWAYS) {
+                btn.style.border = "2px solid #3cd542"
+                btn.style.fontWeight = "bold"
+                // btn.style.backroundColor = "#4f6b4d"
+            }
+
+            btn.addEventListener("click", _ => {
+                CAT_ALWAYS = !CAT_ALWAYS
+                refreshTransactions()
+            })
+            d.appendChild(btn)
+
+            btn =  createEl("button", {class: "button-small"}, {}, "Cancel")
             btn.addEventListener("click", _ => {
                 CAT_QUICKEDIT = null
+                CAT_ALWAYS = false
                 refreshTransactions()
             })
             d.appendChild(btn)
@@ -711,8 +730,6 @@ function setupAccEditForm(id) {
 
 
     d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
-
-    let acc_input_name = ""
 
     if (acc.manual) {
         h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Account name")
@@ -1002,6 +1019,7 @@ function changePage(direction) {
 document.addEventListener("keydown",function(e){
     if(e.key === "Escape") {
         CAT_QUICKEDIT = null
+        CAT_ALWAYS = false
         refreshTransactions() // todo: Don't refresh all. just the text edit in question.
     }
 });

@@ -541,15 +541,15 @@ class RecurringTransaction(Model):
             "notes": self.notes,
         }
 
-    def cats_cleaned(self) -> str:
-        """Since we don't apply the serializer as we do with transactions on the dash, apply the
-        post-processing category code here. (DRY from serialize)"""
-        try:
-            cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
-        except JSONDecodeError as e:
-            print("Problem decoding categories during serialization", self.categories)
-            cats = [TransactionCategory.UNCATEGORIZED]
+class CategoryRule(Model):
+    """Map transaction descriptions to categories automatically, by user selection."""
+    person = ForeignKey(Person, related_name="category_rules", on_delete=CASCADE)
+    description = CharField(max_length=100)
+    category = IntegerField(choices=TransactionCategory.choices())
 
-        # todo: Text? Icon?
-        cats = cleanup_categories(cats)
-        return ",".join([cat.to_icon() for cat in cats])
+    class Meta:
+        ordering = ["person"]
+        unique_together = ["person", "description"]
+
+    def __str__(self):
+        return f"Category rule. Person: {self.person}, {self.description} => {self.category}"

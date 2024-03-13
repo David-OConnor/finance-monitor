@@ -44,6 +44,7 @@ from main.models import (
     AccountType,
     SubAccountType,
     RecurringTransaction,
+    CategoryRule,
 )
 
 import plaid
@@ -120,11 +121,11 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
     """Edit transactions."""
     data = json.loads(request.body.decode("utf-8"))
 
+    # todo: This is being spammed, along with "Refreshing transactions" on the frontend!!!
+
     result = {"success": True}
 
     for tran in data.get("transactions", []):
-        # print(tran, "TRAN UP")
-        # existing = Transaction.objects.get(id=tran["id"])
 
         # todo: Do it.
         # if json.loads(existing.categories).contains tran["categories"]:
@@ -132,7 +133,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
         #
         #     )
 
-        _, _ = Transaction.objects.update_or_create(
+        tran_db, _ = Transaction.objects.update_or_create(
             id=tran["id"],
             defaults={
                 "categories": tran["categories"],
@@ -141,6 +142,16 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
                 "date": tran["date"],
             },
         )
+
+        if data.get("create_rule", False):
+            rule = CategoryRule(
+                person=request.user.person,
+                description=tran_db.description,
+                category=tran["categories"][0]
+            )
+            rule.save()
+
+            print("Rule saved!")
 
     return HttpResponse(json.dumps(result), content_type="application/json")
 
@@ -502,7 +513,13 @@ def settings(request: HttpRequest) -> HttpResponse:
     if account_status is not None:
         return account_status
 
-    return render(request, "settings.html", {"password_change": False})
+
+    context = {
+        "rules": CategoryRule.objects.filter(person=request.user.person),
+        "password_change": False
+    }
+
+    return render(request, "settings.html", context)
 
 
 def about(request: HttpRequest) -> HttpResponse:

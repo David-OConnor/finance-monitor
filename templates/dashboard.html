@@ -145,7 +145,7 @@
                 />
             </div>
 
-{#            This cat filtelr is populated by JS to prevent DRY between JS and templates. #}
+            {#            This cat filtelr is populated by JS to prevent DRY between JS and templates. #}
 
             <div id="tran-cat-filter"></div>
 
@@ -186,15 +186,18 @@
         <table class="tran-table">
             <thead>
             <tr style="height: 40px; border-bottom: 2px solid black;">
-                <th>
+                <th style="width: 40px">
                     <div style="display: flex; align-items: center;">
                         <h4 class="tran-heading" style="padding-left: 12px;">Icons</h4>
                         <input id="icon-checkbox" type="checkbox" checked />
-
+                    </div>
+                </th>
+                <th>
+                    <div style="display: flex; align-items: center; margin-left: 20px;">
+                        <button id="edit-transactions" class="button-small">Edit transactions</button>
                         <small class="hide-on-mobile" style="font-weight: normal; margin-left: 12px;">Click a category to change it.</small>
                     </div>
                 </th>
-                <th><button id="edit-transactions" class="button-small">Edit transactions</button></th>
                 {#                Notes#}
                 <th style="text-align: left">Notes</th>
                 <th></th>
@@ -202,15 +205,6 @@
             </tr>
             </thead>
             <tbody id="transaction-tbody"></tbody>
-            {#            {% for tran in transactions %}#}
-            {#                <tr class="transaction">#}
-            {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.categories}}</h4></td>#}
-            {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal;">{{ tran.description }}</h4></td>#}
-            {#                    <td class="transaction-cell"><h4 class="tran-heading" style="font-weight: normal; color: #444444;">{{ tran.notes }}</h4></td>#}
-            {#                    <td class="{{ tran.amount_class }} transaction-cell"><h4 class="tran-heading">{{ tran.amount }}</h4></td>#}
-            {#                    <td class="transaction-cell"><h4 class="tran-heading">{{ tran.date_display }}</h4></td>#}
-            {#                </tr>#}
-            {#            {% endfor %}#}
         </table>
 
         <div style="display: flex; margin-top: 32px; justify-content: center;">

@@ -49,7 +49,6 @@ class TransactionCategoryGeneral(Enum):
             return cls.FOOD_AND_DRINK
 
 
-
 @enum_choices
 class TransactionCategory(Enum):
     """These are types as reported by Plaid"""
@@ -134,7 +133,7 @@ class TransactionCategory(Enum):
             return cls.TAXI
         if "sporting" in s:
             return cls.SPORTING_GOODS
-        if "electron" in s or "video games" in s:
+        if "electron" in s or "video games" in s or "computer" in s or "software" in s:
             return cls.ELECTRONICS
         if "pet" in s:
             return cls.PETS
@@ -392,6 +391,10 @@ replacements = [
     #
     ("bar", TransactionCategory.ALCOHOL),
     ("beer garden", TransactionCategory.ALCOHOL),
+    #
+    ("bp products", TransactionCategory.CAR),
+    ("exxon", TransactionCategory.CAR),
+    ("shell", TransactionCategory.CAR),
 ]
 
 
