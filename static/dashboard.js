@@ -196,8 +196,6 @@ function filterTransactions() {
             fetch("/load-transactions", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
                 .then(result => result.json())
                 .then(r => {
-                    console.log("Load result: ", r)
-
                     let existingTranIds = TRANSACTIONS.map(t => t.id)
 
                     for (let tranLoaded of r.transactions) {
@@ -327,7 +325,6 @@ const vals = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 
     21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
 
 let catNames = vals.map(v => [v, catNameFromVal(v)])
-console.log(catNames)
 // Sort alphabetically, by cat name.
 catNames.sort((a, b) =>(a[1].localeCompare(b[1])))
 
@@ -909,6 +906,7 @@ function setupSpendingHighlights() {
         h.addEventListener("click", _ => {
             CURRENT_PAGE = 0
             FILTER_CAT = highlight[0]
+            document.getElementById("tran-filter-sel").value = highlight[0].toString()
             updateTranFilter()
         })
         el.appendChild(h)
@@ -919,7 +917,7 @@ function setupCatFilter(searchText) {
     // Set up the main transaction category filter. Done in JS for consistency with other CAT filters.
     let div = document.getElementById("tran-cat-filter")
 
-    let sel = createEl("select", {}, {height: "40px"})
+    let sel = createEl("select", {id: "tran-filter-sel"}, {height: "40px"})
 
     let opt = createEl("option", {value: -2}, {}, "All")
     sel.appendChild(opt)
@@ -990,6 +988,28 @@ function init() {
 }
 
 init()
+
+function addTran() {
+    // Add a transaction, eg from clicking the Add button
+    console.log(TRANSACTIONS)
+    TRANSACTIONS.push(
+        {
+            amount: 0.,
+            amount_class: "tran_pos",
+            categories: [-1],
+            // categories_icon: [],
+            // categories_text: [],
+            date: new Date().toISOString(),
+            date_display: "03/11",
+            description: "New transaction",
+            id: -999,
+            logo_url: "",
+            notes: "",
+            pending: false
+        }
+    )
+    refreshTransactions()
+}
 
 function toggleAddManual() {
     let form = document.getElementById("add-manual-form")

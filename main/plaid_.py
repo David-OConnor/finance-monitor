@@ -248,9 +248,12 @@ def refresh_transactions(account: FinancialAccount) -> None:
     print("Mod: ", modified)
     print("Rem: ", removed)
 
+    rules = account.person.category_rules.all()
+
     for tran in added:
         categories = [TransactionCategory.from_str(cat) for cat in tran.category]
-        categories = transaction_cats.category_override(tran.name, categories)
+
+        categories = transaction_cats.category_override(tran.name, categories, rules)
 
         cat_detailed = tran.personal_finance_category.detailed
         cat_primary = tran.personal_finance_category.primary
@@ -377,10 +380,11 @@ def refresh_recurring(account: FinancialAccount):
     #                       'transaction_ids': ['dLaL3XVNJ4HpkwzW733ZtBZQPx6QQaiJ5PPNk',
     #                                           'Ko9oNdQyV8UnpLD5AJJgcE7ZxeGZZWsRW668p',
     #                                           'APbPkV3497TgKnNZQookfXJm35nRQqt955P44']},
+    rules = account.person.category_rules.all()
 
     for recur in inflow_streams:
         categories = [TransactionCategory.from_str(cat) for cat in recur.category]
-        categories = transaction_cats.category_override(recur.description, categories)
+        categories = transaction_cats.category_override(recur.description, categories, rules)
 
         sub_acc = SubAccount.objects.get(plaid_id=recur.account_id)
 
@@ -405,7 +409,8 @@ def refresh_recurring(account: FinancialAccount):
     # todo: DRY!
     for recur in outflow_streams:
         categories = [TransactionCategory.from_str(cat) for cat in recur.category]
-        categories = transaction_cats.category_override(recur.description, categories)
+
+        categories = transaction_cats.category_override(recur.description, categories, rules)
 
         sub_acc = SubAccount.objects.get(plaid_id=recur.account_id)
 

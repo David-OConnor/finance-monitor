@@ -62,8 +62,6 @@ def load_transactions(
     are combined from all sub-accounts."""
     # todo: Pending? Would have to parse into the DB.
 
-    print("\n loading transaction data: ", start_i, end_i, start, end)
-
     trans = Transaction.objects.filter(Q(account__in=accounts) | Q(person=person))
 
     if search_text:

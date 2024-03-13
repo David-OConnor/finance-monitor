@@ -149,7 +149,7 @@
 
             <div id="tran-cat-filter"></div>
 
-            <div style="display: flex; align-items: center; margin-right: 32px;">
+            <div style="display: flex; align-items: center; margin-right: 32px; margin-left: 12px;">
                 <h4>Start:</h4>
                 <input
                         id="tran-filter-start"
@@ -194,13 +194,13 @@
                 </th>
                 <th>
                     <div style="display: flex; align-items: center; margin-left: 20px;">
-                        <button id="edit-transactions" class="button-small">Edit transactions</button>
+                        <button id="edit-transactions" class="button-small">✎Edit transactions</button>
                         <small class="hide-on-mobile" style="font-weight: normal; margin-left: 12px;">Click a category to change it.</small>
                     </div>
                 </th>
                 {#                Notes#}
                 <th style="text-align: left">Notes</th>
-                <th></th>
+                <th><button class="button-small" onClick="addTran()">➕Add</button></th>
                 <th></th>
             </tr>
             </thead>

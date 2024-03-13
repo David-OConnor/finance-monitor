@@ -418,8 +418,8 @@ class Transaction(Model):
         return {
             "id": self.id,  # DB primary key.
             "categories": [cat.value for cat in cats],
-            "categories_icon": [cat.to_icon() for cat in cats],
-            "categories_text": [cat.to_str() for cat in cats],
+            # "categories_icon": [cat.to_icon() for cat in cats],
+            # "categories_text": [cat.to_str() for cat in cats],
             "description": description,
             "notes": self.notes,
             "amount": self.amount,

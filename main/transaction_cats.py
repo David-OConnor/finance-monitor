@@ -1,6 +1,6 @@
 # A dedicated file for transaction categories, due to its size.
 from enum import Enum
-from typing import List
+from typing import List, Iterable
 
 from django.core.mail import send_mail
 
@@ -399,7 +399,8 @@ replacements = [
 
 
 def category_override(
-    descrip: str, categories: List[TransactionCategory]
+    # Avoid a circular import by not importing CategoryRule
+    descrip: str, categories: List[TransactionCategory], rules: Iterable["CategoryRule"]
 ) -> List[TransactionCategory]:
     """Manual category overrides, based on observation. Note: This is currently handled prior to adding to the DB."""
     descrip = descrip.lower()
@@ -408,6 +409,10 @@ def category_override(
     for keyword, cat in replacements:
         if keyword in descrip:
             categories = [cat]
+
+    for rule in rules:
+        if descrip.strip() == rule.description.strip():
+            return [TransactionCategory(rule.category)]
 
     return categories
 

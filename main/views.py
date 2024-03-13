@@ -144,12 +144,11 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
         )
 
         if data.get("create_rule", False):
-            rule = CategoryRule(
+            CategoryRule.objects.update_or_create(
                 person=request.user.person,
                 description=tran_db.description,
-                category=tran["categories"][0]
+                defaults={"category": tran["categories"][0]}
             )
-            rule.save()
 
             print("Rule saved!")
 

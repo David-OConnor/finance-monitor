@@ -29,6 +29,9 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
     # todo: We currently leave out the labels field, and original description.
     # categoory, tra
     # Iterate over the CSV rows and create Transaction objects
+
+    rules = person.category_rules.all()
+
     for row in reader:
         amount = float(row[3])
         # transaction type. Mint always reports positive values, then deliniates as "credit" or "debit".
@@ -44,7 +47,8 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
         description = row[1]
 
         categories = [TransactionCategory.from_str(row[5])]
-        categories = transaction_cats.category_override(description, categories)
+
+        categories = transaction_cats.category_override(description, categories, rules)
 
         transaction = Transaction(
             # Associate this transaction directly with the person, vice the account.
