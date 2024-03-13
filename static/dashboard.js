@@ -320,14 +320,6 @@ function refreshAccounts() {
     }
 }
 
-// todo: There is actually no elegant way to get a range iterator in JS...
-const vals = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-    21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
-
-let catNames = vals.map(v => [v, catNameFromVal(v)])
-// Sort alphabetically, by cat name.
-catNames.sort((a, b) =>(a[1].localeCompare(b[1])))
-
 function createCatEdit(tran, autoSave, searchText) {
     // Create a select element for categories.
     // todo: Allow creating custom elements here, and search.
@@ -968,10 +960,6 @@ function setupCatFilter(searchText) {
     let opt = createEl("option", {value: -2}, {}, "All")
     sel.appendChild(opt)
     for (let cat of catNames) {
-        if (searchText) {
-            console.log("Search text")
-        }
-
         opt = createEl("option", {value: cat[0]}, {}, cat[1])
         sel.appendChild(opt)
     }

@@ -151,8 +151,6 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
                 defaults={"category": tran["categories"][0]}
             )
 
-            print("Rule saved!")
-
     return HttpResponse(json.dumps(result), content_type="application/json")
 
 
@@ -750,6 +748,30 @@ def export_(request: HttpRequest) -> HttpResponse:
 
     return response
 
+@login_required
+def edit_rules(request: HttpRequest) -> HttpResponse:
+    """We use this to edit rules, eg from the settings page. Note that
+    when editing the transactions table, we use the `update_transactions` endpoint instead."""
+
+    success = True
+
+    data = json.loads(request.body.decode("utf-8"))
+    print(data, "DATA\n\n\n")
+
+    for rule in data:
+        CategoryRule.objects.update_or_create(
+            person=request.user.person,
+            id=rule["id"],
+            defaults={
+                "description": rule["description"],
+                "category": rule["category"],
+            }
+        )
+
+    return HttpResponse(
+        json.dumps({"success": success}),
+        content_type="application/json",
+    )
 
 # class CustomPasswordResetView(PasswordResetView):
 #     print("\nCustom PW view")

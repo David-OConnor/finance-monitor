@@ -9,6 +9,7 @@
     <div class="home-body">
 
         <h2 style="text-align: center">Categorization rules</h2>
+        <h2 id="rule-success" style="color: #39a839; visibility: collapse; text-align: center;">Rule save successful.</h2>
         <div style="display: flex; flex-direction: column; align-items: center">
 
             <button class="button-general" onclick="saveRules()" style="margin-bottom: 12px;">Save rules</button>
@@ -19,14 +20,16 @@
                             id="rule-descrip-{{ rule.id }}"
                             style="width: 200px; margin-right: 10px;"
                             value="{{ rule.description }}"
-                            oninput="updateRule({{ rule.id }})" />
+                            oninput="updateRule({{ rule.id }})"
+                    />
 
                     <h4 style="margin-top: 0; margin-bottom: 0">➡</h4>
-                    <select
-                            id="rule-category-{{ rule.id }}"
-                            style="margin-left: 10px;">
-                        {{ rule.category }}
-                    </select>
+                    <div id="cat-div-{{ rule.id }}"></div>
+                    {#                    <select#}
+                    {#                            id="rule-category-{{ rule.id }}"#}
+                    {#                            style="margin-left: 10px;">#}
+                    {#                        {{ rule.category }}#}
+                    {#                    </select>#}
                 </div>
             {% endfor %}
         </div>
@@ -146,15 +149,54 @@
 
         function updateRule(id) {
             rulesUpdated[id] = {
-                descrip: document.getElementById("rule-descrip-" + id.toString()).value,
+                id: id,
+                description: document.getElementById("rule-descrip-" + id.toString()).value,
                 category: parseInt(document.getElementById("rule-category-" + id.toString()).value),
             }
 
             console.log("Updated: ", rulesUpdated)
         }
 
-        function saveRules() {
+        function createCatSel(id, catInit) {
+            // For each rule, we run this to create a select element, populated with rules.
+            // todo: C+P with dashboard.
+            let sel = createEl("select", {id: "rule-category-" + id.toString()}, {height: "40px"})
 
+            let opt = createEl("option", {value: -2}, {}, "All")
+            sel.appendChild(opt)
+
+            for (let cat of catNames) {
+                opt = createEl("option", {value: cat[0]}, {}, cat[1])
+
+                if (cat[0] === catInit) {
+                    opt.setAttribute("selected", "")
+                }
+                sel.appendChild(opt)
+            }
+
+            sel.addEventListener("input", e => {
+                updateRule(id)
+            })
+
+            return sel
+        }
+
+        let div
+        {% for rule in rules %}
+            div = document.getElementById("cat-div-{{ rule.id }}")
+            div.appendChild(createCatSel({{ rule.id }}, {{ rule.category }}))
+        {% endfor %}
+
+        function saveRules() {
+            fetch("/edit-rules", { body: JSON.stringify(Object.values(rulesUpdated)), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("Rule edits failed to save")
+                    } else {
+                        document.getElementById("rule-success").style.visibility = "visible"
+                    }
+                });
         }
 
     </script>
