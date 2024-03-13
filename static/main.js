@@ -7,6 +7,7 @@ let FILTER_CAT = null
 let VALUE_THRESH = 0
 let CURRENT_PAGE = 0
 let CAT_QUICKEDIT = null  // DB ID of the transaction we are quick-editing
+let QUICK_CAT_SEARCH = ""
 
 // Whenever we change page, or filter terms, we may need to load transactions. This tracks
 // if we've already done so, for a given config
@@ -158,7 +159,13 @@ function filterTransactions() {
         transactions = transactions.filter(t => Math.abs(t.amount) >= valueThresh)
     }
 
-    transactions.sort((b, a) => new Date(a.date) - new Date(b.date))
+    transactions.sort((b, a) => {
+        // This sort by date, then description prevents rows shifting for like dates.
+        if (a.date === b.date) {
+            return b.description.localeCompare(a.description)
+        }
+        return new Date(a.date) - new Date(b.date)
+    })
 
     const startI = CURRENT_PAGE * PAGE_SIZE
     // const endI = CURRENT_PAGE * PAGE_SIZE + PAGE_SIZE
@@ -314,13 +321,17 @@ console.log(catNames)
 // Sort alphabetically, by cat name.
 catNames.sort((a, b) =>(a[1].localeCompare(b[1])))
 
-function createCatSel(tran, autoSave) {
+function createCatSel(tran, autoSave, searchText) {
     // Create a select element for categories.
     // todo: Allow creating custom elements here, and search.
     let sel = createEl("select", {}, {})
 
     let opt
     for (let cat of catNames) {
+        if (searchText) {
+            console.log("Search text")
+        }
+
         let catPrimary = tran.categories.length > 0 ? tran.categories[0] : -1  // -1 is uncategorized
 
         opt = createEl("option", {value: cat[0]}, {}, cat[1])
@@ -376,6 +387,7 @@ function createCatSel(tran, autoSave) {
 function refreshTransactions() {
     //[Re]populate the transactions table based on state.
     console.log("Refreshing transactions...")
+    QUICK_CAT_SEARCH = ""
 
     let transactions = filterTransactions()
 
@@ -401,15 +413,19 @@ function refreshTransactions() {
             col.appendChild(d)
 
         } else if (tran.id === CAT_QUICKEDIT) {
-            d.appendChild(createCatSel(tran, true)) // Auto-save.
+            d.appendChild(createCatSel(tran, true, QUICK_CAT_SEARCH)) // Auto-save.
 
-            h = createEl("h4", {}, {}, "🔎")
-            d.appendChild(h)
+            // h = createEl("h4", {}, {}, "🔎")
+            // d.appendChild(h)
 
-            let search = createEl("input", {}, {width: "70px"},)
-            search.addEventListener("input", e => {
-            })
-            d.appendChild(search)
+            // todo: Put this back.
+            // let search = createEl("input", {id: "quick-cat-search"}, {width: "70px"},)
+            // search.addEventListener("input", e => {
+            //     QUICK_CAT_SEARCH = e.target.value
+            //     refreshTransactions()
+            // })
+            // d.appendChild(search)
+
             col.appendChild(d)
 
             let btn =  createEl("button", {class: "button-small"}, {}, "cancel")
@@ -857,8 +873,6 @@ function setupSpendingHighlights() {
     el.appendChild(h)
 
     for (let highlight of SPENDING_HIGHLIGHTS.by_cat.slice(0, 3)) {
-        console.log(highlight, "HL")
-
         text = catNameFromVal(highlight[0]) + ": " + formatAmount(highlight[1][1], 0) + " in " + highlight[1][0] + " transactions"
         h = createEl(
             "h4",
