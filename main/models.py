@@ -499,6 +499,7 @@ class RecurringTransaction(Model):
 
     class Meta:
         ordering = ["-last_date"]
+        # unique_together = ["account", "description", ""]
 
     def __str__(self):
         return f"Recurring {self.account}, {self.average_amount}, Last: {self.last_date}, {self.description}"

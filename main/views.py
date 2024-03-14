@@ -133,6 +133,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
         #
         #     )
 
+        # todo: Don't override the original description for a linked transaction; use a separate field.
         tran_db, _ = Transaction.objects.update_or_create(
             id=tran["id"],
             defaults={

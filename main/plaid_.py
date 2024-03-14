@@ -243,14 +243,10 @@ def refresh_transactions(account: FinancialAccount) -> None:
 
     # Persist cursor and updated data
     # database.apply_updates(item_id, added, modified, removed, cursor)
-
-    print("Added: ", added)
-    print("Mod: ", modified)
-    print("Rem: ", removed)
-
     rules = account.person.category_rules.all()
 
     for tran in added:
+        print("\n\n Adding transaction: ", tran, "\n\n")
         categories = [TransactionCategory.from_str(cat) for cat in tran.category]
 
         categories = transaction_cats.category_override(tran.name, categories, rules)
@@ -262,9 +258,10 @@ def refresh_transactions(account: FinancialAccount) -> None:
 
         tran_db = Transaction(
             account=account,
+            institution_name=account.institution.name,
             categories=[cat.value for cat in categories],
             amount=tran.amount,
-            # Note: Other fields like "merchange_name" are available, but aren't used on many transactcions.
+            # Note: Other fields like "merchant_name" are available, but aren't used on many transactcions.
             description=tran.name,
             date=tran.date,
             datetime=tran.datetime,
@@ -273,7 +270,7 @@ def refresh_transactions(account: FinancialAccount) -> None:
             pending=tran.pending,
             logo_url=tran.logo_url,
             plaid_category_icon_url="",  # todo: A/R
-            institution_name=account.institution.name,
+
         )
         try:
             tran_db.save()
@@ -282,14 +279,27 @@ def refresh_transactions(account: FinancialAccount) -> None:
             print("Integrity error when saving a transaction: ", account)
 
     for tran in modified:
-        # tran_db_, _ = Transaction.objects.update(
-        #
-        # )
-        pass
+        print("\n\n Modifing transaction: ", tran, "\n\n")
+        tran_db_, _ = Transaction.objects.filter(
+            account=account,
+            plaid_id=tran.transaction_id,
+        ).update(
+            amount=tran.amount,
+            description=tran.name,
+            date=tran.date,
+            datetime=tran.datetime,
+            currency_code=tran.iso_currency_code,
+            pending=tran.pending,
+            logo_url=tran.logo_url,
+            plaid_category_icon_url="",
+        )
 
     for tran in removed:
-        # _ = Transaction.objects.filter().delete
-        pass
+        print("\n\n Deleting transaction: ", tran, "\n\n")
+        _ = Transaction.objects.filter(
+            account=account,
+            plaid_id=tran.transaction_id,
+        ).delete()
 
     account.plaid_cursor = cursor
     account.save()
@@ -407,6 +417,10 @@ def refresh_recurring(account: FinancialAccount):
             print("Integrity error saving recuring transaction", e)
 
     # todo: DRY!
+
+    # Delete all previous recurring transactions, replacing them with the latest.
+    RecurringTransaction.objects.filter(account__account=account).delete()
+
     for recur in outflow_streams:
         categories = [TransactionCategory.from_str(cat) for cat in recur.category]
 
