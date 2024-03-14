@@ -251,17 +251,20 @@ def delete_accounts(request: HttpRequest) -> HttpResponse:
     """Delete one or more sub accounts."""
     data = json.loads(request.body.decode("utf-8"))
     result = {"success": True}
+    
+    person = request.user.person
 
     # todo: Unlink etc if not manual
     for id_ in data.get("ids", []):
         try:
-            acc = SubAccount.objects.get(id=id_).account
+            # person and account checks prevent abuse.
+            acc = SubAccount.objects.filter(Q(id=id_, person=person) | Q(id=id_, account__person=person)).account
         except SubAccount.DoesNotExist:
             result["success"] = False
         else:
             # Associate the transactions with the person, so it will still be loaded.
             for tran in acc.transactions.all():
-                tran.person = request.user.person
+                tran.person = person
                 tran.save()
 
             acc.delete()
@@ -278,7 +281,8 @@ def delete_transactions(request: HttpRequest) -> HttpResponse:
 
     for id_ in data.get("ids", []):
         try:
-            Transaction.objects.get(id=id_).delete()
+            # The person check prevents abuse
+            Transaction.objects.get(id=id_, person=request.user.person).delete()
         except Transaction.DoesNotExist:
             result["success"] = False
 
@@ -756,17 +760,34 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
     success = True
 
     data = json.loads(request.body.decode("utf-8"))
-    print(data, "DATA\n\n\n")
+    person = request.user.person
 
-    for rule in data:
+    for rule in data["edited"]:
         CategoryRule.objects.update_or_create(
-            person=request.user.person,
+            person=person,
             id=rule["id"],
             defaults={
                 "description": rule["description"],
                 "category": rule["category"],
             }
         )
+        
+    for rule in data["added"]:
+        # The person check here prevents abuse by the frontend.
+        rule_db = CategoryRule(
+            person=person,
+            description=rule["description"],
+            category=rule["category"],
+        )
+        # todo: Pass added IDs to the UI.
+        try:
+            rule_db.save()
+        except IntegrityError:
+            success = False
+
+    for id_ in data["deleted"]:
+        # The person check here prevents abuse by the frontend.
+        CategoryRule.objects.get(id=id_, person=person).delete()
 
     return HttpResponse(
         json.dumps({"success": success}),

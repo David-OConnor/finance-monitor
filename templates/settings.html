@@ -12,29 +12,30 @@
         <h2 id="rule-success" style="color: #39a839; visibility: collapse; text-align: center;">Rule save successful.</h2>
         <div style="display: flex; flex-direction: column; align-items: center">
 
-            <button class="button-general" onclick="saveRules()" style="margin-bottom: 12px;">Save rules</button>
+            <div style="display: flex;">
+                <button class="button-general" onclick="saveRules()" style="margin-bottom: 12px;">Save rule changes</button>
+                <button class="button-general" onclick="addRule()" style="margin-bottom: 12px;">➕ Add</button>
+            </div>
+
+            <p>You can also add these from the Dashboard, by clicking a category, then the <i>Always</i> button</p>
 
             {% for rule in rules %}
-                <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <div id="rule-{{ rule.id }}" style="display: flex; align-items: center; margin-bottom: 8px;">
                     <input
                             id="rule-descrip-{{ rule.id }}"
-                            style="width: 200px; margin-right: 10px;"
+                            style="width: 200px;"
                             value="{{ rule.description }}"
                             oninput="updateRule({{ rule.id }})"
                     />
 
-                    <h4 style="margin-top: 0; margin-bottom: 0">➡</h4>
+                    <h4 style="margin: 0 10px;">➡</h4>
                     <div id="cat-div-{{ rule.id }}"></div>
-                    {#                    <select#}
-                    {#                            id="rule-category-{{ rule.id }}"#}
-                    {#                            style="margin-left: 10px;">#}
-                    {#                        {{ rule.category }}#}
-                    {#                    </select>#}
+                    <button class="button-general" style="height: 40px;" onclick="deleteRule({{ rule.id }})">❌</button>
                 </div>
             {% endfor %}
         </div>
 
-        <h2 style="text-align: center; margin-top: 60px;">Import and export transactions</h2>
+        <h2 style="text-align: center; margin-top: 80px;">Import and export transactions</h2>
 
         <div style="display: flex; justify-content: center;">
             {#            Import / export form #}
@@ -60,7 +61,7 @@
             <button id="export" class="button-general">Export ↓</button>
         </div>
 
-        <h2 style="text-align: center; margin-top: 60px; margin-bottom: 0;">Change password</h2>
+        <h2 style="text-align: center; margin-top: 80px; margin-bottom: 0;">Change password</h2>
 
         {% if password_change %}
             {% if password_change_success %}
@@ -82,25 +83,38 @@
                 {#                todo: C+P with little change from login and reset confirm!#}
                 {% csrf_token %}
 
-                <label for="id_new_password1" style="margin-top: 32px;">Password:</label>
-                <input
-                        type="password"
-                        name="new_password1"
-                        autocomplete="new-password"
-                        required aria-describedby="id_password1_helptext"
-                        id="id_password1"
-                        style="width: 180px; margin-bottom: 20px;"
-                >
 
-                <label for="id_new_password2">Password confirmation:</label>
-                <input
-                        type="password"
-                        name="new_password2"
-                        autocomplete="new-password"
-                        required aria-describedby="id_new_password2_helptext"
-                        id="id_password2"
-                        style="width: 180px;"
-                >
+                <div style="display: flex; align-items: center">
+                    <div style="display: flex; flex-direction: column">
+                        <label for="id_new_password1" style="margin-top: 32px;">Password:</label>
+                        <input
+                                type="password"
+                                name="new_password1"
+                                autocomplete="new-password"
+                                required aria-describedby="id_password1_helptext"
+                                id="id_password1"
+                                style="width: 180px; margin-bottom: 20px;"
+                        >
+
+                        <label for="id_new_password2">Password confirmation:</label>
+                        <input
+                                type="password"
+                                name="new_password2"
+                                autocomplete="new-password"
+                                required aria-describedby="id_new_password2_helptext"
+                                id="id_password2"
+                                style="width: 180px;"
+                        >
+                    </div>
+
+                    <div style="display: flex; align-items: center; margin-left: 40px;">
+                        <button
+                                class="button-general"
+                                type="submit"
+                                style=" width: 180px;"
+                        >Submit</button>
+                    </div>
+                </div>
 
                 <span class="helptext" id="id_new_password1_helptext">
                     <ul>
@@ -112,11 +126,6 @@
 
                 {#                <span class="helptext" id="id_password2_helptext">Enter the same password as before, for verification.</span>#}
 
-                <button
-                        class="button-general"
-                        type="submit"
-                        style="margin-top: 32px; width: 180px; margin-bottom: 40px;"
-                >Change your password</button>
             </form>
         </div>
     </div>
@@ -130,6 +139,8 @@
         })
 
         let rulesUpdated = {}
+        let rulesAdded = []
+        let rulesDeleted = []
 
         {#Set up the import start#}
         const importStart = document.getElementById('import-start')
@@ -153,8 +164,38 @@
                 description: document.getElementById("rule-descrip-" + id.toString()).value,
                 category: parseInt(document.getElementById("rule-category-" + id.toString()).value),
             }
+        }
 
-            console.log("Updated: ", rulesUpdated)
+        function addRule() {
+            {#document.getElementById("rule-" + id.toString()).remove()#}
+            rulesAdded.push({
+                description: "New rule",
+                category: -1,
+            })
+
+            // todo temp until we pass ID from backend
+            const payload = {
+                edited: [],
+                added: [{
+                    description: "New rule",
+                    category: -1,
+                }],
+                deleted: [],
+            }
+            fetch("/edit-rules", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("Rule edits failed to save")
+                    } else {
+                        window.location.reload()
+                    }
+                });
+        }
+
+        function deleteRule(id) {
+            document.getElementById("rule-" + id.toString()).remove()
+            rulesDeleted.push(id)
         }
 
         function createCatSel(id, catInit) {
@@ -188,12 +229,22 @@
         {% endfor %}
 
         function saveRules() {
-            fetch("/edit-rules", { body: JSON.stringify(Object.values(rulesUpdated)), ...FETCH_HEADERS_POST })
+            const payload = {
+                edited: Object.values(rulesUpdated),
+                {#added: rulesAdded,#}
+                added: [], // todo temp handled separate
+                deleted: rulesDeleted,
+            }
+            fetch("/edit-rules", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
                 .then(result => result.json())
                 .then(r => {
                     if (!r.success) {
                         console.error("Rule edits failed to save")
                     } else {
+                        if (rulesAdded.length) {
+                            // todo: Temp until we pass new ID from the backend
+                            window.location.reload()
+                        }
                         document.getElementById("rule-success").style.visibility = "visible"
                     }
                 });
