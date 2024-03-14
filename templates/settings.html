@@ -35,6 +35,29 @@
             {% endfor %}
         </div>
 
+        <h2 style="text-align: center; margin-top: 80px;">Custom categories</h2>
+        {#        <h2 id="rule-success" style="color: #39a839; visibility: collapse; text-align: center;">Rule save successful.</h2>#}
+        <div style="display: flex; flex-direction: column; align-items: center">
+
+            <div style="display: flex;">
+                <button class="button-general" onclick="saveRules()" style="margin-bottom: 12px;">Save category changes</button>
+                <button class="button-general" onclick="addRule()" style="margin-bottom: 12px;">➕ Add</button>
+            </div>
+
+            {% for cat in custom_categories %}
+                <div id="cat-{{ cat.id }}" style="display: flex; align-items: center; margin-bottom: 8px;">
+                    <input
+                            id="cat-name-{{ rule.id }}"
+                            style="width: 200px;"
+                            value="{{ cat.name }}"
+                            oninput="updateCategoryCustom({{ cata.id }})"
+                    />
+
+                    <button class="button-general" style="height: 40px;" onclick="deleteRule({{ rule.id }})">❌</button>
+                </div>
+            {% endfor %}
+        </div>
+
         <h2 style="text-align: center; margin-top: 80px;">Import and export transactions</h2>
 
         <div style="display: flex; justify-content: center;">

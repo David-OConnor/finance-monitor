@@ -422,6 +422,7 @@ def refresh_recurring(account: FinancialAccount):
     RecurringTransaction.objects.filter(account__account=account).delete()
 
     for recur in outflow_streams:
+        print("\n\n Recur: ", recur, "\n")
         categories = [TransactionCategory.from_str(cat) for cat in recur.category]
 
         categories = transaction_cats.category_override(recur.description, categories, rules)

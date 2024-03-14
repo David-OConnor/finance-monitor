@@ -44,7 +44,7 @@ from main.models import (
     AccountType,
     SubAccountType,
     RecurringTransaction,
-    CategoryRule,
+    CategoryRule, CategoryCustom,
 )
 
 import plaid
@@ -124,6 +124,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
     # todo: This is being spammed, along with "Refreshing transactions" on the frontend!!!
 
     result = {"success": True}
+    person = request.user.person
 
     for tran in data.get("transactions", []):
 
@@ -146,11 +147,13 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
         )
 
         if data.get("create_rule", False):
-            CategoryRule.objects.update_or_create(
-                person=request.user.person,
+            rule_db, _ = CategoryRule.objects.update_or_create(
+                person=person,
                 description=tran_db.description,
                 defaults={"category": tran["categories"][0]}
             )
+
+            util.change_tran_cats_from_rule(rule_db, person)
 
     return HttpResponse(json.dumps(result), content_type="application/json")
 
@@ -558,6 +561,7 @@ def settings(request: HttpRequest) -> HttpResponse:
 
     context = {
         "rules": CategoryRule.objects.filter(person=request.user.person),
+        "custom_categories": CategoryCustom.objects.filter(person=request.user.person),
         "password_change": False
     }
 
@@ -753,10 +757,11 @@ def export_(request: HttpRequest) -> HttpResponse:
 
     return response
 
+
 @login_required
 def edit_rules(request: HttpRequest) -> HttpResponse:
     """We use this to edit rules, eg from the settings page. Note that
-    when editing the transactions table, we use the `update_transactions` endpoint instead."""
+    when editing the transactions table, we use the `edit_transactions` endpoint instead."""
 
     success = True
 
@@ -764,7 +769,7 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
     person = request.user.person
 
     for rule in data["edited"]:
-        CategoryRule.objects.update_or_create(
+        rule_db, _ = CategoryRule.objects.update_or_create(
             person=person,
             id=rule["id"],
             defaults={
@@ -772,7 +777,9 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
                 "category": rule["category"],
             }
         )
-        
+        util.change_tran_cats_from_rule(rule_db, person)
+
+
     for rule in data["added"]:
         # The person check here prevents abuse by the frontend.
         rule_db = CategoryRule(
@@ -785,6 +792,8 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
             rule_db.save()
         except IntegrityError:
             success = False
+        else:
+            util.change_tran_cats_from_rule(rule_db, person)
 
     for id_ in data["deleted"]:
         # The person check here prevents abuse by the frontend.

@@ -24,7 +24,7 @@
                  border-bottom: 2px solid #666666;
             ">
                 <div style="grid-column: 1/2; text-align: center;"><h4></h4></div>
-                <div style="grid-column: 2/3; text-align: center;"><h4>Description</h4></div>
+                <div style="grid-column: 2/3; text-align: center;"><h4>Merchant</h4></div>
                 <div style="grid-column: 3/4; text-align: center;"><h4>Account</h4></div>
 {#                <div style="grid-column: 4/5; text-align: center;"><h4>Avg amount</h4></div>#}
                 <div style="grid-column: 4/5; text-align: center;"><h4>Amount</h4></div>
@@ -37,7 +37,7 @@
                     {#         Merchant name appears generally missing#}
                     {#            <div style="grid-column: 1/2"><h4>{{ recur.merchant_name }}</h4></div>#}
                     <div style="grid-column: 1/2; text-align: center; border-bottom: 1px solid #cccccc;"><h4>{{ recur.cats_cleaned }}</h4></div>
-                    <div style="grid-column: 2/3; text-align: center; border-bottom: 1px solid #cccccc;"><h4>{{ recur.description }}</h4></div>
+                    <div style="grid-column: 2/3; text-align: center; border-bottom: 1px solid #cccccc;"><h4>{{ recur.merchant_name }}</h4></div>
                     <div style="grid-column: 3/4; text-align: center; border-bottom: 1px solid #cccccc;"><h4>{{ recur.account.account.institution.name }}</h4></div>
 {#                    <div style="grid-column: 4/5; text-align: center;"><h4>{{ recur.average_amount|floatformat:2 }}</h4></div>#}
                     <div style="grid-column: 4/5; text-align: center; border-bottom: 1px solid #cccccc;"><h4>{{ recur.last_amount|floatformat:2 }}</h4></div>

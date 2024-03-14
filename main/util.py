@@ -19,7 +19,7 @@ from main.models import (
     Transaction,
     SubAccountType,
     SnapshotAccount,
-    SnapshotPerson,
+    SnapshotPerson, CategoryRule,
 )
 from main.transaction_cats import TransactionCategory
 
@@ -280,3 +280,11 @@ def check_account_status(request: HttpRequest) -> Optional[HttpResponse]:
         # todo
         return HttpResponse(
             "This account is locked due to suspicious activity. Please contact us: contact@finance-monitor.com")
+
+
+def change_tran_cats_from_rule(rule: CategoryRule, person: Person):
+    """This is a bit of a forward decision, but retroactively re-categorize transactions matching
+    a given description, based on a new or updated rule."""
+    for tran in Transaction.objects.filter(Q(person=person) | Q(account__person=person), description__iexact=rule.description):
+        tran.categories = [rule.category]
+        tran.save()
