@@ -48,15 +48,15 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
 
 
 def load_transactions(
-    start_i: Optional[int],
-    end_i: Optional[int],
-    accounts: Iterable[FinancialAccount],
-    person: Person,
-    search_text: Optional[str],
-    start: Optional[date],
-    end: Optional[date],
-    # categories: Optional[List[TransactionCategory]]
-    category: Optional[TransactionCategory]
+        start_i: Optional[int],
+        end_i: Optional[int],
+        accounts: Iterable[FinancialAccount],
+        person: Person,
+        search_text: Optional[str],
+        start: Optional[date],
+        end: Optional[date],
+        # categories: Optional[List[TransactionCategory]]
+        category: Optional[TransactionCategory]
 ) -> List[Transaction]:
     """Create a set of transactions, serialized for use with the frontend. These
     are combined from all sub-accounts."""
@@ -111,7 +111,7 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
     }
 
     for sub_acc in SubAccount.objects.filter(
-        Q(account__person=person) | Q(person=person)
+            Q(account__person=person) | Q(person=person)
     ):
         if sub_acc.ignored:
             continue
@@ -210,7 +210,7 @@ def take_snapshots(accounts: Iterable[FinancialAccount], person: Person):
 
 # def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Person, num_days: int) -> List[Tuple[TransactionCategory, List[int, float, Dict[str, str]]]]:
 def setup_spending_highlights(
-    accounts: Iterable[FinancialAccount], person: Person, num_days: int
+        accounts: Iterable[FinancialAccount], person: Person, num_days: int
 ):
     """Find the biggest recent spending highlights."""
     end = timezone.now().date()
@@ -222,12 +222,28 @@ def setup_spending_highlights(
 
     # print(trans, "TRANS")
 
-    result = {}
+    by_cat = {}
+    large_purchases = []
 
     total = 0.0
 
+    # # This can be low; large purchases will be rank-limited.
+    LARGE_PURCHASE_THRESH = 300.
+
+    skip_cats = [
+        TransactionCategory.PAYMENT,
+        TransactionCategory.INCOME,
+        TransactionCategory.TRANSFER,
+        TransactionCategory.UNCATEGORIZED,
+        TransactionCategory.DEPOSIT,
+        TransactionCategory.DEBIT,
+        TransactionCategory.CREDIT_CARD,
+    ]
+
     for tran in trans:
         total += tran.amount
+
+        invalid_cat = False
 
         cats = [TransactionCategory(c) for c in tran.categories]
         cats = transaction_cats.cleanup_categories(cats)
@@ -236,36 +252,34 @@ def setup_spending_highlights(
             c = cat  # We serialize anyway, so no need to convert to a TransactionCategory.
 
             # Remove categories that don't categorize spending well.
-            if c in [
-                TransactionCategory.PAYMENT,
-                TransactionCategory.INCOME,
-                TransactionCategory.TRANSFER,
-                TransactionCategory.UNCATEGORIZED,
-                TransactionCategory.DEPOSIT,
-                TransactionCategory.DEBIT,
-                TransactionCategory.CREDIT_CARD,
-            ]:
+            if c in skip_cats:
+                invalid_cat = True
                 continue
 
-            if c.value not in result.keys():
-                result[c.value] = [0, 0.0, []]  # count, total, transactions serialized
+            if c.value not in by_cat.keys():
+                by_cat[c.value] = [0, 0.0, []]  # count, total, transactions serialized
 
-            result[c.value][0] += 1
-            result[c.value][1] += tran.amount
-            result[c.value][2].append(tran.serialize())
+            by_cat[c.value][0] += 1
+            by_cat[c.value][1] += tran.amount
+            by_cat[c.value][2].append(tran.serialize())
+
+        if tran.amount >= LARGE_PURCHASE_THRESH and not invalid_cat:
+            large_purchases.append({"description": tran.description, "amount": tran.amount})
 
     # Sort by value
-    result = sorted(result.items(), key=lambda x: x[1][1], reverse=True)
+    by_cat = sorted(by_cat.items(), key=lambda x: x[1][1], reverse=True)
+    large_purchases = sorted(large_purchases, key=lambda x: x["amount"], reverse=True)
 
-    # print("\nTran cats: ", result)
+    # print("\nTran cats: ", by_cat)
 
     #
 
     # by_cat = trans.sort(key=lambda t: t.)
 
     return {
-        "by_cat": result,
+        "by_cat": by_cat,
         "total": total,
+        "large_purchases": large_purchases,
     }
 
 

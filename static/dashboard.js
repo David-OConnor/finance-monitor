@@ -552,7 +552,8 @@ function createTranRow(tran) {
 
     } else {
         h = createEl("h4",
-            {class: "tran-heading " +  tran.amount_class},
+            // {class: "tran-heading " +  tran.amount_class},
+            {class: "tran-heading " +  "tran_neutral"},
             {textAlign: "right", marginRight: "40px"}, formatAmount(tran.amount, true)
         )
     }
@@ -918,28 +919,34 @@ function setupAccEditForm(id) {
 
 function setupSpendingHighlights() {
     // Consider a template for this instead; it should be faster.
-    let el  = document.getElementById("biggest-cats")
+    let biggestCats  = document.getElementById("biggest-cats")
 
-
-    // todo: grid?
     let h, text
 
     h = createEl(
         "h4",
         {},
         {marginRight: "40px"},
-        "Total: " + formatAmount(SPENDING_HIGHLIGHTS.total, 0)
+        "Total: "
     )
-    el.appendChild(h)
+
+    let s = createEl("span", {class: "tran_neutral"}, {}, formatAmount(SPENDING_HIGHLIGHTS.total, 0))
+    h.appendChild(s)
+    biggestCats.appendChild(h)
 
     for (let highlight of SPENDING_HIGHLIGHTS.by_cat.slice(0, 3)) {
-        text = catNameFromVal(highlight[0]) + ": " + formatAmount(highlight[1][1], 0) + " in " + highlight[1][0] + " transactions"
+        text = catNameFromVal(highlight[0]) + ": "
         h = createEl(
             "h4",
             {},
             {marginRight: "40px", cursor: "pointer"},
             text
         )
+        let s = createEl("span", {class: "tran_neutral"}, {}, formatAmount(highlight[1][1], 0))
+        let s2 = createEl("span", {}, {}, " in " + highlight[1][0] + " transactions")
+
+        h.appendChild(s)
+        h.appendChild(s2)
 
         h.addEventListener("click", _ => {
             CURRENT_PAGE = 0
@@ -947,7 +954,34 @@ function setupSpendingHighlights() {
             document.getElementById("tran-filter-sel").value = highlight[0].toString()
             updateTranFilter()
         })
-        el.appendChild(h)
+
+        biggestCats.appendChild(h)
+    }
+
+    let largePurchases  = document.getElementById("large-purchases")
+
+    for (let purchase of SPENDING_HIGHLIGHTS.large_purchases.slice(0, 3)) {
+        text = purchase.description + ": "
+        h = createEl(
+            "h4",
+            {},
+            // {marginRight: "40px", cursor: "pointer"},
+            {marginRight: "40px"},
+            text
+        )
+        let s = createEl("span", {class: "tran_neutral"}, {}, formatAmount(purchase.amount, 0))
+        // let s2 = createEl("span", {}, {}, " in " + purchase[1][0] + " transactions")
+
+        h.appendChild(s)
+
+        // h.addEventListener("click", _ => {
+        //     CURRENT_PAGE = 0
+        //     FILTER_CAT = purchase[0]
+        //     document.getElementById("tran-filter-sel").value = purchase[0].toString()
+        //     updateTranFilter()
+        // })
+
+        largePurchases.appendChild(h)
     }
 }
 
@@ -1045,7 +1079,8 @@ function addTranManual() {
     const newTran =  {
         // id: tempId,
         amount: 0.,
-        amount_class: "tran_pos",
+        // amount_class: "tran_pos",
+        amount_class: "tran_neutral",
         categories: [-1],
         // categories_icon: [],
         // categories_text: [],

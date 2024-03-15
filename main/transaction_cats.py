@@ -373,6 +373,7 @@ replacements = [
     ("google fi", TransactionCategory.BILLS_AND_UTILITIES),
     #
     ("bumble", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("hinge", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     # todo: Could be a restaurant too
     ("audible", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     ("midjourney", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
@@ -481,6 +482,9 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
         cats.remove(TransactionCategory.GROCERIES)
 
     if TransactionCategory.GROCERIES in cats and TransactionCategory.SHOPS in cats:
+        cats.remove(TransactionCategory.SHOPS)
+
+    if TransactionCategory.SOFTWARE_SUBSCRIPTIONS in cats and TransactionCategory.SHOPS in cats:
         cats.remove(TransactionCategory.SHOPS)
 
     if TransactionCategory.SPORTING_GOODS in cats and TransactionCategory.SHOPS in cats:

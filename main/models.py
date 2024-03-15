@@ -422,7 +422,7 @@ class Transaction(Model):
             # Currently just used for search on FE. Could be replaced their by JS fns we already have.
             "categories_text": [cat.to_str() for cat in cats],
             "description": description,
-            "notes": self.notes,
+            "notes": self.notes if self.notes else "",
             "amount": self.amount,
             # todo: DO we want this?
             "amount_class": (

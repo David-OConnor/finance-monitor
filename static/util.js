@@ -108,7 +108,8 @@ function catNameFromVal(val) {
         return "Restaurants"
     }
     if (val === 2) {
-        return "Software subscriptions"
+        // return "Software subscriptions"
+        return "Software subs"
     }
     if (val === 3) {
         return "Travel"
