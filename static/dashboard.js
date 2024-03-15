@@ -935,14 +935,14 @@ function setupSpendingHighlights() {
     biggestCats.appendChild(h)
 
     for (let highlight of SPENDING_HIGHLIGHTS.by_cat.slice(0, 3)) {
-        text = catNameFromVal(highlight[0]) + ": "
+        text = catIconFromVal(highlight[0]) + catNameFromVal(highlight[0]) + ": "
         h = createEl(
             "h4",
             {},
-            {marginRight: "40px", cursor: "pointer"},
+            {marginRight: "40px", cursor: "pointer", fontWeight: "normal"},
             text
         )
-        let s = createEl("span", {class: "tran_neutral"}, {}, formatAmount(highlight[1][1], 0))
+        let s = createEl("span", {class: "tran_neutral"}, {fontWeight: "bold"}, formatAmount(highlight[1][1], 0))
         let s2 = createEl("span", {}, {}, " in " + highlight[1][0] + " transactions")
 
         h.appendChild(s)
@@ -966,10 +966,10 @@ function setupSpendingHighlights() {
             "h4",
             {},
             // {marginRight: "40px", cursor: "pointer"},
-            {marginRight: "40px"},
+            {marginRight: "40px", fontWeight: "normal"},
             text
         )
-        let s = createEl("span", {class: "tran_neutral"}, {}, formatAmount(purchase.amount, 0))
+        let s = createEl("span", {class: "tran_neutral"}, {fontWeight: "bold"}, formatAmount(purchase.amount, 0))
         // let s2 = createEl("span", {}, {}, " in " + purchase[1][0] + " transactions")
 
         h.appendChild(s)

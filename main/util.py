@@ -241,8 +241,6 @@ def setup_spending_highlights(
     ]
 
     for tran in trans:
-        total += tran.amount
-
         invalid_cat = False
 
         cats = [TransactionCategory(c) for c in tran.categories]
@@ -265,6 +263,9 @@ def setup_spending_highlights(
 
         if tran.amount >= LARGE_PURCHASE_THRESH and not invalid_cat:
             large_purchases.append({"description": tran.description, "amount": tran.amount})
+
+        if not invalid_cat:
+            total += tran.amount
 
     # Sort by value
     by_cat = sorted(by_cat.items(), key=lambda x: x[1][1], reverse=True)

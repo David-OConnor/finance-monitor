@@ -118,6 +118,8 @@
         background-color: white;
         border-radius: 12px;
         margin-top: 20px;
+        margin-bottom: 20px;
+        padding-left: 12px;
 ">
             {#             todo: JS, or template? We've loaded both.#}
             <h2>Spending highlights (last 30 days)</h2>
@@ -138,56 +140,63 @@
                 </div>
             </div>
 
-            <div style="display: flex; flex-wrap: wrap; align-items: center;">
-                <h2 style="margin-right: 4px;">Transactions</h2>
-                {# Required to show borders?#}
+        </div>
 
-                <div style="display: flex; align-items: center; margin-right: 32px;">
-                    <span>🔍</span>
-                    <input
-                            id="search"
-                            placeholder=""
-                            style="width: 120px;"
-                            oninput="updateTranFilter()"
-                    />
-                </div>
+        <div style="
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+                    background-color: white;
+        border-radius: 12px;
+">
+            <h2 style="margin-right: 4px;">Transactions</h2>
+            {# Required to show borders?#}
 
-                {#            This cat filtelr is populated by JS to prevent DRY between JS and templates. #}
+            <div style="display: flex; align-items: center; margin-right: 32px;">
+                <span>🔍</span>
+                <input
+                        id="search"
+                        placeholder=""
+                        style="width: 120px;"
+                        oninput="updateTranFilter()"
+                />
+            </div>
 
-                <div id="tran-cat-filter"></div>
+            {#            This cat filtelr is populated by JS to prevent DRY between JS and templates. #}
 
-                <div style="display: flex; align-items: center; margin-right: 32px; margin-left: 12px;">
-                    <h4>Start:</h4>
-                    <input
-                            id="tran-filter-start"
-                            type="date"
-                            {#                        value="19",#}
-                            style="margin-right: 20px; width: 120px;"
-                            oninput="updateTranFilter()"
-                    />
+            <div id="tran-cat-filter"></div>
 
-                    <h4>End:</h4>
-                    <input
-                            id="tran-filter-end"
-                            type="date"
-                            {#                        value=FILTER_END,#}
-                            style="width: 120px;"
-                            oninput="updateTranFilter()"
-                    />
-                </div>
+            <div style="display: flex; align-items: center; margin-right: 32px; margin-left: 12px;">
+                <h4>Start:</h4>
+                <input
+                        id="tran-filter-start"
+                        type="date"
+                        {#                        value="19",#}
+                        style="margin-right: 20px; width: 120px;"
+                        oninput="updateTranFilter()"
+                />
 
-                <div style="display: flex; align-items: center;">
-                    <h4 style="width: 70px;">Value ></h4>
-                    <input
-                            id="transaction-value-filter"
-                            type="number"
-                            value="0"
-                            {#                    style="margin-right: 80px; width: 120px; height: 32px;"#}
-                            style="width: 60px"
-                            {#                     todo: Same as search change?#}
-                            oninput="updateTranFilter()"
-                    />
-                </div>
+                <h4>End:</h4>
+                <input
+                        id="tran-filter-end"
+                        type="date"
+                        {#                        value=FILTER_END,#}
+                        style="width: 120px;"
+                        oninput="updateTranFilter()"
+                />
+            </div>
+
+            <div style="display: flex; align-items: center;">
+                <h4 style="width: 70px;">Value ></h4>
+                <input
+                        id="transaction-value-filter"
+                        type="number"
+                        value="0"
+                        {#                    style="margin-right: 80px; width: 120px; height: 32px;"#}
+                        style="width: 60px"
+                        {#                     todo: Same as search change?#}
+                        oninput="updateTranFilter()"
+                />
             </div>
 
             <table class="tran-table">
