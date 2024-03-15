@@ -210,11 +210,12 @@ def take_snapshots(accounts: Iterable[FinancialAccount], person: Person):
 
 # def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Person, num_days: int) -> List[Tuple[TransactionCategory, List[int, float, Dict[str, str]]]]:
 def setup_spending_highlights(
-        accounts: Iterable[FinancialAccount], person: Person, num_days: int
+        accounts: Iterable[FinancialAccount], person: Person, start_days_back: int, end_days_back: int, is_lookback: bool
 ):
     """Find the biggest recent spending highlights."""
-    end = timezone.now().date()
-    start = end - timedelta(days=num_days)
+    now = timezone.now()
+    start = timezone.now() - timedelta(days=start_days_back)
+    end = timezone.now() - timedelta(days=end_days_back)
 
     # todo: We likely have already loaded these transactions. Optimize later.
     # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
@@ -228,7 +229,7 @@ def setup_spending_highlights(
     total = 0.0
 
     # # This can be low; large purchases will be rank-limited.
-    LARGE_PURCHASE_THRESH = 300.
+    LARGE_PURCHASE_THRESH = 150.
 
     skip_cats = [
         TransactionCategory.PAYMENT,
@@ -271,6 +272,15 @@ def setup_spending_highlights(
     by_cat = sorted(by_cat.items(), key=lambda x: x[1][1], reverse=True)
     large_purchases = sorted(large_purchases, key=lambda x: x["amount"], reverse=True)
 
+
+    total_change = None
+    # This check prevents an infinite recursion.
+    if not is_lookback:
+        # todo: We don't need to compute the entire data set for the previous period.; just the relevant parts.
+        data_prev_month = setup_spending_highlights(
+            accounts, person, start_days_back * 2, start_days_back, True
+        )
+        total_change = total - data_prev_month["total"]
     # print("\nTran cats: ", by_cat)
 
     #
@@ -280,6 +290,7 @@ def setup_spending_highlights(
     return {
         "by_cat": by_cat,
         "total": total,
+        "total_change": total_change,
         "large_purchases": large_purchases,
     }
 

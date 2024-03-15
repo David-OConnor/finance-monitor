@@ -250,6 +250,7 @@ class FinancialAccount(Model):
     last_refreshed = DateTimeField()
     # Recurring can be refreshed at a lower rate.
     last_refreshed_recurring = DateTimeField()
+    last_refreshed_successfully = DateTimeField()
     # The cursor is used with the `/transactions/sync` endpoint, to know the latest data loaded.
     # Generally initialized to null, but has a value after. It is encoded in base64, and has a max length of 256 characters.
     # It appears that None fails for the Python Plaid API, eg at init, but an empty string works.

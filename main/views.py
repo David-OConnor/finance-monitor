@@ -310,7 +310,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         return HttpResponseRedirect("/dashboard")
 
     spending_highlights = util.setup_spending_highlights(
-        person.accounts.all(), person, 30
+        person.accounts.all(), person, 30, 0, False
     )
 
     context = util.load_dash_data(request.user.person)

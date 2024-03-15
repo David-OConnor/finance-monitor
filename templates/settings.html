@@ -155,9 +155,9 @@
 
     <script src="../static/util.js"></script>
     <script>
-        document.getElementById("menu-settings").classList.add("menu-highlighted")
+        getEl("menu-settings").classList.add("menu-highlighted")
 
-        document.getElementById('export').addEventListener('click', function() {
+        getEl('export').addEventListener('click', function() {
             window.location.href = '/export'
         })
 
@@ -166,10 +166,10 @@
         let rulesDeleted = []
 
         {#Set up the import start#}
-        const importStart = document.getElementById('import-start')
+        const importStart = getEl('import-start')
         importStart.addEventListener('click', function() {
             {#importStart.#}
-            const importForm = document.getElementById("import-form")
+            const importForm = getEl("import-form")
             if (importForm.style.visibility === "collapse") {
                 importForm.style.visibility = "visible"
                 importStart.style.visibility = "collapse"
@@ -184,13 +184,13 @@
         function updateRule(id) {
             rulesUpdated[id] = {
                 id: id,
-                description: document.getElementById("rule-descrip-" + id.toString()).value,
-                category: parseInt(document.getElementById("rule-category-" + id.toString()).value),
+                description: getEl("rule-descrip-" + id.toString()).value,
+                category: parseInt(getEl("rule-category-" + id.toString()).value),
             }
         }
 
         function addRule() {
-            {#document.getElementById("rule-" + id.toString()).remove()#}
+            {#getEl("rule-" + id.toString()).remove()#}
             rulesAdded.push({
                 description: "New rule",
                 category: -1,
@@ -217,7 +217,7 @@
         }
 
         function deleteRule(id) {
-            document.getElementById("rule-" + id.toString()).remove()
+            getEl("rule-" + id.toString()).remove()
             rulesDeleted.push(id)
         }
 
@@ -226,7 +226,7 @@
             // todo: C+P with dashboard.
             let sel = createEl("select", {id: "rule-category-" + id.toString()}, {height: "40px"})
 
-            let opt = createEl("option", {value: -2}, {}, "All")
+            let opt = createEl("option", {value: -2}, {}, "All categories")
             sel.appendChild(opt)
 
             for (let cat of catNames) {
@@ -247,7 +247,7 @@
 
         let div
         {% for rule in rules %}
-            div = document.getElementById("cat-div-{{ rule.id }}")
+            div = getEl("cat-div-{{ rule.id }}")
             div.appendChild(createCatSel({{ rule.id }}, {{ rule.category }}))
         {% endfor %}
 
@@ -268,7 +268,7 @@
                             // todo: Temp until we pass new ID from the backend
                             window.location.reload()
                         }
-                        document.getElementById("rule-success").style.visibility = "visible"
+                        getEl("rule-success").style.visibility = "visible"
                     }
                 });
         }

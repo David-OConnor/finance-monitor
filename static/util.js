@@ -372,3 +372,13 @@ const catVals = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 1
 let catNames = catVals.map(v => [v, catNameFromVal(v)])
 // Sort alphabetically, by cat name.
 catNames.sort((a, b) =>(a[1].localeCompare(b[1])))
+
+function onMobile() {
+    // Assesss if on mobile using window width.
+    return window.innerWidth < 800
+}
+
+function getEl(id) {
+    // Code simplifier
+    return document.getElementById(id)
+}

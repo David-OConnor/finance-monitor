@@ -262,7 +262,7 @@ function refreshAccounts() {
 
     console.log("Refreshing accounts...")
 
-    let section = document.getElementById("accounts")
+    let section = getEl("accounts")
     section.replaceChildren()
 
     const acc_cash = ACCOUNTS.filter(acc => [ACC_TYPE_CHECKING, ACC_TYPE_SAVINGS].includes(acc.sub_type))
@@ -585,7 +585,7 @@ function createTranRow(tran) {
                         console.error("Error deleting this transactcion: ", tran)
                     }
                 });
-            let row = document.getElementById("tran-row-" + tran.id.toString())
+            let row = getEl("tran-row-" + tran.id.toString())
             row.remove()
 
             TRANSACTIONS = TRANSACTIONS.filter(t => t.id !== tran.id)
@@ -612,7 +612,7 @@ function refreshTransactions() {
 
     let transactions = filterTransactions()
 
-    let tbody = document.getElementById("transaction-tbody")
+    let tbody = getEl("transaction-tbody")
     tbody.replaceChildren();
 
     let col, img, h, opt, sel, d, ip
@@ -626,10 +626,10 @@ function refreshTransactions() {
 function updateTranFilter() {
     TRANSACTIONS_LOADED = false // Allows more transactions to be loaded from the server.
 
-    SEARCH_TEXT = document.getElementById("search").value.toLowerCase()
+    SEARCH_TEXT = getEl("search").value.toLowerCase()
 
     // todo: Enforce integer value.
-    let valueThresh = document.getElementById("transaction-value-filter").value
+    let valueThresh = getEl("transaction-value-filter").value
     // Remove non-integer values
 
     // todo: number field here is actually interfering, returning an empty string if invalid;
@@ -637,15 +637,15 @@ function updateTranFilter() {
 
     VALUE_THRESH = parseInt(valueThresh.replace(/\D+/g, ''))
 
-    FILTER_START = document.getElementById("tran-filter-start").value
-    FILTER_END = document.getElementById("tran-filter-end").value
+    FILTER_START = getEl("tran-filter-start").value
+    FILTER_END = getEl("tran-filter-end").value
     refreshTransactions()
 }
 
 
 function addAccountManual() {
     // We use this when submitting a new manual account
-    // document.getElementById("add-account-manaul").addEventListener("click", _ => {
+    // getEl("add-account-manaul").addEventListener("click", _ => {
     //                 <input id="add-manual-name" />
     //
     //                 <select id="add-manual-type" style="border: 1px solid black; height: 32px; width: 156px;">
@@ -654,10 +654,10 @@ function addAccountManual() {
 
     // todo: Validate no blank account name
     const data = {
-        name: document.getElementById("add-manual-name").value,
-        sub_type: parseInt(document.getElementById("add-manual-type").value),
-        current: parseInt(document.getElementById("add-manual-current").value),
-        iso_currency_code: document.getElementById("add-manual-currency-code").value,
+        name: getEl("add-manual-name").value,
+        sub_type: parseInt(getEl("add-manual-type").value),
+        current: parseInt(getEl("add-manual-current").value),
+        iso_currency_code: getEl("add-manual-currency-code").value,
     }
 
     fetch("/add-account-manual", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
@@ -674,7 +674,7 @@ function addAccountManual() {
 }
 
 function setupEditTranButton() {
-    let btn = document.getElementById("edit-transactions");
+    let btn = getEl("edit-transactions");
 
     btn.addEventListener("click", _ => {
         if (EDIT_MODE_TRAN) {
@@ -732,9 +732,9 @@ function setupAccEditForm(id) {
     let acc = ACCOUNTS.filter(a => a.id === id)[0]
 
     // Setup the form for adding and editing accounts.
-    let outerDiv = document.getElementById("account-div")
+    let outerDiv = getEl("account-div")
     outerDiv.style.visibility = "visible"
-    let form = document.getElementById("account-form")
+    let form = getEl("account-form")
     form.replaceChildren()
 
     let d, h, ip
@@ -919,12 +919,12 @@ function setupAccEditForm(id) {
 
 function setupSpendingHighlights() {
     // Consider a template for this instead; it should be faster.
-    let biggestCats  = document.getElementById("biggest-cats")
+    let biggestCats  = getEl("biggest-cats")
 
     let h, text
 
     h = createEl(
-        "h4",
+        "h3",
         {},
         {marginRight: "40px"},
         "Total: "
@@ -943,7 +943,15 @@ function setupSpendingHighlights() {
             text
         )
         let s = createEl("span", {class: "tran_neutral"}, {fontWeight: "bold"}, formatAmount(highlight[1][1], 0))
-        let s2 = createEl("span", {}, {}, " in " + highlight[1][0] + " transactions")
+
+        // Terser text on mobile.
+        let s2Text
+        if (onMobile()) {
+            s2Text = " (" + highlight[1][0] + ")"
+        } else {
+            s2Text = " in " + highlight[1][0] + " transactions"
+        }
+        let s2 = createEl("span", {}, {}, s2Text)
 
         h.appendChild(s)
         h.appendChild(s2)
@@ -951,14 +959,39 @@ function setupSpendingHighlights() {
         h.addEventListener("click", _ => {
             CURRENT_PAGE = 0
             FILTER_CAT = highlight[0]
-            document.getElementById("tran-filter-sel").value = highlight[0].toString()
+            getEl("tran-filter-sel").value = highlight[0].toString()
             updateTranFilter()
         })
 
         biggestCats.appendChild(h)
     }
+    
+    let changes = getEl("biggest-changes")
 
-    let largePurchases  = document.getElementById("large-purchases")
+    h = createEl("h4", {}, {}, "Spending change: ")
+    let s2 = createEl(
+        "span",
+        // {class: SPENDING_HIGHLIGHTS.total_change >= 0. ? "tran_pos" : "tran_neg"},
+        {class: "tran_neutral"},
+        {fontWeight: "bold"},
+        formatAmount(SPENDING_HIGHLIGHTS.total_change, 0)
+    )
+
+    h.appendChild(s2)
+    changes.appendChild(h)
+
+    let largePurchases  = getEl("large-purchases")
+
+    if (SPENDING_HIGHLIGHTS.large_purchases.length === 0) {
+            h = createEl(
+            "h4",
+            {},
+            // {marginRight: "40px", cursor: "pointer"},
+            {marginRight: "40px", fontWeight: "normal"},
+            "(None)"
+        )
+        largePurchases.appendChild(h)
+    }
 
     for (let purchase of SPENDING_HIGHLIGHTS.large_purchases.slice(0, 3)) {
         text = purchase.description + ": "
@@ -977,7 +1010,7 @@ function setupSpendingHighlights() {
         // h.addEventListener("click", _ => {
         //     CURRENT_PAGE = 0
         //     FILTER_CAT = purchase[0]
-        //     document.getElementById("tran-filter-sel").value = purchase[0].toString()
+        //     getEl("tran-filter-sel").value = purchase[0].toString()
         //     updateTranFilter()
         // })
 
@@ -987,12 +1020,13 @@ function setupSpendingHighlights() {
 
 function setupCatFilter(searchText) {
     // Set up the main transaction category filter. Done in JS for consistency with other CAT filters.
-    let div = document.getElementById("tran-cat-filter")
+    let div = getEl("tran-cat-filter")
 
     let sel = createEl("select", {id: "tran-filter-sel"}, {height: "40px"})
 
-    let opt = createEl("option", {value: -2}, {}, "All")
+    let opt = createEl("option", {value: -2}, {}, "All categories")
     sel.appendChild(opt)
+
     for (let cat of catNames) {
         opt = createEl("option", {value: cat[0]}, {}, cat[1])
         sel.appendChild(opt)
@@ -1009,7 +1043,7 @@ function setupCatFilter(searchText) {
 
 function init() {
     // We run this on page load
-    document.getElementById("link-button").addEventListener("click", _ => {
+    getEl("link-button").addEventListener("click", _ => {
         fetch("/create-link-token", FETCH_HEADERS_GET)
             // Parse JSON if able.
             .then(result => result.json())
@@ -1023,7 +1057,7 @@ function init() {
     refreshAccounts()
     refreshTransactions()
 
-    let check = document.getElementById("icon-checkbox")
+    let check = getEl("icon-checkbox")
     check.addEventListener("click", _ => {
         TRANSACTION_ICONS = !TRANSACTION_ICONS
         refreshTransactions() // todo: Dangerous potentially re infinite recursions, but seems to be OK.
@@ -1053,6 +1087,11 @@ function init() {
 
     setupSpendingHighlights()
     setupCatFilter()
+
+    if (onMobile()) {
+        getEl("biggest-change-h").textContent = "Changes:"
+        getEl("large-purchases-h").textContent = "Large:"
+    }
 }
 
 init()
@@ -1114,7 +1153,7 @@ function addTranManual() {
 
                 // todo: For a snapier response, consider adding immediatley, and retroactively changing its id.
                 const row = createTranRow(newTran)
-                document.getElementById("transaction-tbody").prepend(row)
+                getEl("transaction-tbody").prepend(row)
             } else {
                 console.error("Problem adding this transaction")
                 // (We've just removed it from the state above)
@@ -1123,8 +1162,8 @@ function addTranManual() {
 }
 
 function toggleAddManual() {
-    let form = document.getElementById("add-manual-form")
-    let btnToggle = document.getElementById("add-manual-button")
+    let form = getEl("add-manual-form")
+    let btnToggle = getEl("add-manual-button")
 
     if (form.style.visibility === "visible") {
         form.style.visibility = "collapse"

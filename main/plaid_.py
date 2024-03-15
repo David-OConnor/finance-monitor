@@ -7,6 +7,7 @@ Sandbox test credentials: user_good, pass_good, credential_good (pin), mfa_devic
 import json
 from typing import Optional, Iterable, List, Tuple
 
+from django.core.mail import send_mail
 from django.utils import timezone
 
 from plaid import ApiException
@@ -24,6 +25,7 @@ from plaid.model.transactions_recurring_get_request import (
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from django.db import IntegrityError
 
+from wallet import settings
 from . import transaction_cats, util
 from .models import (
     FinancialAccount,
@@ -117,7 +119,16 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
     try:
         response = CLIENT.accounts_balance_get(request)
     except ApiException as e:
-        print("API exception; unable to access this account: ", e)
+        print("\n\nAPI exception; unable to access this account: ", e)
+        if not settings.DEPLOYED:
+            send_mail(
+                "Account refresh error",
+                "",
+                "contact@finance-monitor.com",
+                ["contact@finance-monitor.com"],
+                fail_silently=False,
+                html_message=f"Problem refershing accounts. Error: {e}",
+            )
         return None
 
     return response["accounts"]
@@ -157,7 +168,7 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
             print("Not refreshing account data")
 
         if (
-            now - acc.last_refreshed_recurring
+                now - acc.last_refreshed_recurring
         ).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
             print("Refreshing recurring data...")
             refresh_recurring(acc)
@@ -176,9 +187,7 @@ def refresh_account_balances(account: FinancialAccount):
     if balance_data is None:
         return
 
-    print("\nBalance data loaded: ", balance_data)
-
-    # todo: Icon?
+    account.last_refreshed_successfully = timezone.now()
 
     # todo:  Handle  sub-acct entries in DB that have missing data.
     for sub in balance_data:
@@ -199,7 +208,6 @@ def refresh_account_balances(account: FinancialAccount):
             },
         )
 
-    account.last_refreshed = timezone.now()
     account.save()
 
 
