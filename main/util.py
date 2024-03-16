@@ -256,11 +256,11 @@ def setup_spending_highlights(
                 continue
 
             if c.value not in by_cat.keys():
-                by_cat[c.value] = [0, 0.0, []]  # count, total, transactions serialized
+                by_cat[c.value] = [0, 0.0]  # count, total, transactions serialized
 
             by_cat[c.value][0] += 1
             by_cat[c.value][1] += tran.amount
-            by_cat[c.value][2].append(tran.serialize())
+            # by_cat[c.value][2].append(tran.serialize())
 
         if tran.amount >= LARGE_PURCHASE_THRESH and not invalid_cat:
             large_purchases.append({"description": tran.description, "amount": tran.amount})
@@ -272,6 +272,7 @@ def setup_spending_highlights(
     by_cat = sorted(by_cat.items(), key=lambda x: x[1][1], reverse=True)
     large_purchases = sorted(large_purchases, key=lambda x: x["amount"], reverse=True)
 
+    print("BC", by_cat)
 
     total_change = None
     # This check prevents an infinite recursion.
@@ -281,7 +282,29 @@ def setup_spending_highlights(
             accounts, person, start_days_back * 2, start_days_back, True
         )
         total_change = total - data_prev_month["total"]
+
+        cat_changes = []
+        for c in by_cat:
+            print("\n\n C: ", c, "DPM", data_prev_month["by_cat"])
+            prev = [d for d in data_prev_month["by_cat"] if d[0] == c[0]]
+            if len(prev):
+                prev_amt = prev[0][1][1]
+            else:
+                prev_amt = 0.
+
+            print("P AMT", prev_amt)
+            diff = c[1][1] - prev_amt
+
+            print("DIFF", diff)
+            cat_changes.append([c[0], diff])
+
+        cat_changes.sort(key=lambda c: abs(c[1]), reverse=True)
+            # todo: Take into account cats missing this month that  were prsent the prev.
+    else:
+        cat_changes = []
     # print("\nTran cats: ", by_cat)
+    print("CAT CHANGES", cat_changes)
+
 
     #
 
@@ -291,6 +314,7 @@ def setup_spending_highlights(
         "by_cat": by_cat,
         "total": total,
         "total_change": total_change,
+        "cat_changes": cat_changes,
         "large_purchases": large_purchases,
     }
 

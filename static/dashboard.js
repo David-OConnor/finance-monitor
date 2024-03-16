@@ -17,7 +17,8 @@ let TRANSACTIONS_LOADED = true
 
 const PAGE_SIZE = 60
 
-const HIGHLIGHT_COLOR = "#fcfae6"
+const HIGHLIGHT_COLOR = "#fffbdb"
+const FEE_COLOR = "#fff0ff"
 
 
 // todo: Config object?
@@ -395,7 +396,7 @@ function createTranRow(tran) {
     if (tran.highlighted) {
         row.style.backgroundColor = HIGHLIGHT_COLOR
     } else if (tran.categories.includes(28)) {
-
+        row.style.backgroundColor = FEE_COLOR
     }
 
     col = createEl(
@@ -616,7 +617,7 @@ function createTranRow(tran) {
                 .then(r => {
                 });
 
-            tran.highlighted = true
+            tran.highlighted = !tran.highlighted
             let bgColor = tran.highlighted ? HIGHLIGHT_COLOR : "white"
             getEl("tran-row-" + tran.id.toString()).style.backgroundColor = bgColor
         })
@@ -995,7 +996,7 @@ function setupSpendingHighlights() {
 
     let changes = getEl("biggest-changes")
 
-    h = createEl("h4", {}, {}, "Spending change: ")
+    h = createEl("h4", {}, {}, "Spending: ")
     let s2 = createEl(
         "span",
         // {class: SPENDING_HIGHLIGHTS.total_change >= 0. ? "tran_pos" : "tran_neg"},
@@ -1006,6 +1007,18 @@ function setupSpendingHighlights() {
 
     h.appendChild(s2)
     changes.appendChild(h)
+
+    for (let catChange of SPENDING_HIGHLIGHTS.cat_changes.slice(0, 3)) {
+
+        // todo: + sign explicitly if spending went up.
+        h = createEl(
+            "h4",
+            {},
+            {fontWeight: "normal"},
+            catNameFromVal(catChange[0]) + ": " + formatAmount(catChange[1], 0)
+        )
+        changes.appendChild(h)
+    }
 
     let largePurchases  = getEl("large-purchases")
 
