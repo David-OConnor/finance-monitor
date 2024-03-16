@@ -153,7 +153,7 @@ class TransactionCategory(Enum):
             return cls.BILLS_AND_UTILITIES
         if "invest" in s:
             return cls.INVESTMENTS
-        if "fees" in s:
+        if "fees" in s or "interest_charge" in s:
             return cls.FEES
         if "taxes" in s:
             return cls.TAXES

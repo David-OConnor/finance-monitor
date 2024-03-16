@@ -17,6 +17,8 @@ let TRANSACTIONS_LOADED = true
 
 const PAGE_SIZE = 60
 
+const HIGHLIGHT_COLOR = "#fcfae6"
+
 
 // todo: Config object?
 
@@ -389,6 +391,13 @@ function createTranRow(tran) {
     // Return a single transaction row.
     const row = createEl("tr", {id: "tran-row-" + tran.id.toString()},{borderBottom: "1px solid #cccccc"} )
 
+    // todo: Don't hard-code 28
+    if (tran.highlighted) {
+        row.style.backgroundColor = HIGHLIGHT_COLOR
+    } else if (tran.categories.includes(28)) {
+
+    }
+
     col = createEl(
         "td",
         {class: "transaction-cell"},
@@ -596,6 +605,24 @@ function createTranRow(tran) {
         col.appendChild(d)
     } else {
         h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
+
+        // Highlighter icon.
+        let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, backgroundColor: "#ffea97", cursor: "pointer"}, "🖍️")
+
+        s.addEventListener("click", _ => {
+            let data = {id: tran.id}
+            fetch("/toggle-highlight", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
+                .then(result => result.json())
+                .then(r => {
+                });
+
+            tran.highlighted = true
+            let bgColor = tran.highlighted ? HIGHLIGHT_COLOR : "white"
+            getEl("tran-row-" + tran.id.toString()).style.backgroundColor = bgColor
+        })
+
+        h.appendChild(s)
+
         col.appendChild(h)
     }
 
@@ -965,7 +992,7 @@ function setupSpendingHighlights() {
 
         biggestCats.appendChild(h)
     }
-    
+
     let changes = getEl("biggest-changes")
 
     h = createEl("h4", {}, {}, "Spending change: ")
@@ -983,7 +1010,7 @@ function setupSpendingHighlights() {
     let largePurchases  = getEl("large-purchases")
 
     if (SPENDING_HIGHLIGHTS.large_purchases.length === 0) {
-            h = createEl(
+        h = createEl(
             "h4",
             {},
             // {marginRight: "40px", cursor: "pointer"},

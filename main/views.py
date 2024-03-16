@@ -69,6 +69,11 @@ from .transaction_cats import TransactionCategory
 MAX_LOGIN_ATTEMPTS = 5
 
 
+def return_json(msg: dict) -> HttpResponse:
+    """Helper function"""
+    return HttpResponse(json.dumps(msg), content_type="application/json")
+
+
 def landing(request: HttpRequest) -> HttpResponse:
     context = {}
 
@@ -113,7 +118,7 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
         "transactions": [t.serialize() for t in tran],
     }
 
-    return HttpResponse(json.dumps(transactions), content_type="application/json")
+    return return_json(transactions)
 
 
 @login_required
@@ -134,17 +139,17 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
         #
         #     )
 
+        tran_db = Transaction.objects.filter(id=tran["id"])
+        tran_db = tran_db.filter(
+            Q(account__person=request.user.person) | Q(person=request.user.person)).first()  # Prevent exploits
         # todo: Don't override the original description for a linked transaction; use a separate field.
-        tran_db, _ = Transaction.objects.update_or_create(
-            id=tran["id"],
-            defaults={
-                "categories": tran["categories"],
-                "description": tran["description"],
-                "notes": tran["notes"],
-                "amount": tran["amount"],
-                "date": tran["date"],
-            },
-        )
+
+        tran_db .categories = tran["categories"]
+        tran_db.description = tran["description"]
+        tran_db.notes = tran["notes"]
+        tran_db.amount = tran["amount"]
+        tran_db.date = tran["date"]
+        tran_db.save()
 
         if data.get("create_rule", False):
             rule_db, _ = CategoryRule.objects.update_or_create(
@@ -155,7 +160,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
 
             util.change_tran_cats_from_rule(rule_db, person)
 
-    return HttpResponse(json.dumps(result), content_type="application/json")
+    return return_json(result)
 
 
 @login_required
@@ -194,7 +199,7 @@ def add_transactions(request: HttpRequest) -> HttpResponse:
                 "success": False,
             }
 
-    return HttpResponse(json.dumps(result), content_type="application/json")
+    return return_json(result)
 
 
 @login_required
@@ -214,7 +219,7 @@ def edit_accounts(request: HttpRequest) -> HttpResponse:
             },
         )
 
-    return HttpResponse(json.dumps(result), content_type="application/json")
+    return return_json(result)
 
 
 @login_required
@@ -243,11 +248,7 @@ def add_account_manual(request: HttpRequest) -> HttpResponse:
         print("Integrity error on saving a manual account")
         success = False
 
-    # return HttpResponseRedirect("/dashboard")
-    return HttpResponse(
-        json.dumps({"success": success, "account": account.serialize()}),
-        content_type="application/json",
-    )
+    return return_json({"success": success, "account": account.serialize()})
 
 
 @login_required
@@ -273,8 +274,7 @@ def delete_accounts(request: HttpRequest) -> HttpResponse:
 
             acc.delete()
 
-
-    return HttpResponse(json.dumps(result), content_type="application/json")
+    return return_json(result)
 
 
 @login_required
@@ -286,11 +286,15 @@ def delete_transactions(request: HttpRequest) -> HttpResponse:
     for id_ in data.get("ids", []):
         try:
             # The person check prevents abuse
-            Transaction.objects.get(id=id_, person=request.user.person).delete()
+
+            tran = Transaction.objects.filter(id=id_)
+            tran = tran.filter(
+                Q(account__person=request.user.person) | Q(person=request.user.person)).first()  # Prevent exploits
+            tran.delete()
         except Transaction.DoesNotExist:
             result["success"] = False
 
-    return HttpResponse(json.dumps(result), content_type="application/json")
+    return return_json(result)
 
 
 @login_required
@@ -342,7 +346,7 @@ def post_dash_load(request: HttpRequest) -> HttpResponse:
         # todo: We need to make sure this is called regularly, even if the user doesn't log into the page.
         util.take_snapshots(accounts, person)
 
-    return HttpResponse(json.dumps(data), content_type="application/json")
+    return return_json(data)
 
 
 @login_required
@@ -375,9 +379,7 @@ def create_link_token(request: HttpRequest) -> HttpResponse:
     # note: expiration available.
     link_token = response["link_token"]
 
-    return HttpResponse(
-        json.dumps({"link_token": link_token}), content_type="application/json"
-    )
+    return return_json({"link_token": link_token})
 
 
 @login_required
@@ -492,10 +494,7 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         plaid_.refresh_account_balances(account_added)
         plaid_.refresh_transactions(account_added)
 
-    return HttpResponse(
-        json.dumps({"success": success}),
-        content_type="application/json",
-    )
+    return return_json({"success": success})
 
 
 @login_required
@@ -799,10 +798,8 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
         # The person check here prevents abuse by the frontend.
         CategoryRule.objects.get(id=id_, person=person).delete()
 
-    return HttpResponse(
-        json.dumps({"success": success}),
-        content_type="application/json",
-    )
+    return return_json({"success": success})
+
 
 # class CustomPasswordResetView(PasswordResetView):
 #     print("\nCustom PW view")
@@ -919,3 +916,17 @@ def send_verification(request: HttpRequest) -> HttpResponse:
 
     print("\nRe-sending verification email")
     return HttpResponseRedirect("/dashboard")
+
+
+def toggle_highlight(request: HttpRequest) -> HttpResponse:
+    """Toggle a transactions highlight status."""
+    data = json.loads(request.body.decode("utf-8"))
+
+    tran = Transaction.objects.filter(id=data["id"])
+    tran = tran.filter(Q(account__person=request.user.person) | Q(person=request.user.person)).first()  # Prevent exploits
+
+    tran.highlighted = not tran.highlighted
+    tran.save()
+
+    return return_json({"success":True})
+

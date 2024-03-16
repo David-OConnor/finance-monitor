@@ -389,6 +389,8 @@ class Transaction(Model):
     plaid_category_icon_url = CharField(
         max_length=100, default="", blank=True, null=True
     )
+    # We allow the user to highlight transactions.
+    highlighted = BooleanField(default=False)
 
     def serialize(self) -> Dict[str, str]:
         """For use in the web page."""
@@ -433,6 +435,7 @@ class Transaction(Model):
             "date_display": date_display,
             "logo_url": self.logo_url if self.logo_url else "",
             "pending": self.pending,
+            "highlighted": self.highlighted,
         }
 
     def __str__(self):
