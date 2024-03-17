@@ -5,16 +5,27 @@
 {% endblock %}
 
 {% block contents %}
-
     <div class="home-body">
+        <div style="display: flex;">
+            <h2>Income: {{ income_total|floatformat:"0g" }}</h2>
+            <h2>Expenses: {{ expenses_total|floatformat:"0g" }} </h2>
 
-    {% for recur in recurring %}
+        </div>
 
-    {% endfor %}
+        <div style="display: flex; flex-direction: column;">
+            <h2>Spending by category</h2>
+            {% for highlight in highlights.by_cat %}
+                <h4 style="margin-top: 0; margin-bottom: 0;">{{ highlight.0 }}: {{ highlight.1.1|floatformat:"0g" }}</h4>
+            {% endfor %}
+        </div>
     </div>
 
     <script>
-        getEl("menu-spending").classList.add("menu-highlighted")
+        document.getElementById("menu-spending").classList.add("menu-highlighted")
+
+        {# Load template variables into JS. #}
+        let HIGHLIGHTS = {{ highlights|safe }};
+
     </script>
 
 {% endblock %}

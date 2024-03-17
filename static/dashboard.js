@@ -608,7 +608,8 @@ function createTranRow(tran) {
         h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
 
         // Highlighter icon.
-        let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, backgroundColor: "#ffea97", cursor: "pointer"}, "🖍️")
+        // let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, backgroundColor: "#fff5e9", cursor: "pointer"}, "🖍️")
+        let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, cursor: "pointer"}, "🖍️")
 
         s.addEventListener("click", _ => {
             let data = {id: tran.id}
@@ -1014,9 +1015,19 @@ function setupSpendingHighlights() {
         h = createEl(
             "h4",
             {},
-            {fontWeight: "normal"},
-            catNameFromVal(catChange[0]) + ": " + formatAmount(catChange[1], 0)
+            {fontWeight: "normal", cursor: "pointer"},
+            catIconFromVal(catChange[0]) + catNameFromVal(catChange[0]) + ": "
         )
+        let s = createEl("span", {class: "tran_neutral"}, {fontWeight: "bold"}, formatAmount(catChange[1], 0))
+        h.appendChild(s)
+
+        h.addEventListener("click", _ => {
+            CURRENT_PAGE = 0
+            FILTER_CAT = catChange[0]
+            getEl("tran-filter-sel").value = catChange[0].toString()
+            updateTranFilter()
+        })
+
         changes.appendChild(h)
     }
 

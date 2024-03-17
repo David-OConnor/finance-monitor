@@ -1,37 +1,27 @@
 import json
-from datetime import date
+from datetime import date, timedelta
 from io import TextIOWrapper
 
-from django.contrib.auth.views import PasswordResetView
 from django.db.models import Q
 from django import forms
-import time
-
-from django.urls import reverse_lazy
 
 from . import export
-
-# todo: Plaid institution icon urls??
 
 from django.contrib.auth import login, authenticate, logout, user_login_failed
 from django.contrib.auth.forms import UserCreationForm
 from django.db import OperationalError, IntegrityError
 from django.dispatch import receiver
-from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
-from django.shortcuts import render, redirect
-from django.utils import timezone
+from django.http import HttpResponse, HttpRequest, JsonResponse
+from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.views.decorators.csrf import requires_csrf_token
-from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.utils import timezone
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
-from django.template.loader import render_to_string
-from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth.forms import SetPasswordForm
 
@@ -69,9 +59,9 @@ from .transaction_cats import TransactionCategory
 MAX_LOGIN_ATTEMPTS = 5
 
 
-def return_json(msg: dict) -> HttpResponse:
+def load_body(request: HttpRequest) -> dict:
     """Helper function"""
-    return HttpResponse(json.dumps(msg), content_type="application/json")
+    return json.loads(request.body.decode("utf-8"))
 
 
 def landing(request: HttpRequest) -> HttpResponse:
@@ -84,9 +74,8 @@ def landing(request: HttpRequest) -> HttpResponse:
 def load_transactions(request: HttpRequest) -> HttpResponse:
     """Load transactions. Return them as JSON. This is a POST request."""
     person = request.user.person
-    accounts = person.accounts.all()
 
-    data = json.loads(request.body.decode("utf-8"))
+    data = load_body(request)
     # todo: Use pages or last index A/R.
 
     print("Loading transactions. Data received: ", data)
@@ -111,20 +100,20 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
         category = TransactionCategory(category)
 
     tran = util.load_transactions(
-        start_i, end_i, accounts, person, search, start, end, category
+        start_i, end_i, person, search, start, end, category
     )
 
     transactions = {
         "transactions": [t.serialize() for t in tran],
     }
 
-    return return_json(transactions)
+    return JsonResponse(transactions)
 
 
 @login_required
 def edit_transactions(request: HttpRequest) -> HttpResponse:
     """Edit transactions."""
-    data = json.loads(request.body.decode("utf-8"))
+    data = load_body(request)
 
     # todo: This is being spammed, along with "Refreshing transactions" on the frontend!!!
 
@@ -160,13 +149,13 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
 
             util.change_tran_cats_from_rule(rule_db, person)
 
-    return return_json(result)
+    return JsonResponse(result)
 
 
 @login_required
 def add_transactions(request: HttpRequest) -> HttpResponse:
     """Add one or more transactions, eg manually added by the user on the UI."""
-    data = json.loads(request.body.decode("utf-8"))
+    data = load_body(request)
 
     for tran in data.get("transactions", []):
         print("Tran adding: ", tran)
@@ -199,13 +188,13 @@ def add_transactions(request: HttpRequest) -> HttpResponse:
                 "success": False,
             }
 
-    return return_json(result)
+    return JsonResponse(result)
 
 
 @login_required
 def edit_accounts(request: HttpRequest) -> HttpResponse:
     """Edit accounts. Notably, account nicknames, and everything about manual accounts."""
-    data = json.loads(request.body.decode("utf-8"))
+    data = load_body(request)
     result = {"success": True}
 
     for acc in data.get("accounts", []):
@@ -219,13 +208,13 @@ def edit_accounts(request: HttpRequest) -> HttpResponse:
             },
         )
 
-    return return_json(result)
+    return JsonResponse(result)
 
 
 @login_required
 def add_account_manual(request: HttpRequest) -> HttpResponse:
     """Add a manual account, with information populated by the user."""
-    data = json.loads(request.body.decode("utf-8"))
+    data = load_body(request)
     # todo: Use pages or last index A/R.
 
     sub_type = SubAccountType(data["sub_type"])
@@ -248,13 +237,13 @@ def add_account_manual(request: HttpRequest) -> HttpResponse:
         print("Integrity error on saving a manual account")
         success = False
 
-    return return_json({"success": success, "account": account.serialize()})
+    return JsonResponse({"success": success, "account": account.serialize()})
 
 
 @login_required
 def delete_accounts(request: HttpRequest) -> HttpResponse:
     """Delete one or more sub accounts."""
-    data = json.loads(request.body.decode("utf-8"))
+    data = load_body(request)
     result = {"success": True}
     
     person = request.user.person
@@ -274,13 +263,13 @@ def delete_accounts(request: HttpRequest) -> HttpResponse:
 
             acc.delete()
 
-    return return_json(result)
+    return JsonResponse(result)
 
 
 @login_required
 def delete_transactions(request: HttpRequest) -> HttpResponse:
     """Delete one or more transactions."""
-    data = json.loads(request.body.decode("utf-8"))
+    data = load_body(request)
     result = {"success": True}
 
     for id_ in data.get("ids", []):
@@ -294,7 +283,7 @@ def delete_transactions(request: HttpRequest) -> HttpResponse:
         except Transaction.DoesNotExist:
             result["success"] = False
 
-    return return_json(result)
+    return JsonResponse(result)
 
 
 @login_required
@@ -314,7 +303,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         return HttpResponseRedirect("/dashboard")
 
     spending_highlights = util.setup_spending_highlights(
-        person.accounts.all(), person, 30, 0, False
+        person, 30, 0, False
     )
 
     context = util.load_dash_data(request.user.person)
@@ -346,7 +335,7 @@ def post_dash_load(request: HttpRequest) -> HttpResponse:
         # todo: We need to make sure this is called regularly, even if the user doesn't log into the page.
         util.take_snapshots(accounts, person)
 
-    return return_json(data)
+    return JsonResponse(data)
 
 
 @login_required
@@ -379,7 +368,7 @@ def create_link_token(request: HttpRequest) -> HttpResponse:
     # note: expiration available.
     link_token = response["link_token"]
 
-    return return_json({"link_token": link_token})
+    return JsonResponse({"link_token": link_token})
 
 
 @login_required
@@ -390,7 +379,7 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     """
     person = request.user.person
 
-    data = json.loads(request.body.decode("utf-8"))
+    data = load_body(request)
 
     public_token = data["public_token"]
     metadata = data["metadata"]
@@ -494,17 +483,54 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         plaid_.refresh_account_balances(account_added)
         plaid_.refresh_transactions(account_added)
 
-    return return_json({"success": success})
+    return JsonResponse({"success": success})
 
 
 @login_required
 def spending(request: HttpRequest) -> HttpResponse:
-    """Page for details on spending"""
+    """Page for details on spending, and related trends"""
+    person = request.user.person
+
     account_status = util.check_account_status(request)
     if account_status is not None:
         return account_status
 
-    return render(request, "spending.html", {})
+    # todo: Replace etc A/R
+    spending_highlights = util.setup_spending_highlights(
+        person, 31, 0, False
+    )
+
+    # todo: Move code to util etc A/R.
+    # todo: DRY/C+P! This is bad because it repeats the same transaction query. Fix it for performance reasons.
+    start_days_back = 30
+    end_days_back = 0
+    now = timezone.now()
+    start = now - timedelta(days=start_days_back)
+    end = now - timedelta(days=end_days_back)
+
+    # todo: We likely have already loaded these transactions. Optimize later.
+    # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
+    trans = util.load_transactions(None, None,  person, "", start, end, None)
+
+    # todo: Other cats?
+    income_transactions = [t for t in trans if TransactionCategory.INCOME.value in t.categories]
+    income_total = 0.
+    for t in income_transactions:
+        income_total += t.amount
+
+    expense_transactions = util.filter_trans_spending(trans)
+
+    expenses_total = 0.
+    for t in expense_transactions:
+        expenses_total += t.amount
+
+    context = {
+        "highlights": spending_highlights,
+        "income_total": income_total,
+        "expenses_total": expenses_total,
+    }
+
+    return render(request, "spending.html", context)
 
 
 @login_required
@@ -764,7 +790,7 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
 
     success = True
 
-    data = json.loads(request.body.decode("utf-8"))
+    data = load_body(request)
     person = request.user.person
 
     for rule in data["edited"]:
@@ -798,7 +824,7 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
         # The person check here prevents abuse by the frontend.
         CategoryRule.objects.get(id=id_, person=person).delete()
 
-    return return_json({"success": success})
+    return JsonResponse({"success": success})
 
 
 # class CustomPasswordResetView(PasswordResetView):
@@ -920,7 +946,7 @@ def send_verification(request: HttpRequest) -> HttpResponse:
 
 def toggle_highlight(request: HttpRequest) -> HttpResponse:
     """Toggle a transactions highlight status."""
-    data = json.loads(request.body.decode("utf-8"))
+    data = load_body(request)
 
     tran = Transaction.objects.filter(id=data["id"])
     tran = tran.filter(Q(account__person=request.user.person) | Q(person=request.user.person)).first()  # Prevent exploits
@@ -928,5 +954,5 @@ def toggle_highlight(request: HttpRequest) -> HttpResponse:
     tran.highlighted = not tran.highlighted
     tran.save()
 
-    return return_json({"success":True})
+    return JsonResponse({"success": True})
 

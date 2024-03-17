@@ -24,6 +24,17 @@ from main.models import (
 from main.transaction_cats import TransactionCategory
 
 
+CATS_NON_SPENDING = [
+    TransactionCategory.PAYMENT,
+    TransactionCategory.INCOME,
+    TransactionCategory.TRANSFER,
+    TransactionCategory.UNCATEGORIZED,
+    TransactionCategory.DEPOSIT,
+    TransactionCategory.DEBIT,
+    TransactionCategory.CREDIT_CARD,
+]
+
+
 def unw_helper(net_worth: float, sub_acc: SubAccount) -> float:
     if not sub_acc.ignored and sub_acc.current is not None:
         sign = 1
@@ -50,23 +61,20 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
 def load_transactions(
         start_i: Optional[int],
         end_i: Optional[int],
-        accounts: Iterable[FinancialAccount],
         person: Person,
         search_text: Optional[str],
         start: Optional[date],
         end: Optional[date],
-        # categories: Optional[List[TransactionCategory]]
         category: Optional[TransactionCategory]
 ) -> List[Transaction]:
     """Create a set of transactions, serialized for use with the frontend. These
     are combined from all sub-accounts."""
     # todo: Pending? Would have to parse into the DB.
 
-    trans = Transaction.objects.filter(Q(account__in=accounts) | Q(person=person))
+    trans = Transaction.objects.filter(Q(account__person=person) | Q(person=person))
 
     if search_text:
         trans = trans.filter(
-            #  todo: Categories A/R
             Q(description__icontains=search_text)
             | Q(notes__icontains=search_text)
         )
@@ -89,7 +97,6 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
     """Load account balances, transactions, and totals."""
 
     # todo: Rethink totals.
-    accounts = person.accounts.all()
 
     sub_accounts = SubAccount.objects.filter(
         Q(account__person=person) | Q(person=person)
@@ -157,7 +164,7 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         totals_display[k] = f"{v:,.0f}"
 
     count = 60  # todo: Set this elsewhere
-    transactions = load_transactions(0, count, accounts, person, None, None, None, None)
+    transactions = load_transactions(0, count, person, None, None, None, None)
     #
     # print("Returning: ",{
     #     "totals": totals_display,
@@ -208,18 +215,37 @@ def take_snapshots(accounts: Iterable[FinancialAccount], person: Person):
     snap_person.save()
 
 
+def filter_trans_spending(trans) -> List[Transaction]:
+    """Filter transactions to only include spending categories."""
+    result = []
+
+    for tran in trans:
+        cats = [TransactionCategory(c) for c in tran.categories]
+        cats = transaction_cats.cleanup_categories(cats)
+
+        skip = False
+        for cat in CATS_NON_SPENDING:
+            if cat in cats:
+                skip = True
+                break
+
+        if not skip:
+            result.append(tran)
+    return result
+
+
 # def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Person, num_days: int) -> List[Tuple[TransactionCategory, List[int, float, Dict[str, str]]]]:
 def setup_spending_highlights(
-        accounts: Iterable[FinancialAccount], person: Person, start_days_back: int, end_days_back: int, is_lookback: bool
+       person: Person, start_days_back: int, end_days_back: int, is_lookback: bool
 ):
     """Find the biggest recent spending highlights."""
     now = timezone.now()
-    start = timezone.now() - timedelta(days=start_days_back)
-    end = timezone.now() - timedelta(days=end_days_back)
+    start = now - timedelta(days=start_days_back)
+    end = now - timedelta(days=end_days_back)
 
     # todo: We likely have already loaded these transactions. Optimize later.
     # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
-    trans = load_transactions(None, None, accounts, person, "", start, end, None)
+    trans = load_transactions(None, None,  person, "", start, end, None)
 
     # print(trans, "TRANS")
 
@@ -231,42 +257,26 @@ def setup_spending_highlights(
     # # This can be low; large purchases will be rank-limited.
     LARGE_PURCHASE_THRESH = 150.
 
-    skip_cats = [
-        TransactionCategory.PAYMENT,
-        TransactionCategory.INCOME,
-        TransactionCategory.TRANSFER,
-        TransactionCategory.UNCATEGORIZED,
-        TransactionCategory.DEPOSIT,
-        TransactionCategory.DEBIT,
-        TransactionCategory.CREDIT_CARD,
-    ]
-
-    for tran in trans:
-        invalid_cat = False
-
+    trans_spending = filter_trans_spending(trans)
+    for tran in trans_spending:
         cats = [TransactionCategory(c) for c in tran.categories]
         cats = transaction_cats.cleanup_categories(cats)
 
-        for cat in cats:
-            c = cat  # We serialize anyway, so no need to convert to a TransactionCategory.
-
-            # Remove categories that don't categorize spending well.
-            if c in skip_cats:
-                invalid_cat = True
-                continue
-
-            if c.value not in by_cat.keys():
-                by_cat[c.value] = [0, 0.0]  # count, total, transactions serialized
+        # todo: Enforce a single category at schema level. (?)
+        if not len(cats):
+            continue
+        c = cats[0]
+        if c.value not in by_cat.keys():
+            by_cat[c.value] = [0, 0.0]  # count, total, transactions serialized
+            by_cat[c.value][1] += tran.amount
 
             by_cat[c.value][0] += 1
-            by_cat[c.value][1] += tran.amount
-            # by_cat[c.value][2].append(tran.serialize())
+        # by_cat[c.value][2].append(tran.serialize())
 
-        if tran.amount >= LARGE_PURCHASE_THRESH and not invalid_cat:
+        if tran.amount >= LARGE_PURCHASE_THRESH:
             large_purchases.append({"description": tran.description, "amount": tran.amount})
 
-        if not invalid_cat:
-            total += tran.amount
+        total += tran.amount
 
     # Sort by value
     by_cat = sorted(by_cat.items(), key=lambda x: x[1][1], reverse=True)
@@ -279,7 +289,7 @@ def setup_spending_highlights(
     if not is_lookback:
         # todo: We don't need to compute the entire data set for the previous period.; just the relevant parts.
         data_prev_month = setup_spending_highlights(
-            accounts, person, start_days_back * 2, start_days_back, True
+            person, start_days_back * 2, start_days_back, True
         )
         total_change = total - data_prev_month["total"]
 
