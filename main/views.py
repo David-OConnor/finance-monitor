@@ -111,6 +111,21 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+def load_spending_data(request: HttpRequest) -> HttpResponse:
+    """Load data for the spending page."""
+    person = request.user.person
+
+    data = load_body(request)
+
+    start = data["start"]
+    end = data["end"]
+
+    data = util.setup_spending_data(person, start, end)
+
+    return JsonResponse(data)
+
+
+@login_required
 def edit_transactions(request: HttpRequest) -> HttpResponse:
     """Edit transactions."""
     data = load_body(request)
@@ -491,44 +506,14 @@ def spending(request: HttpRequest) -> HttpResponse:
     """Page for details on spending, and related trends"""
     person = request.user.person
 
+    if request.method == "POST":
+        print("POST")
+
     account_status = util.check_account_status(request)
     if account_status is not None:
         return account_status
 
-    # todo: Replace etc A/R
-    spending_highlights = util.setup_spending_highlights(
-        person, 31, 0, False
-    )
-
-    # todo: Move code to util etc A/R.
-    # todo: DRY/C+P! This is bad because it repeats the same transaction query. Fix it for performance reasons.
-    start_days_back = 30
-    end_days_back = 0
-    now = timezone.now()
-    start = now - timedelta(days=start_days_back)
-    end = now - timedelta(days=end_days_back)
-
-    # todo: We likely have already loaded these transactions. Optimize later.
-    # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
-    trans = util.load_transactions(None, None,  person, "", start, end, None)
-
-    # todo: Other cats?
-    income_transactions = [t for t in trans if TransactionCategory.INCOME.value in t.categories]
-    income_total = 0.
-    for t in income_transactions:
-        income_total += t.amount
-
-    expense_transactions = util.filter_trans_spending(trans)
-
-    expenses_total = 0.
-    for t in expense_transactions:
-        expenses_total += t.amount
-
-    context = {
-        "highlights": spending_highlights,
-        "income_total": income_total,
-        "expenses_total": expenses_total,
-    }
+    context = util.setup_spending_data(person, 30, 0)
 
     return render(request, "spending.html", context)
 

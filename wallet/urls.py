@@ -53,6 +53,7 @@ urlpatterns = [
     path("create-link-token", views.create_link_token),
     path("exchange-public-token", views.exchange_public_token),
     path("load-transactions", views.load_transactions),
+    path("load-spending-data", views.load_spending_data),
     path("add-account-manual", views.add_account_manual),
     path("edit-transactions", views.edit_transactions),
     path("add-transactions", views.add_transactions),

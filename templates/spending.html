@@ -6,25 +6,76 @@
 
 {% block contents %}
     <div class="home-body">
-        <div style="display: flex;">
-            <h2>Income: {{ income_total|floatformat:"0g" }}</h2>
-            <h2>Expenses: {{ expenses_total|floatformat:"0g" }} </h2>
+        <div style="display: flex; align-items: center;">
+            {#            <form method="post" style="display: flex; align-items: center;">#}
+            {#                {% csrf_token %}#}
+            <button class="button-general" onclick="setRange(30)">Past 30 days</button>
+            <button class="button-general" onclick="setRange(60)">Past 60 days</button>
+            <button class="button-general" onclick="setRange(90)">Past 90 days</button>
+            <button class="button-general" onclick="setRange(-1)">Custom:</button>
 
+            <h3 style="margin-right: 6px;">Start:</h3>
+            <input id="start" type="date" />
+            <h3 style="margin-left: 12px; margin-right: 6px;">End:</h3>
+            <input id="end" type="date" />
+            {#            </form>#}
+        </div>
+
+
+        <div style="display: flex;">
+            <h2 style="margin-right: 40px;">Income: <span  id="income-total">{{ income_total|floatformat:"0g" }}</span></h2>
+            <h2>Expenses: <span id="expenses-total">{{ expenses_total|floatformat:"0g" }}</span></h2>
         </div>
 
         <div style="display: flex; flex-direction: column;">
             <h2>Spending by category</h2>
             {% for highlight in highlights.by_cat %}
-                <h4 style="margin-top: 0; margin-bottom: 0;">{{ highlight.0 }}: {{ highlight.1.1|floatformat:"0g" }}</h4>
+                <h4 style="margin-top: 0; margin-bottom: 0;">{{ highlight.0 }}: <span>{{ highlight.1.1|floatformat:"0g" }}</span></h4>
             {% endfor %}
         </div>
     </div>
+
+    <script src="../static/util.js"></script>
 
     <script>
         document.getElementById("menu-spending").classList.add("menu-highlighted")
 
         {# Load template variables into JS. #}
+
         let HIGHLIGHTS = {{ highlights|safe }};
+        let INCOME_TOTAL = {{ income_total|safe }};
+        let EXPENSES_TOTAL = {{ expenses_total|safe }};
+
+        function setRange(daysBack) {
+            // Set the date range.
+
+            let start, end
+            if (daysBack === -1) {
+                // auto
+                start = getEl("start").value
+                end = getEl("end").value
+            } else {
+                end = 0
+                start = daysBack
+            }
+
+            const payload = {
+                start: start,
+                end: end,
+            }
+
+            fetch("/load-spending-data", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    HIGHLIGHTS = r.highlights
+                    INCOME_TOTAL = r.income_total
+                    EXPENSES_TOTAL = r.expenses_total
+
+                    getEl("income-total").textContent = formatAmount(INCOME_TOTAL, 0)
+                    getEl("expenses-total").textContent = formatAmount(EXPENSES_TOTAL, 0)
+
+                });
+        }
 
     </script>
 

@@ -295,17 +295,14 @@ def setup_spending_highlights(
 
         cat_changes = []
         for c in by_cat:
-            print("\n\n C: ", c, "DPM", data_prev_month["by_cat"])
             prev = [d for d in data_prev_month["by_cat"] if d[0] == c[0]]
             if len(prev):
                 prev_amt = prev[0][1][1]
             else:
                 prev_amt = 0.
 
-            print("P AMT", prev_amt)
             diff = c[1][1] - prev_amt
 
-            print("DIFF", diff)
             cat_changes.append([c[0], diff])
 
         cat_changes.sort(key=lambda c: abs(c[1]), reverse=True)
@@ -326,6 +323,42 @@ def setup_spending_highlights(
         "total_change": total_change,
         "cat_changes": cat_changes,
         "large_purchases": large_purchases,
+    }
+
+
+def setup_spending_data(person: Person, start_days_back: int, end_days_back: int) -> dict:
+    # todo: DRY/C+P! This is bad because it repeats the same transaction query. Fix it for performance reasons.
+    now = timezone.now()
+    start = now - timedelta(days=start_days_back)
+    end = now - timedelta(days=end_days_back)
+
+    print("\n\n", start, end, "HERE\n")
+
+    # todo: We likely have already loaded these transactions. Optimize later.
+    # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
+    trans = load_transactions(None, None,  person, "", start, end, None)
+
+    # todo: Other cats?
+    income_transactions = [t for t in trans if TransactionCategory.INCOME.value in t.categories]
+    income_total = 0.
+    for t in income_transactions:
+        income_total += t.amount
+
+    expense_transactions = filter_trans_spending(trans)
+
+    expenses_total = 0.
+    for t in expense_transactions:
+        expenses_total += t.amount
+
+    # TODO. no! Doubles the query.
+    spending_highlights = setup_spending_highlights(
+        person, 31, 0, False
+    )
+
+    return {
+        "highlights": spending_highlights,
+        "income_total": income_total,
+        "expenses_total": expenses_total,
     }
 
 
