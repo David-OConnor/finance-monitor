@@ -144,7 +144,7 @@ function filterTransactions() {
 
     // -2 is the "any" selection of the main filter.
     if (FILTER_CAT !== null && FILTER_CAT != -2) {
-        transactions = transactions.filter(t => t.categories.includes(FILTER_CAT))
+        transactions = transactions.filter(t => t.category === FILTER_CAT)
     }
 
     // Note: This truthy statement catches both an empty string, and an undefined we get on init.
@@ -152,7 +152,7 @@ function filterTransactions() {
         transactions = transactions.filter(t => {
             return t.description.toLowerCase().includes(searchText) ||
                 t.notes.toLowerCase().includes(searchText) ||
-                t.categories_text.join().toLowerCase().includes(searchText)
+                t.category_text.toLowerCase().includes(searchText)
         })
     }
 
@@ -327,10 +327,8 @@ function createCatEdit(tran, autoSave, searchText) {
             console.log("Search text")
         }
 
-        let catPrimary = tran.categories.length > 0 ? tran.categories[0] : -1  // -1 is uncategorized
-
         opt = createEl("option", {value: cat[0]}, {}, cat[1])
-        if (cat[0] === catPrimary) {
+        if (cat[0] === tran.category) {
             opt.setAttribute("selected", "")
         }
 
@@ -339,7 +337,7 @@ function createCatEdit(tran, autoSave, searchText) {
         sel.addEventListener("input", e => {
             let updated = {
                 ...tran,
-                categories: [parseInt(e.target.value)]
+                category: parseInt(e.target.value)
             }
             // todo: DRY!
             TRANSACTIONS_UPDATED[String(tran.id)] = updated
@@ -388,7 +386,7 @@ function createTranRow(tran) {
     // todo: Don't hard-code 28
     if (tran.highlighted) {
         row.style.backgroundColor = HIGHLIGHT_COLOR
-    } else if (tran.categories.includes(28)) {
+    } else if (tran.category === 28) {
         row.style.backgroundColor = FEE_COLOR
     }
 
@@ -458,9 +456,9 @@ function createTranRow(tran) {
 
         let s
         if (TRANSACTION_ICONS) {
-            s = createEl("span", {}, {}, tran.categories.length ? catIconFromVal(tran.categories[0]) : "")
+            s = createEl("span", {}, {}, catIconFromVal(tran.category))
         } else {
-            s = createEl("span", {}, {}, tran.categories.length ? catNameFromVal(tran.categories[0]) : "")
+            s = createEl("span", {}, {}, catNameFromVal(tran.category))
         }
 
         d.appendChild(s)
@@ -1164,7 +1162,7 @@ function addTranManual() {
         amount: 0.,
         // amount_class: "tran_pos",
         amount_class: "tran_neutral",
-        categories: [-1],
+        category: -1,
         // categories_icon: [],
         // categories_text: [],
         date: new Date().toISOString().split('T')[0],

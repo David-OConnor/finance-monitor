@@ -223,13 +223,7 @@ def filter_trans_spending(trans) -> List[Transaction]:
 
     for tran in trans:
         cat = TransactionCategory(tran.category)
-        # cats = transaction_cats.cleanup_categories(cats)
 
-
-        # for cat_ in CATS_NON_SPENDING:
-        #     if cat in cats:
-        #         skip = True
-        #         break
         if cat not in CATS_NON_SPENDING:
             result.append(tran)
 
@@ -249,8 +243,6 @@ def setup_spending_highlights(
     # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
     trans = load_transactions(None, None, person, "", start, end, None)
 
-    # print(trans, "TRANS")
-
     by_cat = {}
     large_purchases = []
 
@@ -260,6 +252,8 @@ def setup_spending_highlights(
     LARGE_PURCHASE_THRESH = 150.0
 
     trans_spending = filter_trans_spending(trans)
+    print(trans_spending, "TS")
+
     for tran in trans_spending:
         cat = TransactionCategory(tran.category)
         # cats = [TransactionCategory(c) for c in tran.categories]

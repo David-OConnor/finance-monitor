@@ -280,7 +280,7 @@ class TransactionCategory(Enum):
 
     def to_icon(self) -> str:
         if self == TransactionCategory.UNCATEGORIZED:
-            return ""
+            return "❓"
         if self == TransactionCategory.GROCERIES:
             return "🍎"
         if self == TransactionCategory.SOFTWARE_SUBSCRIPTIONS:

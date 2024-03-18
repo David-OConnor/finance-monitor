@@ -554,22 +554,16 @@ class RecurringTransaction(Model):
             "is_active": json.dumps(self.is_active),
             "status": self.status,
             "categories": self.category,
-            "categories_icon": cat.to_icon(),
+            "category_icon": cat.to_icon(),
             "categories_text": cat.to_str(),
             "notes": self.notes,
         }
 
-    # def cats_cleaned(self) -> str:
-    #     """Since we don't apply the serializer as we do with transactions on the dash, apply the
-    #     post-processing category code here. (DRY from serialize)"""
-    #     # try:
-    #     #     cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
-    #     # except JSONDecodeError as e:
-    #     #     print("Problem decoding categories during serialization", self.categories)
-    #     #     cats = [TransactionCategory.UNCATEGORIZED]
-    #
-    #     cats = cleanup_categories(cats)
-    #     return ",".join([cat.to_icon() for cat in cats])
+    def cat_display(self) -> str:
+        """Since we don't apply the serializer as we do with transactions on the dash, apply the
+        post-processing category code here. (DRY from serialize)"""
+        cat = TransactionCategory(self.category)
+        return cat.to_icon() + cat.to_str()
 
 
 class CategoryRule(Model):
