@@ -286,8 +286,6 @@ def setup_spending_highlights(
     by_cat = sorted(by_cat.items(), key=lambda x: x[1][1], reverse=True)
     large_purchases = sorted(large_purchases, key=lambda x: x["amount"], reverse=True)
 
-    print("BC", by_cat)
-
     total_change = None
     # This check prevents an infinite recursion.
     if not is_lookback:
@@ -313,12 +311,6 @@ def setup_spending_highlights(
         # todo: Take into account cats missing this month that  were prsent the prev.
     else:
         cat_changes = []
-    # print("\nTran cats: ", by_cat)
-    print("CAT CHANGES", cat_changes)
-
-    #
-
-    # by_cat = trans.sort(key=lambda t: t.)
 
     return {
         "by_cat": by_cat,
@@ -336,8 +328,6 @@ def setup_spending_data(
     now = timezone.now()
     start = now - timedelta(days=start_days_back)
     end = now - timedelta(days=end_days_back)
-
-    print("\n\n", start, end, "HERE\n")
 
     # todo: We likely have already loaded these transactions. Optimize later.
     # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
@@ -359,6 +349,8 @@ def setup_spending_data(
 
     # TODO. no! Doubles the query.
     spending_highlights = setup_spending_highlights(person, 31, 0, False)
+
+    print(spending_highlights, "\n\nSH")
 
     return {
         "highlights": spending_highlights,

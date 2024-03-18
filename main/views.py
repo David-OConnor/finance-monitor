@@ -504,14 +504,12 @@ def spending(request: HttpRequest) -> HttpResponse:
     """Page for details on spending, and related trends"""
     person = request.user.person
 
-    if request.method == "POST":
-        print("POST")
-
     account_status = util.check_account_status(request)
     if account_status is not None:
         return account_status
 
-    context = util.setup_spending_data(person, 30, 0)
+    # context = util.setup_spending_data(person, 30, 0)
+    context = {}
 
     return render(request, "spending.html", context)
 

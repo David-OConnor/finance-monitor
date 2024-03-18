@@ -24,8 +24,10 @@
 
 
         <div style="display: flex;">
-            <h2 style="margin-right: 40px;">Income: <span  id="income-total">{{ income_total|floatformat:"0g" }}</span></h2>
-            <h2>Expenses: <span id="expenses-total">{{ expenses_total|floatformat:"0g" }}</span></h2>
+{#            <h2 style="margin-right: 40px;">Income: <span  id="income-total">{{ income_total|floatformat:"0g" }}</span></h2>#}
+            <h2 style="margin-right: 40px;">Income: <span  id="income-total"></span></h2>
+{#            <h2>Expenses: <span id="expenses-total">{{ expenses_total|floatformat:"0g" }}</span></h2>#}
+            <h2>Expenses: <span id="expenses-total"></span></h2>
         </div>
 
         <div style="display: flex; justify-content: space-evenly">
@@ -33,18 +35,18 @@
             <div style="display: flex; flex-direction: column;">
                 <h2>Spending by category</h2>
                 <div id="spending-section">
-                    {% for highlight in highlights.by_cat %}
-                        <h4 style="margin-top: 0; margin-bottom: 0;">{{ highlight.0 }}: <span>{{ highlight.1.1|floatformat:"0g" }}</span></h4>
-                    {% endfor %}
+                    {#                    {% for highlight in highlights.by_cat %}#}
+                    {#                        <h4 style="margin-top: 0; margin-bottom: 0;">{{ highlight.0 }}: <span>{{ highlight.1.1|floatformat:"0g" }}</span></h4>#}
+                    {#                    {% endfor %}#}
                 </div>
             </div>
 
             <div style="display: flex; flex-direction: column;">
                 <h2>Changes, by category</h2>
                 <div id="change-section">
-                    {% for change in highlights.cat_changes %}
-                        <h4 style="margin-top: 0; margin-bottom: 0;">{{ change.0 }}: <span>{{ change.1|floatformat:"0g" }}</span></h4>
-                    {% endfor %}
+                    {#                    {% for change in highlights.cat_changes %}#}
+                    {#                        <h4 style="margin-top: 0; margin-bottom: 0;">{{ change.0 }}: <span>{{ change.1|floatformat:"0g" }}</span></h4>#}
+                    {#                    {% endfor %}#}
                 </div>
             </div>
 
@@ -58,9 +60,10 @@
 
         {# Load template variables into JS. #}
 
-        let HIGHLIGHTS = {{ highlights|safe }};
-        let INCOME_TOTAL = {{ income_total|safe }};
-        let EXPENSES_TOTAL = {{ expenses_total|safe }};
+        {#let HIGHLIGHTS = {{ highlights|safe }};#}
+        {#let INCOME_TOTAL = {{ income_total|safe }};#}
+        {#let EXPENSES_TOTAL = {{ expenses_total|safe }};#}
+        let LOOKBACK = 30
 
         function setRange(daysBack) {
             // Set the date range.
@@ -89,9 +92,8 @@
                     HIGHLIGHTS = r.highlights
                     INCOME_TOTAL = r.income_total
                     EXPENSES_TOTAL = r.expenses_total
-                    let LOOKBACK = daysBack
 
-                    console.log(HIGHLIGHTS)
+                    LOOKBACK = daysBack
 
                     getEl("income-total").textContent = formatAmount(INCOME_TOTAL, 0)
                     getEl("expenses-total").textContent = formatAmount(EXPENSES_TOTAL, 0)
@@ -103,13 +105,25 @@
         function populate() {
             let sectionSpending = getEl("spending-section")
             sectionSpending.replaceChildren()
+            console.log(HIGHLIGHTS, "HL")
             for (let item of HIGHLIGHTS.by_cat) {
                 let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0}, catIconFromVal(item[0]) + catNameFromVal(item[0]) + ": ")
-                let s = createEl("span", {class: "tran_neutr"},  {}, formatAmount(item[1][1]))
+                let s = createEl("span", {class: "tran_neut"},  {}, formatAmount(item[1][1]))
                 h4.appendChild(s)
                 sectionSpending.appendChild(h4)
             }
         }
+
+        function updateData() {
+
+        }
+
+        function init() {
+            setRange(30)
+        }
+
+        init()
+
 
     </script>
 
