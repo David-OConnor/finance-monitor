@@ -34,7 +34,8 @@ from main.models import (
     AccountType,
     SubAccountType,
     RecurringTransaction,
-    CategoryRule, CategoryCustom,
+    CategoryRule,
+    CategoryCustom,
 )
 
 import plaid
@@ -99,9 +100,7 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     if category is not None:
         category = TransactionCategory(category)
 
-    tran = util.load_transactions(
-        start_i, end_i, person, search, start, end, category
-    )
+    tran = util.load_transactions(start_i, end_i, person, search, start, end, category)
 
     transactions = {
         "transactions": [t.serialize() for t in tran],
@@ -145,10 +144,11 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
 
         tran_db = Transaction.objects.filter(id=tran["id"])
         tran_db = tran_db.filter(
-            Q(account__person=request.user.person) | Q(person=request.user.person)).first()  # Prevent exploits
+            Q(account__person=request.user.person) | Q(person=request.user.person)
+        ).first()  # Prevent exploits
         # todo: Don't override the original description for a linked transaction; use a separate field.
 
-        tran_db .categories = tran["categories"]
+        tran_db.categories = tran["categories"]
         tran_db.description = tran["description"]
         tran_db.notes = tran["notes"]
         tran_db.amount = tran["amount"]
@@ -159,7 +159,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
             rule_db, _ = CategoryRule.objects.update_or_create(
                 person=person,
                 description=tran_db.description,
-                defaults={"category": tran["categories"][0]}
+                defaults={"category": tran["categories"][0]},
             )
 
             util.change_tran_cats_from_rule(rule_db, person)
@@ -192,10 +192,7 @@ def add_transactions(request: HttpRequest) -> HttpResponse:
             tran_db.save()
 
             # todo: This id setup is not set up to handle multiple. Fine for now.
-            result = {
-                "success": True,
-                "ids": [tran_db.id]
-            }
+            result = {"success": True, "ids": [tran_db.id]}
 
         except IntegrityError:
             print("Integrity error saving new transaction manually added")
@@ -260,14 +257,16 @@ def delete_accounts(request: HttpRequest) -> HttpResponse:
     """Delete one or more sub accounts."""
     data = load_body(request)
     result = {"success": True}
-    
+
     person = request.user.person
 
     # todo: Unlink etc if not manual
     for id_ in data.get("ids", []):
         try:
             # person and account checks prevent abuse.
-            acc = SubAccount.objects.filter(Q(id=id_, person=person) | Q(id=id_, account__person=person)).account
+            acc = SubAccount.objects.filter(
+                Q(id=id_, person=person) | Q(id=id_, account__person=person)
+            ).account
         except SubAccount.DoesNotExist:
             result["success"] = False
         else:
@@ -293,7 +292,8 @@ def delete_transactions(request: HttpRequest) -> HttpResponse:
 
             tran = Transaction.objects.filter(id=id_)
             tran = tran.filter(
-                Q(account__person=request.user.person) | Q(person=request.user.person)).first()  # Prevent exploits
+                Q(account__person=request.user.person) | Q(person=request.user.person)
+            ).first()  # Prevent exploits
             tran.delete()
         except Transaction.DoesNotExist:
             result["success"] = False
@@ -317,9 +317,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
         return HttpResponseRedirect("/dashboard")
 
-    spending_highlights = util.setup_spending_highlights(
-        person, 30, 0, False
-    )
+    spending_highlights = util.setup_spending_highlights(person, 30, 0, False)
 
     context = util.load_dash_data(request.user.person)
 
@@ -559,20 +557,26 @@ def settings(request: HttpRequest) -> HttpResponse:
 
         if form.is_valid():
             form.save()
-            return render(request, "settings.html", {"password_change": True, "password_change_success": True})
+            return render(
+                request,
+                "settings.html",
+                {"password_change": True, "password_change_success": True},
+            )
         else:
-            return render(request, "settings.html", {"password_change": True, "password_change_success": False})
-
+            return render(
+                request,
+                "settings.html",
+                {"password_change": True, "password_change_success": False},
+            )
 
     account_status = util.check_account_status(request)
     if account_status is not None:
         return account_status
 
-
     context = {
         "rules": CategoryRule.objects.filter(person=request.user.person),
         "custom_categories": CategoryCustom.objects.filter(person=request.user.person),
-        "password_change": False
+        "password_change": False,
     }
 
     return render(request, "settings.html", context)
@@ -641,6 +645,7 @@ def register(request):
         # form = UserCreationForm()
 
     return render(request, "register.html", {})
+
 
 # def password_reset(request):
 #     if request.method == "POST":
@@ -771,7 +776,8 @@ def export_(request: HttpRequest) -> HttpResponse:
 @login_required
 def edit_rules(request: HttpRequest) -> HttpResponse:
     """We use this to edit rules, eg from the settings page. Note that
-    when editing the transactions table, we use the `edit_transactions` endpoint instead."""
+    when editing the transactions table, we use the `edit_transactions` endpoint instead.
+    """
 
     success = True
 
@@ -785,10 +791,9 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
             defaults={
                 "description": rule["description"],
                 "category": rule["category"],
-            }
+            },
         )
         util.change_tran_cats_from_rule(rule_db, person)
-
 
     for rule in data["added"]:
         # The person check here prevents abuse by the frontend.
@@ -891,9 +896,7 @@ def password_reset_confirm(request, uidb64=None, token=None):
         else:
             form = SetPasswordForm(user)
 
-        return render(
-            request, "password_reset_confirm.html", {"form": form}
-        )
+        return render(request, "password_reset_confirm.html", {"form": form})
     else:
         return render(request, "password_reset_invalid.html")
 
@@ -908,7 +911,11 @@ def verify_email(request: HttpRequest, uidb64=None, token=None):
         user = None
 
     # todo: Do you need/want this token_generator check?
-    if user is not None and default_token_generator.check_token(user, token) and token == user.person.email_verification_token:
+    if (
+        user is not None
+        and default_token_generator.check_token(user, token)
+        and token == user.person.email_verification_token
+    ):
         print("\nSuccessfully verified email")
         user.person.email_verification_token = None
         user.person.email_verified = True
@@ -934,10 +941,11 @@ def toggle_highlight(request: HttpRequest) -> HttpResponse:
     data = load_body(request)
 
     tran = Transaction.objects.filter(id=data["id"])
-    tran = tran.filter(Q(account__person=request.user.person) | Q(person=request.user.person)).first()  # Prevent exploits
+    tran = tran.filter(
+        Q(account__person=request.user.person) | Q(person=request.user.person)
+    ).first()  # Prevent exploits
 
     tran.highlighted = not tran.highlighted
     tran.save()
 
     return JsonResponse({"success": True})
-

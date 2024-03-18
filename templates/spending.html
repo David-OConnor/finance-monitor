@@ -6,6 +6,7 @@
 
 {% block contents %}
     <div class="home-body">
+        <h2>Past <span id="days-back">30</span> days</h2>
         <div style="display: flex; align-items: center;">
             {#            <form method="post" style="display: flex; align-items: center;">#}
             {#                {% csrf_token %}#}
@@ -27,11 +28,26 @@
             <h2>Expenses: <span id="expenses-total">{{ expenses_total|floatformat:"0g" }}</span></h2>
         </div>
 
-        <div style="display: flex; flex-direction: column;">
-            <h2>Spending by category</h2>
-            {% for highlight in highlights.by_cat %}
-                <h4 style="margin-top: 0; margin-bottom: 0;">{{ highlight.0 }}: <span>{{ highlight.1.1|floatformat:"0g" }}</span></h4>
-            {% endfor %}
+        <div style="display: flex; justify-content: space-evenly">
+
+            <div style="display: flex; flex-direction: column;">
+                <h2>Spending by category</h2>
+                <div id="spending-section">
+                    {% for highlight in highlights.by_cat %}
+                        <h4 style="margin-top: 0; margin-bottom: 0;">{{ highlight.0 }}: <span>{{ highlight.1.1|floatformat:"0g" }}</span></h4>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column;">
+                <h2>Changes, by category</h2>
+                <div id="change-section">
+                    {% for change in highlights.cat_changes %}
+                        <h4 style="margin-top: 0; margin-bottom: 0;">{{ change.0 }}: <span>{{ change.1|floatformat:"0g" }}</span></h4>
+                    {% endfor %}
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -48,6 +64,9 @@
 
         function setRange(daysBack) {
             // Set the date range.
+
+            LOOKBACK = daysBack
+            getEl("days-back").textContent = daysBack
 
             let start, end
             if (daysBack === -1) {
@@ -70,11 +89,26 @@
                     HIGHLIGHTS = r.highlights
                     INCOME_TOTAL = r.income_total
                     EXPENSES_TOTAL = r.expenses_total
+                    let LOOKBACK = daysBack
+
+                    console.log(HIGHLIGHTS)
 
                     getEl("income-total").textContent = formatAmount(INCOME_TOTAL, 0)
                     getEl("expenses-total").textContent = formatAmount(EXPENSES_TOTAL, 0)
 
+                    populate()
                 });
+        }
+
+        function populate() {
+            let sectionSpending = getEl("spending-section")
+            sectionSpending.replaceChildren()
+            for (let item of HIGHLIGHTS.by_cat) {
+                let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0}, catIconFromVal(item[0]) + catNameFromVal(item[0]) + ": ")
+                let s = createEl("span", {class: "tran_neutr"},  {}, formatAmount(item[1][1]))
+                h4.appendChild(s)
+                sectionSpending.appendChild(h4)
+            }
         }
 
     </script>

@@ -168,7 +168,7 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
             print("Not refreshing account data")
 
         if (
-                now - acc.last_refreshed_recurring
+            now - acc.last_refreshed_recurring
         ).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
             print("Refreshing recurring data...")
             refresh_recurring(acc)
@@ -262,7 +262,9 @@ def refresh_transactions(account: FinancialAccount) -> None:
         cat_detailed = tran.personal_finance_category.detailed
         cat_primary = tran.personal_finance_category.primary
 
-        print(f"\n Description: {tran.name}, Cat prim: {cat_primary}, Cat detailed: {cat_detailed} Cat isolated: {tran.category}\n")
+        print(
+            f"\n Description: {tran.name}, Cat prim: {cat_primary}, Cat detailed: {cat_detailed} Cat isolated: {tran.category}\n"
+        )
 
         tran_db = Transaction(
             account=account,
@@ -278,7 +280,6 @@ def refresh_transactions(account: FinancialAccount) -> None:
             pending=tran.pending,
             logo_url=tran.logo_url,
             plaid_category_icon_url="",  # todo: A/R
-
         )
         try:
             tran_db.save()
@@ -286,24 +287,40 @@ def refresh_transactions(account: FinancialAccount) -> None:
             # todo: Why do we get this, if using cursor?
             print("Integrity error when saving a transaction: ", account)
 
+
+    # On Pending: https://plaid.com/docs/transactions/transactions-data/
+    # Pending transactions will be in the remove category once completed, and the
+    # final transaction wil be added; so, they are not modifications.
     for tran in modified:
-        print("\n\n Modifing transaction: ", tran, "\n\n")
-        tran_db_, _ = Transaction.objects.filter(
+        print("\n\n Modifing transaction:\n", tran, "\n\n")
+        tran_db = Transaction.objects.filter(
             account=account,
             plaid_id=tran.transaction_id,
-        ).update(
-            amount=tran.amount,
-            description=tran.name,
-            date=tran.date,
-            datetime=tran.datetime,
-            currency_code=tran.iso_currency_code,
-            pending=tran.pending,
-            logo_url=tran.logo_url,
-            plaid_category_icon_url="",
         )
 
+        try:
+            tran_db = tran_db[0]
+        except IndexError as e:
+            print(f"\n Error: Unable to find the transaction requested to modify: \n\n{tran}")
+            util.send_debug_email(f"Tran modification error: \n{tran}: \n\n: {e}")
+        else:
+            tran_db.amount = tran.amount
+            tran_db.description = tran.name
+            tran_db.date = tran.date
+            tran_db.datetime = tran.datetime
+            tran_db.currency_code = tran.iso_currency_code
+            tran_db.pending = tran.pending
+            tran_db.logo_url = tran.logo_url
+            tran_db.plaid_category_icon_url = ""
+
+            try:
+                tran_db.save()
+            except IntegrityError as e:
+                print(f"\n\nIntegrity error saving message\n\n: {tran_db}: \n: {e}")
+                util.send_debug_email(f"Integrity error saving message\n\n: {tran_db}: \n: {e}")
+
     for tran in removed:
-        print("\n\n Deleting transaction: ", tran, "\n\n")
+        print("\n\n Deleting transaction:\n", tran, "\n\n")
         _ = Transaction.objects.filter(
             account=account,
             plaid_id=tran.transaction_id,
@@ -402,7 +419,9 @@ def refresh_recurring(account: FinancialAccount):
 
     for recur in inflow_streams:
         categories = [TransactionCategory.from_str(cat) for cat in recur.category]
-        categories = transaction_cats.category_override(recur.description, categories, rules)
+        categories = transaction_cats.category_override(
+            recur.description, categories, rules
+        )
 
         sub_acc = SubAccount.objects.get(plaid_id=recur.account_id)
 
@@ -433,7 +452,9 @@ def refresh_recurring(account: FinancialAccount):
         print("\n\n Recur: ", recur, "\n")
         categories = [TransactionCategory.from_str(cat) for cat in recur.category]
 
-        categories = transaction_cats.category_override(recur.description, categories, rules)
+        categories = transaction_cats.category_override(
+            recur.description, categories, rules
+        )
 
         sub_acc = SubAccount.objects.get(plaid_id=recur.account_id)
 

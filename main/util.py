@@ -5,6 +5,7 @@ from io import TextIOWrapper
 from typing import List, Dict, Iterable, Optional, Tuple
 from datetime import date, timedelta
 
+from django.core.mail import send_mail
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
@@ -19,8 +20,10 @@ from main.models import (
     Transaction,
     SubAccountType,
     SnapshotAccount,
-    SnapshotPerson, CategoryRule,
+    SnapshotPerson,
+    CategoryRule,
 )
+from wallet import settings
 from main.transaction_cats import TransactionCategory
 
 
@@ -59,13 +62,13 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
 
 
 def load_transactions(
-        start_i: Optional[int],
-        end_i: Optional[int],
-        person: Person,
-        search_text: Optional[str],
-        start: Optional[date],
-        end: Optional[date],
-        category: Optional[TransactionCategory]
+    start_i: Optional[int],
+    end_i: Optional[int],
+    person: Person,
+    search_text: Optional[str],
+    start: Optional[date],
+    end: Optional[date],
+    category: Optional[TransactionCategory],
 ) -> List[Transaction]:
     """Create a set of transactions, serialized for use with the frontend. These
     are combined from all sub-accounts."""
@@ -75,8 +78,7 @@ def load_transactions(
 
     if search_text:
         trans = trans.filter(
-            Q(description__icontains=search_text)
-            | Q(notes__icontains=search_text)
+            Q(description__icontains=search_text) | Q(notes__icontains=search_text)
         )
 
     if start is not None:
@@ -118,7 +120,7 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
     }
 
     for sub_acc in SubAccount.objects.filter(
-            Q(account__person=person) | Q(person=person)
+        Q(account__person=person) | Q(person=person)
     ):
         if sub_acc.ignored:
             continue
@@ -236,7 +238,7 @@ def filter_trans_spending(trans) -> List[Transaction]:
 
 # def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Person, num_days: int) -> List[Tuple[TransactionCategory, List[int, float, Dict[str, str]]]]:
 def setup_spending_highlights(
-       person: Person, start_days_back: int, end_days_back: int, is_lookback: bool
+    person: Person, start_days_back: int, end_days_back: int, is_lookback: bool
 ):
     """Find the biggest recent spending highlights."""
     now = timezone.now()
@@ -245,7 +247,7 @@ def setup_spending_highlights(
 
     # todo: We likely have already loaded these transactions. Optimize later.
     # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
-    trans = load_transactions(None, None,  person, "", start, end, None)
+    trans = load_transactions(None, None, person, "", start, end, None)
 
     # print(trans, "TRANS")
 
@@ -255,7 +257,7 @@ def setup_spending_highlights(
     total = 0.0
 
     # # This can be low; large purchases will be rank-limited.
-    LARGE_PURCHASE_THRESH = 150.
+    LARGE_PURCHASE_THRESH = 150.0
 
     trans_spending = filter_trans_spending(trans)
     for tran in trans_spending:
@@ -274,7 +276,9 @@ def setup_spending_highlights(
         # by_cat[c.value][2].append(tran.serialize())
 
         if tran.amount >= LARGE_PURCHASE_THRESH:
-            large_purchases.append({"description": tran.description, "amount": tran.amount})
+            large_purchases.append(
+                {"description": tran.description, "amount": tran.amount}
+            )
 
         total += tran.amount
 
@@ -299,19 +303,18 @@ def setup_spending_highlights(
             if len(prev):
                 prev_amt = prev[0][1][1]
             else:
-                prev_amt = 0.
+                prev_amt = 0.0
 
             diff = c[1][1] - prev_amt
 
             cat_changes.append([c[0], diff])
 
         cat_changes.sort(key=lambda c: abs(c[1]), reverse=True)
-            # todo: Take into account cats missing this month that  were prsent the prev.
+        # todo: Take into account cats missing this month that  were prsent the prev.
     else:
         cat_changes = []
     # print("\nTran cats: ", by_cat)
     print("CAT CHANGES", cat_changes)
-
 
     #
 
@@ -326,7 +329,9 @@ def setup_spending_highlights(
     }
 
 
-def setup_spending_data(person: Person, start_days_back: int, end_days_back: int) -> dict:
+def setup_spending_data(
+    person: Person, start_days_back: int, end_days_back: int
+) -> dict:
     # todo: DRY/C+P! This is bad because it repeats the same transaction query. Fix it for performance reasons.
     now = timezone.now()
     start = now - timedelta(days=start_days_back)
@@ -336,24 +341,24 @@ def setup_spending_data(person: Person, start_days_back: int, end_days_back: int
 
     # todo: We likely have already loaded these transactions. Optimize later.
     # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
-    trans = load_transactions(None, None,  person, "", start, end, None)
+    trans = load_transactions(None, None, person, "", start, end, None)
 
     # todo: Other cats?
-    income_transactions = [t for t in trans if TransactionCategory.INCOME.value in t.categories]
-    income_total = 0.
+    income_transactions = [
+        t for t in trans if TransactionCategory.INCOME.value in t.categories
+    ]
+    income_total = 0.0
     for t in income_transactions:
         income_total += t.amount
 
     expense_transactions = filter_trans_spending(trans)
 
-    expenses_total = 0.
+    expenses_total = 0.0
     for t in expense_transactions:
         expenses_total += t.amount
 
     # TODO. no! Doubles the query.
-    spending_highlights = setup_spending_highlights(
-        person, 31, 0, False
-    )
+    spending_highlights = setup_spending_highlights(person, 31, 0, False)
 
     return {
         "highlights": spending_highlights,
@@ -372,12 +377,30 @@ def check_account_status(request: HttpRequest) -> Optional[HttpResponse]:
     if person.account_locked:
         # todo
         return HttpResponse(
-            "This account is locked due to suspicious activity. Please contact us: contact@finance-monitor.com")
+            "This account is locked due to suspicious activity. Please contact us: contact@finance-monitor.com"
+        )
 
 
 def change_tran_cats_from_rule(rule: CategoryRule, person: Person):
     """This is a bit of a forward decision, but retroactively re-categorize transactions matching
     a given description, based on a new or updated rule."""
-    for tran in Transaction.objects.filter(Q(person=person) | Q(account__person=person), description__iexact=rule.description):
+    for tran in Transaction.objects.filter(
+        Q(person=person) | Q(account__person=person),
+        description__iexact=rule.description,
+    ):
         tran.categories = [rule.category]
         tran.save()
+
+
+def send_debug_email(message: str):
+    if not settings.DEPLOYED:
+        return
+
+    send_mail(
+        "Finance Monitor error",
+        "",
+        "contact@finance-monitor.com",
+        ["contact@finance-monitor.com"],
+        fail_silently=False,
+        html_message=message,
+    )

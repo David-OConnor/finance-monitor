@@ -25,7 +25,8 @@ from django.db.models import (
     TextField,
     Model,
     BooleanField,
-    ForeignKey, JSONField,
+    ForeignKey,
+    JSONField,
 )
 
 from main.transaction_cats import TransactionCategory, cleanup_categories
@@ -189,7 +190,9 @@ class Person(Model):
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         token = default_token_generator.make_token(self.user)
 
-        verification_url = f"{request.scheme}://{request.get_host()}/verify-email/{uid}/{token}"
+        verification_url = (
+            f"{request.scheme}://{request.get_host()}/verify-email/{uid}/{token}"
+        )
 
         # Disabling click tracking is to stop Sendgrid from intercepting the links.
         email_body = f"""
@@ -236,7 +239,11 @@ class FinancialAccount(Model):
 
     person = ForeignKey(Person, related_name="accounts", on_delete=CASCADE)
     institution = ForeignKey(
-        Institution, on_delete=SET_NULL, related_name="institutions", blank=True, null=True
+        Institution,
+        on_delete=SET_NULL,
+        related_name="institutions",
+        blank=True,
+        null=True,
     )
     # A user-entered nickname for the account.
     name = CharField(max_length=100, blank=True)
@@ -370,7 +377,9 @@ class Transaction(Model):
         blank=True,
         on_delete=SET_NULL,
     )
-    institution_name = CharField(max_length=50) # In case the transaction is disconnected from an account.
+    institution_name = CharField(
+        max_length=50
+    )  # In case the transaction is disconnected from an account.
     # We generally have 1-2 categories.
     # JSONField here allows for filtering by category
     categories = JSONField()  # List of category enums, eg [0, 2]
@@ -564,6 +573,7 @@ class RecurringTransaction(Model):
 
 class CategoryRule(Model):
     """Map transaction descriptions to categories automatically, by user selection."""
+
     person = ForeignKey(Person, related_name="category_rules", on_delete=CASCADE)
     description = CharField(max_length=100)
     category = IntegerField(choices=TransactionCategory.choices())

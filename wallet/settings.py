@@ -206,7 +206,7 @@ ADMINS = (("admin", "contact@finance-monitor.com"),)
 MANAGERS = ADMINS
 
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "dashboard" # I don't think this is currently used.
+LOGIN_REDIRECT_URL = "dashboard"  # I don't think this is currently used.
 
 if DEPLOYED:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

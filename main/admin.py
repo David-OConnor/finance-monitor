@@ -41,7 +41,7 @@ class SubAccountAdmin(ModelAdmin):
 
 @admin.register(models.Transaction)
 class TransactionAdmin(ModelAdmin):
-    list_display = ("description", "account", "amount", "categories", "date")
+    list_display = ("description", "account", "amount", "categories", "plaid_id", "date")
     search_fields = ("description", "notes", "plaid_id")
 
 

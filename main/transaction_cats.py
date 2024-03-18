@@ -21,6 +21,7 @@ def enum_choices(cls):
 
 class TransactionCategoryDiscret(Enum):
     """Our broadest grouping"""
+
     DISCRETIONARY = 0
     # Housing, bills etc
     NON_DISCRETIONARY = 1
@@ -28,6 +29,7 @@ class TransactionCategoryDiscret(Enum):
 
 class TransactionCategoryGeneral(Enum):
     """We group each category into one of these more general categories"""
+
     UNCATEGORIZED = -1
     TRAVEL = 0
     CONSUMER_PRODUCTS = 1
@@ -38,14 +40,21 @@ class TransactionCategoryGeneral(Enum):
     def from_cat(cls, cat: "TransactionCategory") -> "TransactionCategoryGeneral":
         if cat == TransactionCategory.UNCATEGORIZED:
             return cls.UNCATEGORIZED
-        if cat in [TransactionCategory.TRAVEL, TransactionCategory.AIRLINES_AND_AVIATION_SERVICES]:
+        if cat in [
+            TransactionCategory.TRAVEL,
+            TransactionCategory.AIRLINES_AND_AVIATION_SERVICES,
+        ]:
             return cls.TRAVEL
         if cat in [CONSUMER_PRODUCTS]:
             return cls.CONSUMER_PRODUCTS
         if cat in [CONSUMER_PRODUCTS]:
             return cls.BUSINESS
-        if cat in [TransactionCategory.GROCERIES, TransactionCategory.ALCOHOL, TransactionCategory.RESTAURANTS,
-                   TransactionCategory.COFFEE_SHOP]:
+        if cat in [
+            TransactionCategory.GROCERIES,
+            TransactionCategory.ALCOHOL,
+            TransactionCategory.RESTAURANTS,
+            TransactionCategory.COFFEE_SHOP,
+        ]:
             return cls.FOOD_AND_DRINK
 
 
@@ -123,7 +132,13 @@ class TransactionCategory(Enum):
             return cls.FAST_FOOD
         if "debit" in s:
             return cls.DEBIT
-        if "shop" in s or "bookstore" in s or "hardware" in s or "clothing" in s or "merchandise" in s:
+        if (
+            "shop" in s
+            or "bookstore" in s
+            or "hardware" in s
+            or "clothing" in s
+            or "merchandise" in s
+        ):
             return cls.SHOPS
         if "payment" == s:
             return cls.PAYMENT
@@ -401,7 +416,9 @@ replacements = [
 
 def category_override(
     # Avoid a circular import by not importing CategoryRule
-    descrip: str, categories: List[TransactionCategory], rules: Iterable["CategoryRule"]
+    descrip: str,
+    categories: List[TransactionCategory],
+    rules: Iterable["CategoryRule"],
 ) -> List[TransactionCategory]:
     """Manual category overrides, based on observation. Note: This is currently handled prior to adding to the DB."""
     descrip = descrip.lower()
@@ -484,7 +501,10 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
     if TransactionCategory.GROCERIES in cats and TransactionCategory.SHOPS in cats:
         cats.remove(TransactionCategory.SHOPS)
 
-    if TransactionCategory.SOFTWARE_SUBSCRIPTIONS in cats and TransactionCategory.SHOPS in cats:
+    if (
+        TransactionCategory.SOFTWARE_SUBSCRIPTIONS in cats
+        and TransactionCategory.SHOPS in cats
+    ):
         cats.remove(TransactionCategory.SHOPS)
 
     if TransactionCategory.SPORTING_GOODS in cats and TransactionCategory.SHOPS in cats:
@@ -501,6 +521,12 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
 
     if TransactionCategory.TAXI in cats and TransactionCategory.TRAVEL in cats:
         cats.remove(TransactionCategory.TRAVEL)
+
+    if TransactionCategory.CAR in cats and TransactionCategory.TRAVEL in cats:
+        cats.remove(TransactionCategory.TRAVEL)
+
+    if TransactionCategory.BILLS_AND_UTILITIES in cats and TransactionCategory.BUSINESS_SERVICES in cats:
+        cats.remove(TransactionCategory.BUSINESS_SERVICES)
 
     if TransactionCategory.UNCATEGORIZED in cats and len(cats) > 1:
         cats.remove(TransactionCategory.UNCATEGORIZED)
