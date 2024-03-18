@@ -112,6 +112,15 @@
                 h4.appendChild(s)
                 sectionSpending.appendChild(h4)
             }
+
+            let sectionChanges = getEl("change-section")
+            sectionChanges.replaceChildren()
+            for (let item of HIGHLIGHTS.cat_changes) {
+                let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0}, catIconFromVal(item[0]) + catNameFromVal(item[0]) + ": ")
+                let s = createEl("span", {class: "tran_neut"},  {}, formatAmount(item[1]))
+                h4.appendChild(s)
+                sectionChanges.appendChild(h4)
+            }
         }
 
         function updateData() {

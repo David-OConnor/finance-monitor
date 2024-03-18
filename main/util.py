@@ -88,7 +88,7 @@ def load_transactions(
 
     # This filter takes advantage of `categories` being a JSON Field.
     if category is not None:
-        trans = trans.filter(categories__contains=category.value)
+        trans = trans.filter(category=category.value)
 
     if start_i is not None and end_i is not None:
         return trans[start_i:end_i]
@@ -222,17 +222,17 @@ def filter_trans_spending(trans) -> List[Transaction]:
     result = []
 
     for tran in trans:
-        cats = [TransactionCategory(c) for c in tran.categories]
-        cats = transaction_cats.cleanup_categories(cats)
+        cat = TransactionCategory(tran.category)
+        # cats = transaction_cats.cleanup_categories(cats)
 
-        skip = False
-        for cat in CATS_NON_SPENDING:
-            if cat in cats:
-                skip = True
-                break
 
-        if not skip:
+        # for cat_ in CATS_NON_SPENDING:
+        #     if cat in cats:
+        #         skip = True
+        #         break
+        if cat not in CATS_NON_SPENDING:
             result.append(tran)
+
     return result
 
 
@@ -261,18 +261,15 @@ def setup_spending_highlights(
 
     trans_spending = filter_trans_spending(trans)
     for tran in trans_spending:
-        cats = [TransactionCategory(c) for c in tran.categories]
-        cats = transaction_cats.cleanup_categories(cats)
+        cat = TransactionCategory(tran.category)
+        # cats = [TransactionCategory(c) for c in tran.categories]
+        # cats = transaction_cats.cleanup_categories(cats)
 
-        # todo: Enforce a single category at schema level. (?)
-        if not len(cats):
-            continue
-        c = cats[0]
-        if c.value not in by_cat.keys():
-            by_cat[c.value] = [0, 0.0]  # count, total, transactions serialized
-            by_cat[c.value][1] += tran.amount
+        if cat.value not in by_cat.keys():
+            by_cat[cat.value] = [0, 0.0]  # count, total, transactions serialized
+            by_cat[cat.value][1] += tran.amount
 
-            by_cat[c.value][0] += 1
+            by_cat[cat.value][0] += 1
         # by_cat[c.value][2].append(tran.serialize())
 
         if tran.amount >= LARGE_PURCHASE_THRESH:
@@ -335,8 +332,11 @@ def setup_spending_data(
 
     # todo: Other cats?
     income_transactions = [
-        t for t in trans if TransactionCategory.INCOME.value in t.categories
+        t for t in trans if TransactionCategory.INCOME.value == t.category
     ]
+
+    print("\n\nT INCOME", income_transactions)
+
     income_total = 0.0
     for t in income_transactions:
         income_total += t.amount
@@ -348,9 +348,7 @@ def setup_spending_data(
         expenses_total += t.amount
 
     # TODO. no! Doubles the query.
-    spending_highlights = setup_spending_highlights(person, 31, 0, False)
-
-    print(spending_highlights, "\n\nSH")
+    spending_highlights = setup_spending_highlights(person, start_days_back, end_days_back, False)
 
     return {
         "highlights": spending_highlights,
@@ -380,7 +378,7 @@ def change_tran_cats_from_rule(rule: CategoryRule, person: Person):
         Q(person=person) | Q(account__person=person),
         description__iexact=rule.description,
     ):
-        tran.categories = [rule.category]
+        tran.category = rule.category
         tran.save()
 
 

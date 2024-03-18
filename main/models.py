@@ -29,7 +29,7 @@ from django.db.models import (
     JSONField,
 )
 
-from main.transaction_cats import TransactionCategory, cleanup_categories
+from main.transaction_cats import TransactionCategory
 
 
 def enum_choices(cls):
@@ -382,7 +382,10 @@ class Transaction(Model):
     )  # In case the transaction is disconnected from an account.
     # We generally have 1-2 categories.
     # JSONField here allows for filtering by category
-    categories = JSONField()  # List of category enums, eg [0, 2]
+
+    # todo: Deprecate categories. Ie remove it once you have `category` in everything.
+    # categories = JSONField()  # List of category enums, eg [0, 2]
+    category = IntegerField()
     amount = FloatField()
     description = TextField()
     date = DateField()  # It appears we don't have datetimes available from plaid
@@ -404,13 +407,13 @@ class Transaction(Model):
     def serialize(self) -> Dict[str, str]:
         """For use in the web page."""
 
-        try:
-            cats = [TransactionCategory(cat) for cat in self.categories]
-        except JSONDecodeError as e:
-            print("Problem decoding categories during serialization", self.categories)
-            cats = [TransactionCategory.UNCATEGORIZED]
+        # try:
+        #     cats = [TransactionCategory(cat) for cat in self.categories]
+        # except JSONDecodeError as e:
+        #     print("Problem decoding categories during serialization", self.categories)
+        #     cats = [TransactionCategory.UNCATEGORIZED]
 
-        cats = cleanup_categories(cats)
+        # cats = cleanup_categories(cats)
 
         # Only display the year if not the present one.
         if self.date.year == date.today().year:
@@ -429,10 +432,11 @@ class Transaction(Model):
         # todo: Modify to serialize values vice displayl.
         return {
             "id": self.id,  # DB primary key.
-            "categories": [cat.value for cat in cats],
+            # "categories": [cat.value for cat in cats],
+            "category": self.category,
             # "categories_icon": [cat.to_icon() for cat in cats],
             # Currently just used for search on FE. Could be replaced their by JS fns we already have.
-            "categories_text": [cat.to_str() for cat in cats],
+            "category_text": TransactionCategory(self.category).to_str(),
             "description": description,
             "notes": self.notes if self.notes else "",
             "amount": self.amount,
@@ -506,7 +510,8 @@ class RecurringTransaction(Model):
     is_active = BooleanField(default=True)
     status = CharField(max_length=15)  # Plaid string. Use an enum or remove A/R
     # todo: JSONField A/R, like Transaction.
-    categories = TextField()  # List of category enums, eg [0, 2]
+    # categories = TextField()  # List of category enums, eg [0, 2]
+    category: IntegerField(choices=TransactionCategory.choices())
     # User notes
     notes = TextField()
 
@@ -519,13 +524,7 @@ class RecurringTransaction(Model):
 
     def serialize(self) -> Dict[str, str]:
         # todo: DRY with tran serializer
-        try:
-            cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
-        except JSONDecodeError as e:
-            print("Problem decoding categories during serialization", self.categories)
-            cats = [TransactionCategory.UNCATEGORIZED]
 
-        cats = cleanup_categories(cats)
         #
         # # Only display the year if not the present one.
         # if self.date.year == date.today().year:
@@ -540,6 +539,8 @@ class RecurringTransaction(Model):
         #         date_display = self.date.strftime("%m/%d/%y")
 
         # todo: Modify to serialize values vice displayl.
+        cat = TransactionCategory(self.category)
+
         return {
             "id": self.id,  # DB primary key.
             "institution": self.account.account.institution.name,
@@ -552,23 +553,23 @@ class RecurringTransaction(Model):
             "merchant_name": self.merchant_name,
             "is_active": json.dumps(self.is_active),
             "status": self.status,
-            "categories": [cat.value for cat in cats],
-            "categories_icon": [cat.to_icon() for cat in cats],
-            "categories_text": [cat.to_str() for cat in cats],
+            "categories": self.category,
+            "categories_icon": cat.to_icon(),
+            "categories_text": cat.to_str(),
             "notes": self.notes,
         }
 
-    def cats_cleaned(self) -> str:
-        """Since we don't apply the serializer as we do with transactions on the dash, apply the
-        post-processing category code here. (DRY from serialize)"""
-        try:
-            cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
-        except JSONDecodeError as e:
-            print("Problem decoding categories during serialization", self.categories)
-            cats = [TransactionCategory.UNCATEGORIZED]
-
-        cats = cleanup_categories(cats)
-        return ",".join([cat.to_icon() for cat in cats])
+    # def cats_cleaned(self) -> str:
+    #     """Since we don't apply the serializer as we do with transactions on the dash, apply the
+    #     post-processing category code here. (DRY from serialize)"""
+    #     # try:
+    #     #     cats = [TransactionCategory(cat) for cat in json.loads(self.categories)]
+    #     # except JSONDecodeError as e:
+    #     #     print("Problem decoding categories during serialization", self.categories)
+    #     #     cats = [TransactionCategory.UNCATEGORIZED]
+    #
+    #     cats = cleanup_categories(cats)
+    #     return ",".join([cat.to_icon() for cat in cats])
 
 
 class CategoryRule(Model):

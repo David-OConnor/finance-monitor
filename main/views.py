@@ -148,7 +148,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
         ).first()  # Prevent exploits
         # todo: Don't override the original description for a linked transaction; use a separate field.
 
-        tran_db.categories = tran["categories"]
+        tran_db.category= tran["category"]
         tran_db.description = tran["description"]
         tran_db.notes = tran["notes"]
         tran_db.amount = tran["amount"]
@@ -159,7 +159,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
             rule_db, _ = CategoryRule.objects.update_or_create(
                 person=person,
                 description=tran_db.description,
-                defaults={"category": tran["categories"][0]},
+                defaults={"category": tran["category"]},
             )
 
             util.change_tran_cats_from_rule(rule_db, person)
@@ -180,7 +180,7 @@ def add_transactions(request: HttpRequest) -> HttpResponse:
             account=None,
             person=request.user.person,
             institution_name=tran["institution_name"],
-            categories=tran["categories"],
+            category=tran["category"],
             amount=tran["amount"],
             description=tran["description"],
             date=tran["date"],
