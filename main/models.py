@@ -385,7 +385,7 @@ class Transaction(Model):
 
     # todo: Deprecate categories. Ie remove it once you have `category` in everything.
     # categories = JSONField()  # List of category enums, eg [0, 2]
-    category = IntegerField()
+    category = IntegerField(choices=TransactionCategory.choices())
     amount = FloatField()
     description = TextField()
     date = DateField()  # It appears we don't have datetimes available from plaid
@@ -511,7 +511,7 @@ class RecurringTransaction(Model):
     status = CharField(max_length=15)  # Plaid string. Use an enum or remove A/R
     # todo: JSONField A/R, like Transaction.
     # categories = TextField()  # List of category enums, eg [0, 2]
-    category: IntegerField(choices=TransactionCategory.choices())
+    category = IntegerField(choices=TransactionCategory.choices())
     # User notes
     notes = TextField()
 
