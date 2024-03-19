@@ -329,6 +329,10 @@ function catIconFromVal(val){
     return "❓"
 }
 
+function catDisp(cat) {
+    return catIconFromVal(cat) + catNameFromVal(cat)
+}
+
 const FETCH_HEADERS_GET = {
     method: "GET",
     mode: "cors",

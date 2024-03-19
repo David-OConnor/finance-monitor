@@ -346,7 +346,7 @@ class SubAccount(Model):
             "manual": self.person is not None,
             # Note Use current_val if handling this in JS vice template
             # "current_val": self.current,
-            # "current_class": "tran_pos" if pos_val else "tran_neg",
+            # "current_class": "tran-pos" if pos_val else "tran-neg",
         }
 
     def __str__(self):
@@ -442,7 +442,7 @@ class Transaction(Model):
             "amount": self.amount,
             # todo: DO we want this?
             "amount_class": (
-                "tran_pos" if self.amount > 0.0 else "tran_neg"
+                "tran-pos" if self.amount > 0.0 else "tran-neg"
             ),  # eg to color green or red.
             "date": self.date.isoformat(),
             "date_display": date_display,

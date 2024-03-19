@@ -23,11 +23,15 @@
         </div>
 
 
-        <div style="display: flex;">
-{#            <h2 style="margin-right: 40px;">Income: <span  id="income-total">{{ income_total|floatformat:"0g" }}</span></h2>#}
+        <div style="display: flex; justify-content: center;">
+            {#            <h2 style="margin-right: 40px;">Income: <span  id="income-total">{{ income_total|floatformat:"0g" }}</span></h2>#}
             <h2 style="margin-right: 40px;">Income: <span  id="income-total"></span></h2>
-{#            <h2>Expenses: <span id="expenses-total">{{ expenses_total|floatformat:"0g" }}</span></h2>#}
+            {#            <h2>Expenses: <span id="expenses-total">{{ expenses_total|floatformat:"0g" }}</span></h2>#}
             <h2>Expenses: <span id="expenses-total"></span></h2>
+        </div>
+
+        <div id="plot-wrapper" style="width: 400px; margin-bottom: 40px;">
+            <canvas id="plot"></canvas>
         </div>
 
         <div style="display: flex; justify-content: space-evenly">
@@ -49,11 +53,11 @@
                     {#                    {% endfor %}#}
                 </div>
             </div>
-
         </div>
     </div>
 
     <script src="../static/util.js"></script>
+    <script src="../static/js_libs/chart.min.js"></script>
 
     <script>
         document.getElementById("menu-spending").classList.add("menu-highlighted")
@@ -63,7 +67,34 @@
         {#let HIGHLIGHTS = {{ highlights|safe }};#}
         {#let INCOME_TOTAL = {{ income_total|safe }};#}
         {#let EXPENSES_TOTAL = {{ expenses_total|safe }};#}
+
+        let HIGHLIGHTS = {by_cat: []}
+        let INCOME_TOTAL = 0
+        let EXPENSES_TOTAL = 0
+
         let LOOKBACK = 30
+
+        // If we overrun this color list, it loops back to the top.
+        const PLOT_COLORS = [
+            'rgb(255, 99, 132)',
+            'rgb(54, 162, 235)',
+            'rgb(187,255,86)',
+            'rgb(86,255,255)',
+            'rgb(199,86,255)',
+            'rgb(255,137,86)',
+            'rgb(255,86,227)',
+            'rgb(86,255,204)',
+            //
+            'rgb(180,71,95)',
+            'rgb(36,110,161)',
+            'rgb(117,157,54)',
+            'rgb(55,166,166)',
+            'rgb(131,55,164)',
+            'rgb(150,82,51)',
+            'rgb(169,56,150)',
+            'rgb(52,168,133)',
+
+        ]
 
         function setRange(daysBack) {
             // Set the date range.
@@ -99,6 +130,7 @@
                     getEl("expenses-total").textContent = formatAmount(EXPENSES_TOTAL, 0)
 
                     populate()
+                    setupCharts()
                 });
         }
 
@@ -107,8 +139,8 @@
             sectionSpending.replaceChildren()
             console.log(HIGHLIGHTS, "HL")
             for (let item of HIGHLIGHTS.by_cat) {
-                let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0}, catIconFromVal(item[0]) + catNameFromVal(item[0]) + ": ")
-                let s = createEl("span", {class: "tran_neut"},  {}, formatAmount(item[1][1]))
+                let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0}, catDisp(item[0]) + ": ")
+                let s = createEl("span", {class: "tran-neutral"},  {}, formatAmount(item[1][1]))
                 h4.appendChild(s)
                 sectionSpending.appendChild(h4)
             }
@@ -116,8 +148,8 @@
             let sectionChanges = getEl("change-section")
             sectionChanges.replaceChildren()
             for (let item of HIGHLIGHTS.cat_changes) {
-                let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0}, catIconFromVal(item[0]) + catNameFromVal(item[0]) + ": ")
-                let s = createEl("span", {class: "tran_neut"},  {}, formatAmount(item[1]))
+                let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0}, catDisp(item[0]) + ": ")
+                let s = createEl("span", {class: "tran-neutral"},  {}, formatAmount(item[1]))
                 h4.appendChild(s)
                 sectionChanges.appendChild(h4)
             }
@@ -127,8 +159,80 @@
 
         }
 
+        function setupCharts() {
+            // https://www.chartjs.org/docs/latest/charts/doughnut.html#doughnut
+
+            {#const config = {#}
+            {#    type: 'doughnut',#}
+            {#    data: data,#}
+
+            document.getElementById('plot').remove()
+
+            let el = document.createElement("canvas")
+            el.setAttribute("id", "plot")
+            document.getElementById("plot-wrapper").appendChild(el)
+
+            let chartArea = document.getElementById('plot').getContext('2d')
+
+            let labels = []
+            let values = []
+            for (let item of HIGHLIGHTS.by_cat) {
+                labels.push(catDisp(item[0]))
+                values.push(item[1][1])
+            }
+
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: "Spending, by category",
+                    data: values,
+                    backgroundColor: PLOT_COLORS,
+                    hoverOffset: 4
+                }]
+            };
+
+            const myChart = new Chart(chartArea, {
+                type: 'doughnut',
+                data: data,
+                options: {}
+            })
+            {#    radius: 0, // Don't show circles on the points.#}
+            {#    responsive: true,#}
+            {#    scales: {#}
+            {#        x: {#}
+            {#            display: true,#}
+            {#            title: {#}
+            {#                display: true,#}
+            {#                text: 'Frequency (Hz)'#}
+            {#            },#}
+            {#            type: FREQ_LOG ? 'logarithmic' : 'linear',#}
+            {#            ticks: {#}
+            {#                stepSize: 500#}
+            {#            }#}
+            {#        },#}
+            {#        y: {#}
+            {#            title: {#}
+            {#                display: true,#}
+            {#                text: 'Amplitude and phase response'#}
+            {#            },#}
+            {#            display: true,#}
+            {#ticks: {#}
+            {#    stepSize: #}
+            {##}
+            {#        }#}
+            {#    },#}
+            {#    plugins: {#}
+            {#        title: {#}
+            {#            display: true,#}
+            {#            text: 'Filter response: Amplitude and phase'#}
+            {#        }#}
+            {#    },#}
+
+        }
+
         function init() {
             setRange(30)
+            setupCharts()
         }
 
         init()

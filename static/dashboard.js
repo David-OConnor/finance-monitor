@@ -238,7 +238,7 @@ function createAccRow(acc, type) {
         val *= -1
     }
     // todo: Negate Acc if
-    const valClass = val > 0 ? "tran_pos" : "tran_neg"
+    const valClass = val > 0 ? "tran-pos" : "tran-neg"
 
     // Format with a comma, and no decimal places
     const valueFormatted = formatAmount(val, false)
@@ -297,7 +297,7 @@ function refreshAccounts() {
             }
 
             // todo: Remove minus sign for cleanness?
-            const class_ = total > 0 ? "tran_pos" : "tran_neg"
+            const class_ = total > 0 ? "tran-pos" : "tran-neg"
             totalFormatted = formatAmount(total, false)
             h2 = createEl("h2", {class: class_}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, totalFormatted) // total todo
 
@@ -562,7 +562,7 @@ function createTranRow(tran) {
     } else {
         h = createEl("h4",
             // {class: "tran-heading " +  tran.amount_class},
-            {class: "tran-heading " +  "tran_neutral"},
+            {class: "tran-heading " +  "tran-neutral"},
             {textAlign: "right", marginRight: "40px"}, formatAmount(tran.amount, true)
         )
     }
@@ -953,19 +953,19 @@ function setupSpendingHighlights() {
         "Total: "
     )
 
-    let s = createEl("span", {class: "tran_neutral"}, {}, formatAmount(SPENDING_HIGHLIGHTS.total, 0))
+    let s = createEl("span", {class: "tran-neutral"}, {}, formatAmount(SPENDING_HIGHLIGHTS.total, 0))
     h.appendChild(s)
     biggestCats.appendChild(h)
 
     for (let highlight of SPENDING_HIGHLIGHTS.by_cat.slice(0, 3)) {
-        text = catIconFromVal(highlight[0]) + catNameFromVal(highlight[0]) + ": "
+        text = catDisp(highlight[0]) + ": "
         h = createEl(
             "h4",
             {},
             {marginRight: "40px", marginBottom: 0, marginTop: 0, cursor: "pointer", fontWeight: "normal"},
             text
         )
-        let s = createEl("span", {class: "tran_neutral"}, {fontWeight: "bold"}, formatAmount(highlight[1][1], 0))
+        let s = createEl("span", {class: "tran-neutral"}, {fontWeight: "bold"}, formatAmount(highlight[1][1], 0))
 
         // Terser text on mobile.
         let s2Text
@@ -994,8 +994,8 @@ function setupSpendingHighlights() {
     h = createEl("h4", {}, {marginBottom: 0}, "Spending: ")
     let s2 = createEl(
         "span",
-        // {class: SPENDING_HIGHLIGHTS.total_change >= 0. ? "tran_pos" : "tran_neg"},
-        {class: "tran_neutral"},
+        // {class: SPENDING_HIGHLIGHTS.total_change >= 0. ? "tran-pos" : "tran-neg"},
+        {class: "tran-neutral"},
         {fontWeight: "bold"},
         formatAmount(SPENDING_HIGHLIGHTS.total_change, 0)
     )
@@ -1010,9 +1010,9 @@ function setupSpendingHighlights() {
             "h4",
             {},
             {fontWeight: "normal", cursor: "pointer", marginTop: 0, marginBottom: 0},
-            catIconFromVal(catChange[0]) + catNameFromVal(catChange[0]) + ": "
+            catDisp(catChange[0][0]) + ": "
         )
-        let s = createEl("span", {class: "tran_neutral"}, {fontWeight: "bold"}, formatAmount(catChange[1], 0))
+        let s = createEl("span", {class: "tran-neutral"}, {fontWeight: "bold"}, formatAmount(catChange[1], 0))
         h.appendChild(s)
 
         h.addEventListener("click", _ => {
@@ -1047,7 +1047,7 @@ function setupSpendingHighlights() {
             {marginRight: "40px", fontWeight: "normal", marginTop: 0, marginBottom: 0},
             text
         )
-        let s = createEl("span", {class: "tran_neutral"}, {fontWeight: "bold"}, formatAmount(purchase.amount, 0))
+        let s = createEl("span", {class: "tran-neutral"}, {fontWeight: "bold"}, formatAmount(purchase.amount, 0))
         // let s2 = createEl("span", {}, {}, " in " + purchase[1][0] + " transactions")
 
         h.appendChild(s)
@@ -1163,8 +1163,8 @@ function addTranManual() {
     const newTran =  {
         // id: tempId,
         amount: 0.,
-        // amount_class: "tran_pos",
-        amount_class: "tran_neutral",
+        // amount_class: "tran-pos",
+        amount_class: "tran-neutral",
         category: -1,
         // categories_icon: [],
         // categories_text: [],

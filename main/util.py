@@ -160,7 +160,7 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
     totals_display = {}  # Avoids adding keys while iterating.
 
     for k, v in totals.items():
-        totals_display[k + "_class"] = "tran_pos" if v > 0.0 else "tran_neg"
+        totals_display[k + "_class"] = "tran-pos" if v > 0.0 else "tran-neg"
         # A bit of a hack to keep this value consistent with the sub-account values.
         # totals_display[k] = f"{v:,.0f}".replace("-", "")
         totals_display[k] = f"{v:,.0f}"
