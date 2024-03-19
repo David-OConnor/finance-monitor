@@ -316,7 +316,7 @@ function refreshAccounts() {
     }
 }
 
-function createCatEdit(tran, autoSave, searchText) {
+function createCatEdit(tran, searchText) {
     // Create a select element for categories.
     // todo: Allow creating custom elements here, and search.
     let sel = createEl("select", {}, {})
@@ -342,37 +342,42 @@ function createCatEdit(tran, autoSave, searchText) {
             // todo: DRY!
             TRANSACTIONS_UPDATED[String(tran.id)] = updated
 
-            if (autoSave) {
-                // todo: DRY with setup tran edit button, although with some differences, like
-                // nulling quick edit, and refreshing transactions.
+            TRANSACTIONS = [
+                ...TRANSACTIONS.filter(t => t.id !== tran.id),
+                updated
+            ]
 
-                const data = {
-                    // Discard keys; we mainly use them for updating internally here.
-                    transactions: Object.values(TRANSACTIONS_UPDATED),
-                    create_rule: CAT_ALWAYS,
-                }
-
-                // Save transactions to the database.
-                fetch("/edit-transactions", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
-                    .then(result => result.json())
-                    .then(r => {
-                        if (!r.success) {
-                            // console.error("Transaction save failed")
-                        } else {
-                            // window.location.reload(); // todo temp until we can update cat in place.
-                        }
-                    });
-
-                // todo: Like in many cases, you're getting some sort of unpleasant, but not fatal recusion. Why?
-                // todo: And, only edit the specific icon div you're changing... Don't run refreshTransactions at all!
-                TRANSACTIONS = [
-                    ...TRANSACTIONS.filter(t => t.id !== tran.id),
-                    updated
-                ]
-                CAT_QUICKEDIT = null
-                CAT_ALWAYS = false
-                refreshTransactions()
-            }
+            // if (autoSave) {
+            //     // todo: DRY with setup tran edit button, although with some differences, like
+            //     // nulling quick edit, and refreshing transactions.
+            //
+            //     const data = {
+            //         // Discard keys; we mainly use them for updating internally here.
+            //         transactions: Object.values(TRANSACTIONS_UPDATED),
+            //         create_rule: CAT_ALWAYS,
+            //     }
+            //
+            //     // Save transactions to the database.
+            //     fetch("/edit-transactions", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
+            //         .then(result => result.json())
+            //         .then(r => {
+            //             if (!r.success) {
+            //                 // console.error("Transaction save failed")
+            //             } else {
+            //                 // window.location.reload(); // todo temp until we can update cat in place.
+            //             }
+            //         });
+            //
+            //     // todo: Like in many cases, you're getting some sort of unpleasant, but not fatal recusion. Why?
+            //     // todo: And, only edit the specific icon div you're changing... Don't run refreshTransactions at all!
+            //     TRANSACTIONS = [
+            //         ...TRANSACTIONS.filter(t => t.id !== tran.id),
+            //         updated
+            //     ]
+            //     CAT_QUICKEDIT = null
+            //     CAT_ALWAYS = false
+            //     refreshTransactions()
+            // }
         })
     }
 
@@ -390,7 +395,7 @@ function createTranRow(tran) {
         row.style.backgroundColor = FEE_COLOR
     }
 
-    col = createEl(
+    let col = createEl(
         "td",
         {class: "transaction-cell"},
         // todo: We can only do one or both of this , and descrip flex. We need this to center teh icon,
@@ -398,14 +403,14 @@ function createTranRow(tran) {
         {paddingLeft: "12px", color: "black"}
     ) // Icon
 
-    d = createEl("div", {}, {display: "flex", alignItems: "center"})
+    let d = createEl("div", {}, {display: "flex", alignItems: "center"})
 
     if (EDIT_MODE_TRAN) {
         d.appendChild(createCatEdit(tran))
         col.appendChild(d)
 
     } else if (tran.id === CAT_QUICKEDIT) {
-        d.appendChild(createCatEdit(tran, true, QUICK_CAT_SEARCH)) // Auto-save.
+        d.appendChild(createCatEdit(tran, QUICK_CAT_SEARCH)) // Auto-save.
 
         // h = createEl("h4", {}, {}, "🔎")
         // d.appendChild(h)
@@ -434,14 +439,32 @@ function createTranRow(tran) {
         })
         d.appendChild(btn)
 
-        btn =  createEl("button", {class: "button-small"}, {}, "Cancel")
+        btn =  createEl("button", {class: "button-small"}, {}, "✓")
         btn.addEventListener("click", _ => {
+            const data = {
+                // Discard keys; we mainly use them for updating internally here.
+                transactions: Object.values(TRANSACTIONS_UPDATED),
+                create_rule: CAT_ALWAYS,
+            }
+
+            // Save transactions to the database.
+            fetch("/edit-transactions", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("Error saving transactions")
+                    }
+                });
+
             CAT_QUICKEDIT = null
             CAT_ALWAYS = false
             refreshTransactions()
         })
         d.appendChild(btn)
     } else {
+        // Save, eg if coming from a previous tran edit, so the user doesn't lose progress.
+        saveTransactions()
+
         // Allow clicking to enter quick edit.
         d.style.cursor = "pointer"
         d.addEventListener("click", _ => {
@@ -450,7 +473,7 @@ function createTranRow(tran) {
         })
 
         if (tran.logo_url.length > 0) {
-            img = createEl("img", {"src": tran.logo_url, alt: "", width: "20px"})
+            let img = createEl("img", {"src": tran.logo_url, alt: "", width: "20px"})
             d.appendChild(img)
         }
 
@@ -471,7 +494,7 @@ function createTranRow(tran) {
     col = createEl("td", {class: "transaction-cell"}, {display: "flex"})
 
     if (EDIT_MODE_TRAN) {
-        ip = createEl(
+        let ip = createEl(
             "input",
             {value: tran.description},
             // {width: "200px"},
@@ -488,7 +511,7 @@ function createTranRow(tran) {
 
         col.appendChild(ip)
     } else {
-        h = createEl(
+        let h = createEl(
             "h4",
             {class: "tran-heading"},
             {fontWeight: "normal", marginLeft: "0px"},
@@ -509,6 +532,7 @@ function createTranRow(tran) {
     row.appendChild(col)
 
     col = createEl("td", {class: "transaction-cell"}, {})
+    let h
     if (EDIT_MODE_TRAN) {
         h = createEl("input", {value: tran.notes}, {marginRight: "30px"})
 
@@ -534,7 +558,7 @@ function createTranRow(tran) {
 
     col = createEl("td", {class: "transaction-cell"})
     if (EDIT_MODE_TRAN) {
-        h = createEl(
+        let h = createEl(
             "input",
             { value: tran.amount},
             {width: "80px", marginRight: "30px"},
@@ -552,7 +576,7 @@ function createTranRow(tran) {
         })
 
     } else {
-        h = createEl("h4",
+        let h = createEl("h4",
             // {class: "tran-heading " +  tran.amount_class},
             {class: "tran-heading " +  "tran_neutral"},
             {textAlign: "right", marginRight: "40px"}, formatAmount(tran.amount, true)
@@ -565,7 +589,7 @@ function createTranRow(tran) {
     col = createEl("td", {class: "transaction-cell"})
     if (EDIT_MODE_TRAN) {
         d = createEl("div", {}, {display: "flex"})
-        h = createEl("input", {type: "date", value: tran.date}, {width: "120px"})
+        let h = createEl("input", {type: "date", value: tran.date}, {width: "120px"})
 
         h.addEventListener("input", e => {
             let updated = {
@@ -596,7 +620,7 @@ function createTranRow(tran) {
         d.appendChild(delBtn)
         col.appendChild(d)
     } else {
-        h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
+        let h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
 
         // Highlighter icon.
         // let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, backgroundColor: "#fff5e9", cursor: "pointer"}, "🖍️")
@@ -635,10 +659,8 @@ function refreshTransactions() {
     let tbody = getEl("transaction-tbody")
     tbody.replaceChildren();
 
-    let col, img, h, opt, sel, d, ip
     for (let tran of transactions) {
         const row = createTranRow(tran)
-
         tbody.appendChild(row)
     }
 }
@@ -698,26 +720,7 @@ function setupEditTranButton() {
 
     btn.addEventListener("click", _ => {
         if (EDIT_MODE_TRAN) {
-            // Save transactions on click
-
-            const data = {
-                // Discard keys; we mainly use them for updating internally here.
-                transactions: Object.values(TRANSACTIONS_UPDATED)
-            }
-
-            // Save transactions to the database.
-            fetch("/edit-transactions", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
-                .then(result => result.json())
-                .then(r => {
-                    if (!r.success) {
-                        console.error("Transaction save failed")
-                    } else {
-                        // window.location.reload(); // todo temp until we can update cat in place.
-                    }
-                });
-
             refreshTransactions()
-
 
             // Update transactions in place, so a refresh isn't required.
             for (let tran of Object.values(TRANSACTIONS_UPDATED)) {
@@ -746,6 +749,24 @@ function setupEditTranButton() {
         }
         refreshTransactions()
     })
+}
+
+function saveTransactions() {
+    const data = {
+        // Discard keys; we mainly use them for updating internally here.
+        transactions: Object.values(TRANSACTIONS_UPDATED)
+    }
+
+    // Save transactions to the database.
+    fetch("/edit-transactions", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
+        .then(result => result.json())
+        .then(r => {
+            if (!r.success) {
+                console.error("Transaction save failed")
+            } else {
+                TRANSACTIONS_UPDATED = {}
+            }
+        });
 }
 
 function setupAccEditForm(id) {
