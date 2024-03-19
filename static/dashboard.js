@@ -436,39 +436,23 @@ function createTranRow(tran) {
         btn.addEventListener("click", _ => {
             CAT_ALWAYS = !CAT_ALWAYS
             refreshTransactions()
+
         })
         d.appendChild(btn)
 
         btn =  createEl("button", {class: "button-small"}, {}, "✓")
         btn.addEventListener("click", _ => {
-            const data = {
-                // Discard keys; we mainly use them for updating internally here.
-                transactions: Object.values(TRANSACTIONS_UPDATED),
-                create_rule: CAT_ALWAYS,
-            }
-
-            // Save transactions to the database.
-            fetch("/edit-transactions", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
-                .then(result => result.json())
-                .then(r => {
-                    if (!r.success) {
-                        console.error("Error saving transactions")
-                    }
-                });
-
-            CAT_QUICKEDIT = null
-            CAT_ALWAYS = false
+            CAT_QUICKEDIT = false
+            saveTransactions()
             refreshTransactions()
         })
         d.appendChild(btn)
     } else {
-        // Save, eg if coming from a previous tran edit, so the user doesn't lose progress.
-        saveTransactions()
-
         // Allow clicking to enter quick edit.
         d.style.cursor = "pointer"
         d.addEventListener("click", _ => {
             CAT_QUICKEDIT = tran.id
+            saveTransactions()
             refreshTransactions() // Hopefully-safe recursion.
         })
 
@@ -754,7 +738,8 @@ function setupEditTranButton() {
 function saveTransactions() {
     const data = {
         // Discard keys; we mainly use them for updating internally here.
-        transactions: Object.values(TRANSACTIONS_UPDATED)
+        transactions: Object.values(TRANSACTIONS_UPDATED),
+        create_rule: CAT_ALWAYS,
     }
 
     // Save transactions to the database.
@@ -763,10 +748,10 @@ function saveTransactions() {
         .then(r => {
             if (!r.success) {
                 console.error("Transaction save failed")
-            } else {
-                TRANSACTIONS_UPDATED = {}
             }
         });
+
+    TRANSACTIONS_UPDATED = {}
 }
 
 function setupAccEditForm(id) {
