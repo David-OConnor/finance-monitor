@@ -312,13 +312,6 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     if account_status is not None:
         return account_status
 
-    if request.method == "POST":
-        uploaded_file = request.FILES["file"]
-        file_data = TextIOWrapper(uploaded_file.file, encoding="utf-8")
-        export.import_csv_mint(file_data, request.user.person)
-
-        return HttpResponseRedirect("/dashboard")
-
     spending_highlights = util.setup_spending_highlights(person, 30, 0, False)
 
     context = util.load_dash_data(request.user.person)
@@ -553,6 +546,13 @@ def settings(request: HttpRequest) -> HttpResponse:
     """Page for adjusting account settings"""
 
     if request.method == "POST":
+        if request.FILES:
+            uploaded_file = request.FILES["file"]
+            file_data = TextIOWrapper(uploaded_file.file, encoding="utf-8")
+            export.import_csv_mint(file_data, request.user.person)
+
+            return HttpResponseRedirect("/settings")
+
         form = SetPasswordForm(request.user, request.POST)
 
         if form.is_valid():

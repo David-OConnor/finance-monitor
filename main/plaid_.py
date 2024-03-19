@@ -265,7 +265,7 @@ def refresh_transactions(account: FinancialAccount) -> None:
         tran_db = Transaction(
             account=account,
             institution_name=account.institution.name,
-            category=TransactionCategory.from_plaid(tran.category, tran.name, rules),
+            category=TransactionCategory.from_plaid(tran.category, tran.name, rules).value,
             amount=tran.amount,
             # Note: Other fields like "merchant_name" are available, but aren't used on many transactcions.
             description=tran.name,
@@ -427,7 +427,7 @@ def refresh_recurring(account: FinancialAccount):
             merchant_name=recur.merchant_name,
             is_active=recur.is_active,
             status=recur.status,
-            category=TransactionCategory.from_plaid(recur.category, recur.description, rules),
+            category=TransactionCategory.from_plaid(recur.category, recur.description, rules).value,
         )
         try:
             recur_db.save()
@@ -453,7 +453,7 @@ def refresh_recurring(account: FinancialAccount):
             merchant_name=recur.merchant_name,
             is_active=recur.is_active,
             status=recur.status,
-            category=TransactionCategory.from_plaid(recur.category, recur.description, rules),
+            category=TransactionCategory.from_plaid(recur.category, recur.description, rules).value,
         )
         try:
             recur_db.save()

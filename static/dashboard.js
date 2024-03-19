@@ -1010,7 +1010,7 @@ function setupSpendingHighlights() {
             "h4",
             {},
             {fontWeight: "normal", cursor: "pointer", marginTop: 0, marginBottom: 0},
-            catDisp(catChange[0][0]) + ": "
+            catDisp(catChange[0]) + ": "
         )
         let s = createEl("span", {class: "tran-neutral"}, {fontWeight: "bold"}, formatAmount(catChange[1], 0))
         h.appendChild(s)

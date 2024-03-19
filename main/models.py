@@ -378,7 +378,7 @@ class Transaction(Model):
         on_delete=SET_NULL,
     )
     institution_name = CharField(
-        max_length=50
+        max_length=100
     )  # In case the transaction is disconnected from an account.
     # We generally have 1-2 categories.
     # JSONField here allows for filtering by category

@@ -7,6 +7,7 @@ from io import StringIO, TextIOWrapper
 from typing import List, Iterable
 
 from django.db import OperationalError, IntegrityError
+from django.db.utils import DataError
 from django.http import HttpResponse
 
 from . import transaction_cats
@@ -46,15 +47,14 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
 
         description = row[1]
 
-        categories = [TransactionCategory.from_str(row[5])]
-
-        categories = transaction_cats.category_override(description, categories, rules)
+        category = TransactionCategory.from_str(row[5])
+        category = transaction_cats.category_override(description, category, rules)
 
         transaction = Transaction(
             # Associate this transaction directly with the person, vice the account.
             person=person,
             # Exactly one category, including "Uncategorized" is reported by Mint
-            categories=[c.value for c in categories],
+            category=category.value,
             amount=amount,
             description=description,
             date=date,
@@ -64,8 +64,10 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
         )
         try:
             transaction.save()
-        except OperationalError:
-            print("Unable to save this transaction: ", transaction)
+        except OperationalError as e:
+            print("Unable to save this transaction (Operational error): ", e, transaction)
+        except DataError as e:
+            print("Unable to save this transaction (Data error): ", e, transaction)
         except IntegrityError:
             # Eg a duplicate.
             pass
@@ -101,12 +103,6 @@ def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str
             amount = transaction.amount
             transaction_type = "credit"
 
-        categories = [
-            TransactionCategory(cat).to_str()
-            for cat in json.loads(transaction.categories)
-        ]
-        category = ", ".join(categories)
-
         # Writing the row according to Mint's CSV format
         # Assuming `transaction.description` maps to both "Description" and "Original Description" as per Mint's format
 
@@ -117,7 +113,7 @@ def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str
                 "",  # "Original description"
                 amount,
                 transaction_type,
-                category,
+                TransactionCategory(transaction.category).to_str(),
                 # todo: Sub-account info?
                 transaction.institution_name,
                 "",  # Labels are skipped as per the provided code snippet
