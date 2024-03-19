@@ -360,6 +360,17 @@ class TransactionCategory(Enum):
         print("Fallthrough on cat to icon", self)
         return "Fallthrough"
 
+    @classmethod
+    def from_plaid(cls, cats_raw: List[str], descrip: str, rules: Iterable["CategoryRule"]) -> "TransactionCategory":
+        if len(cats_raw):
+            category = cleanup_categories(TransactionCategory.from_str(c) for c in cats_raw)[0]
+        else:
+            category = TransactionCategory.UNCATEGORIZED
+
+        return category_override(
+            descrip, category, rules
+        )
+
 
 # A mapping of keywords to manual transactions
 replacements = [
@@ -435,103 +446,103 @@ def category_override(
     return category
 
 
-# def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCategory]:
-#     """Simplify a category list if multiple related are listed together by the API.
-#     In general, we return the more specific of the categories.
-#     Return the result, due to Python's sloppy mutation-in-place.
-#
-#     Note: This is currently handled post-processing; after loading from the DB."""
-#     cats = list(set(cats))  # Remove duplicates.
-#
-#     if (
-#         TransactionCategory.TRAVEL in cats
-#         and TransactionCategory.AIRLINES_AND_AVIATION_SERVICES in cats
-#     ):
-#         cats.remove(TransactionCategory.TRAVEL)
-#
-#     if TransactionCategory.TRANSFER in cats and TransactionCategory.DEPOSIT in cats:
-#         cats.remove(TransactionCategory.TRANSFER)
-#
-#     if TransactionCategory.TRANSFER in cats and TransactionCategory.DEBIT in cats:
-#         cats.remove(TransactionCategory.TRANSFER)
-#
-#     if TransactionCategory.TRANSFER in cats and TransactionCategory.INCOME in cats:
-#         cats.remove(TransactionCategory.INCOME)
-#
-#     if (
-#         TransactionCategory.RESTAURANTS in cats
-#         and TransactionCategory.GROCERIES in cats
-#     ):
-#         cats.remove(TransactionCategory.GROCERIES)
-#
-#     if (
-#         TransactionCategory.RESTAURANTS in cats
-#         and TransactionCategory.COFFEE_SHOP in cats
-#     ):
-#         cats.remove(TransactionCategory.RESTAURANTS)
-#
-#     if TransactionCategory.FAST_FOOD in cats and TransactionCategory.GROCERIES in cats:
-#         cats.remove(TransactionCategory.GROCERIES)
-#
-#     if (
-#         TransactionCategory.RESTAURANTS in cats
-#         and TransactionCategory.FAST_FOOD in cats
-#     ):
-#         cats.remove(TransactionCategory.RESTAURANTS)
-#
-#     if (
-#         TransactionCategory.GYMS_AND_FITNESS_CENTERS in cats
-#         and TransactionCategory.RECREATION in cats
-#     ):
-#         cats.remove(TransactionCategory.RECREATION)
-#
-#     # Lots of bogus food+drink cats inserted by Plaid.
-#     if (
-#         TransactionCategory.GROCERIES in cats
-#         and TransactionCategory.CREDIT_CARD in cats
-#     ):
-#         cats.remove(TransactionCategory.GROCERIES)
-#
-#     if TransactionCategory.PAYMENT in cats and TransactionCategory.CREDIT_CARD in cats:
-#         cats.remove(TransactionCategory.PAYMENT)
-#
-#     if TransactionCategory.GROCERIES in cats and TransactionCategory.TRANSFER in cats:
-#         cats.remove(TransactionCategory.GROCERIES)
-#
-#     if TransactionCategory.GROCERIES in cats and TransactionCategory.SHOPS in cats:
-#         cats.remove(TransactionCategory.SHOPS)
-#
-#     if (
-#         TransactionCategory.SOFTWARE_SUBSCRIPTIONS in cats
-#         and TransactionCategory.SHOPS in cats
-#     ):
-#         cats.remove(TransactionCategory.SHOPS)
-#
-#     if TransactionCategory.SPORTING_GOODS in cats and TransactionCategory.SHOPS in cats:
-#         cats.remove(TransactionCategory.SHOPS)
-#
-#     if TransactionCategory.ELECTRONICS in cats and TransactionCategory.SHOPS in cats:
-#         cats.remove(TransactionCategory.SHOPS)
-#
-#     if TransactionCategory.RESTAURANTS in cats and TransactionCategory.SHOPS in cats:
-#         cats.remove(TransactionCategory.RESTAURANTS)
-#
-#     if TransactionCategory.GROCERIES in cats and TransactionCategory.TRAVEL in cats:
-#         cats.remove(TransactionCategory.GROCERIES)
-#
-#     if TransactionCategory.TAXI in cats and TransactionCategory.TRAVEL in cats:
-#         cats.remove(TransactionCategory.TRAVEL)
-#
-#     if TransactionCategory.CAR in cats and TransactionCategory.TRAVEL in cats:
-#         cats.remove(TransactionCategory.TRAVEL)
-#
-#     if TransactionCategory.BILLS_AND_UTILITIES in cats and TransactionCategory.BUSINESS_SERVICES in cats:
-#         cats.remove(TransactionCategory.BUSINESS_SERVICES)
-#
-#     if TransactionCategory.UNCATEGORIZED in cats and len(cats) > 1:
-#         cats.remove(TransactionCategory.UNCATEGORIZED)
-#
-#     if len(cats) > 1:
-#         print(">1 len categories: \n", cats)
-#
-#     return cats
+def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCategory]:
+    """Simplify a category list if multiple related are listed together by Plaid's API.
+    In general, we return the more specific of the categories.
+    Return the result, due to Python's sloppy mutation-in-place.
+
+    Note that this is set up for """
+    cats = list(set(cats))  # Remove duplicates.
+
+    if (
+        TransactionCategory.TRAVEL in cats
+        and TransactionCategory.AIRLINES_AND_AVIATION_SERVICES in cats
+    ):
+        cats.remove(TransactionCategory.TRAVEL)
+
+    if TransactionCategory.TRANSFER in cats and TransactionCategory.DEPOSIT in cats:
+        cats.remove(TransactionCategory.TRANSFER)
+
+    if TransactionCategory.TRANSFER in cats and TransactionCategory.DEBIT in cats:
+        cats.remove(TransactionCategory.TRANSFER)
+
+    if TransactionCategory.TRANSFER in cats and TransactionCategory.INCOME in cats:
+        cats.remove(TransactionCategory.INCOME)
+
+    if (
+        TransactionCategory.RESTAURANTS in cats
+        and TransactionCategory.GROCERIES in cats
+    ):
+        cats.remove(TransactionCategory.GROCERIES)
+
+    if (
+        TransactionCategory.RESTAURANTS in cats
+        and TransactionCategory.COFFEE_SHOP in cats
+    ):
+        cats.remove(TransactionCategory.RESTAURANTS)
+
+    if TransactionCategory.FAST_FOOD in cats and TransactionCategory.GROCERIES in cats:
+        cats.remove(TransactionCategory.GROCERIES)
+
+    if (
+        TransactionCategory.RESTAURANTS in cats
+        and TransactionCategory.FAST_FOOD in cats
+    ):
+        cats.remove(TransactionCategory.RESTAURANTS)
+
+    if (
+        TransactionCategory.GYMS_AND_FITNESS_CENTERS in cats
+        and TransactionCategory.RECREATION in cats
+    ):
+        cats.remove(TransactionCategory.RECREATION)
+
+    # Lots of bogus food+drink cats inserted by Plaid.
+    if (
+        TransactionCategory.GROCERIES in cats
+        and TransactionCategory.CREDIT_CARD in cats
+    ):
+        cats.remove(TransactionCategory.GROCERIES)
+
+    if TransactionCategory.PAYMENT in cats and TransactionCategory.CREDIT_CARD in cats:
+        cats.remove(TransactionCategory.PAYMENT)
+
+    if TransactionCategory.GROCERIES in cats and TransactionCategory.TRANSFER in cats:
+        cats.remove(TransactionCategory.GROCERIES)
+
+    if TransactionCategory.GROCERIES in cats and TransactionCategory.SHOPS in cats:
+        cats.remove(TransactionCategory.SHOPS)
+
+    if (
+        TransactionCategory.SOFTWARE_SUBSCRIPTIONS in cats
+        and TransactionCategory.SHOPS in cats
+    ):
+        cats.remove(TransactionCategory.SHOPS)
+
+    if TransactionCategory.SPORTING_GOODS in cats and TransactionCategory.SHOPS in cats:
+        cats.remove(TransactionCategory.SHOPS)
+
+    if TransactionCategory.ELECTRONICS in cats and TransactionCategory.SHOPS in cats:
+        cats.remove(TransactionCategory.SHOPS)
+
+    if TransactionCategory.RESTAURANTS in cats and TransactionCategory.SHOPS in cats:
+        cats.remove(TransactionCategory.RESTAURANTS)
+
+    if TransactionCategory.GROCERIES in cats and TransactionCategory.TRAVEL in cats:
+        cats.remove(TransactionCategory.GROCERIES)
+
+    if TransactionCategory.TAXI in cats and TransactionCategory.TRAVEL in cats:
+        cats.remove(TransactionCategory.TRAVEL)
+
+    if TransactionCategory.CAR in cats and TransactionCategory.TRAVEL in cats:
+        cats.remove(TransactionCategory.TRAVEL)
+
+    if TransactionCategory.BILLS_AND_UTILITIES in cats and TransactionCategory.BUSINESS_SERVICES in cats:
+        cats.remove(TransactionCategory.BUSINESS_SERVICES)
+
+    if TransactionCategory.UNCATEGORIZED in cats and len(cats) > 1:
+        cats.remove(TransactionCategory.UNCATEGORIZED)
+
+    if len(cats) > 1:
+        print(">1 len categories: \n", cats)
+
+    return cats

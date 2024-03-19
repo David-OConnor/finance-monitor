@@ -30,7 +30,7 @@
             <h2>Expenses: <span id="expenses-total"></span></h2>
         </div>
 
-        <div id="plot-wrapper" style="width: 400px; margin-bottom: 40px;">
+        <div id="plot-wrapper" style="width: 460px; margin-bottom: 40px;">
             <canvas id="plot"></canvas>
         </div>
 
@@ -192,6 +192,7 @@
             };
 
             const myChart = new Chart(chartArea, {
+                {#type: 'pie',#}
                 type: 'doughnut',
                 data: data,
                 options: {}

@@ -255,10 +255,6 @@ def refresh_transactions(account: FinancialAccount) -> None:
 
     for tran in added:
         print("\n\n Adding transaction: ", tran, "\n\n")
-        categories = [TransactionCategory.from_str(cat) for cat in tran.category]
-
-        categories = transaction_cats.category_override(tran.name, categories, rules)
-
         cat_detailed = tran.personal_finance_category.detailed
         cat_primary = tran.personal_finance_category.primary
 
@@ -269,7 +265,7 @@ def refresh_transactions(account: FinancialAccount) -> None:
         tran_db = Transaction(
             account=account,
             institution_name=account.institution.name,
-            categories=[cat.value for cat in categories],
+            category=TransactionCategory.from_plaid(tran.category, tran.name, rules),
             amount=tran.amount,
             # Note: Other fields like "merchant_name" are available, but aren't used on many transactcions.
             description=tran.name,
@@ -418,11 +414,6 @@ def refresh_recurring(account: FinancialAccount):
     rules = account.person.category_rules.all()
 
     for recur in inflow_streams:
-        categories = [TransactionCategory.from_str(cat) for cat in recur.category]
-        categories = transaction_cats.category_override(
-            recur.description, categories, rules
-        )
-
         sub_acc = SubAccount.objects.get(plaid_id=recur.account_id)
 
         recur_db = RecurringTransaction(
@@ -436,7 +427,7 @@ def refresh_recurring(account: FinancialAccount):
             merchant_name=recur.merchant_name,
             is_active=recur.is_active,
             status=recur.status,
-            categories=json.dumps([cat.value for cat in categories]),
+            category=TransactionCategory.from_plaid(recur.category, recur.description, rules),
         )
         try:
             recur_db.save()
@@ -449,13 +440,6 @@ def refresh_recurring(account: FinancialAccount):
     RecurringTransaction.objects.filter(account__account=account).delete()
 
     for recur in outflow_streams:
-        print("\n\n Recur: ", recur, "\n")
-        categories = [TransactionCategory.from_str(cat) for cat in recur.category]
-
-        categories = transaction_cats.category_override(
-            recur.description, categories, rules
-        )
-
         sub_acc = SubAccount.objects.get(plaid_id=recur.account_id)
 
         recur_db = RecurringTransaction(
@@ -469,7 +453,7 @@ def refresh_recurring(account: FinancialAccount):
             merchant_name=recur.merchant_name,
             is_active=recur.is_active,
             status=recur.status,
-            categories=json.dumps([cat.value for cat in categories]),
+            category=TransactionCategory.from_plaid(recur.category, recur.description, rules),
         )
         try:
             recur_db.save()
