@@ -542,7 +542,7 @@ function createTranRow(tran) {
 
     col = createEl("td", {class: "transaction-cell"})
     if (EDIT_MODE_TRAN) {
-        let h = createEl(
+        h = createEl(
             "input",
             { value: tran.amount},
             {width: "80px", marginRight: "30px"},
@@ -560,7 +560,7 @@ function createTranRow(tran) {
         })
 
     } else {
-        let h = createEl("h4",
+        h = createEl("h4",
             // {class: "tran-heading " +  tran.amount_class},
             {class: "tran-heading " +  "tran_neutral"},
             {textAlign: "right", marginRight: "40px"}, formatAmount(tran.amount, true)
@@ -704,8 +704,6 @@ function setupEditTranButton() {
 
     btn.addEventListener("click", _ => {
         if (EDIT_MODE_TRAN) {
-            refreshTransactions()
-
             // Update transactions in place, so a refresh isn't required.
             for (let tran of Object.values(TRANSACTIONS_UPDATED)) {
                 let date = new Date(tran.date)
@@ -720,14 +718,11 @@ function setupEditTranButton() {
                 ]
             }
 
-            TRANSACTIONS_UPDATED = {}
-
-            refreshTransactions()  // Overkill; just to taek out of edit mode. todo: SPlit refreshTransactions.
             EDIT_MODE_TRAN = false
             btn.textContent = "Edit transactions"
+            saveTransactions()
         } else {
             // Enable editing on click.
-            refreshTransactions()  // Overkill; just to taek out of edit mode. todo: SPlit refreshTransactions.
             EDIT_MODE_TRAN = true
             btn.textContent = "Save transactions"
         }
@@ -736,6 +731,8 @@ function setupEditTranButton() {
 }
 
 function saveTransactions() {
+    console.log("SAVING...", TRANSACTIONS_UPDATED)
+
     const data = {
         // Discard keys; we mainly use them for updating internally here.
         transactions: Object.values(TRANSACTIONS_UPDATED),
@@ -965,7 +962,7 @@ function setupSpendingHighlights() {
         h = createEl(
             "h4",
             {},
-            {marginRight: "40px", cursor: "pointer", fontWeight: "normal"},
+            {marginRight: "40px", marginBottom: 0, marginTop: 0, cursor: "pointer", fontWeight: "normal"},
             text
         )
         let s = createEl("span", {class: "tran_neutral"}, {fontWeight: "bold"}, formatAmount(highlight[1][1], 0))
@@ -994,7 +991,7 @@ function setupSpendingHighlights() {
 
     let changes = getEl("biggest-changes")
 
-    h = createEl("h4", {}, {}, "Spending: ")
+    h = createEl("h4", {}, {marginBottom: 0}, "Spending: ")
     let s2 = createEl(
         "span",
         // {class: SPENDING_HIGHLIGHTS.total_change >= 0. ? "tran_pos" : "tran_neg"},
@@ -1012,7 +1009,7 @@ function setupSpendingHighlights() {
         h = createEl(
             "h4",
             {},
-            {fontWeight: "normal", cursor: "pointer"},
+            {fontWeight: "normal", cursor: "pointer", marginTop: 0, marginBottom: 0},
             catIconFromVal(catChange[0]) + catNameFromVal(catChange[0]) + ": "
         )
         let s = createEl("span", {class: "tran_neutral"}, {fontWeight: "bold"}, formatAmount(catChange[1], 0))
@@ -1047,7 +1044,7 @@ function setupSpendingHighlights() {
             "h4",
             {},
             // {marginRight: "40px", cursor: "pointer"},
-            {marginRight: "40px", fontWeight: "normal"},
+            {marginRight: "40px", fontWeight: "normal", marginTop: 0, marginBottom: 0},
             text
         )
         let s = createEl("span", {class: "tran_neutral"}, {fontWeight: "bold"}, formatAmount(purchase.amount, 0))

@@ -252,19 +252,16 @@ def setup_spending_highlights(
     LARGE_PURCHASE_THRESH = 150.0
 
     trans_spending = filter_trans_spending(trans)
-    print(trans_spending, "TS")
+    # print(trans_spending, "TS")
 
     for tran in trans_spending:
         cat = TransactionCategory(tran.category)
-        # cats = [TransactionCategory(c) for c in tran.categories]
-        # cats = transaction_cats.cleanup_categories(cats)
 
         if cat.value not in by_cat.keys():
-            by_cat[cat.value] = [0, 0.0]  # count, total, transactions serialized
-            by_cat[cat.value][1] += tran.amount
-
+            by_cat[cat.value] = [1, tran.amount]  # count, total, transactions serialized
+        else:
             by_cat[cat.value][0] += 1
-        # by_cat[c.value][2].append(tran.serialize())
+            by_cat[cat.value][1] += tran.amount
 
         if tran.amount >= LARGE_PURCHASE_THRESH:
             large_purchases.append(
@@ -329,13 +326,13 @@ def setup_spending_data(
         t for t in trans if TransactionCategory.INCOME.value == t.category
     ]
 
-    print("\n\nT INCOME", income_transactions)
-
     income_total = 0.0
     for t in income_transactions:
         income_total += t.amount
 
     expense_transactions = filter_trans_spending(trans)
+
+    print("Len exp: ", len(expense_transactions))
 
     expenses_total = 0.0
     for t in expense_transactions:

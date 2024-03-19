@@ -148,7 +148,9 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
         ).first()  # Prevent exploits
         # todo: Don't override the original description for a linked transaction; use a separate field.
 
-        tran_db.category= tran["category"]
+        print(tran["amount"], tran["description"], "AMT, desc")
+
+        tran_db.category = tran["category"]
         tran_db.description = tran["description"]
         tran_db.notes = tran["notes"]
         tran_db.amount = tran["amount"]
