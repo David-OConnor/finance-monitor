@@ -1,8 +1,7 @@
 import json
 from datetime import date, timedelta, datetime
-from io import TextIOWrapper
+from zoneinfo import ZoneInfo
 
-import pytz
 from django.db.models import Q
 from django import forms
 
@@ -449,7 +448,8 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         defaults={"name": metadata["institution"]["name"]},
     )
 
-    long_ago = datetime(1999, 9, 9, 0, 0, 0, tzinfo=pytz.UTC)
+    # long_ago = datetime(1999, 9, 9, 0, 0, 0, tzinfo=zoneinfo("UTC"))
+    long_ago = datetime(1999, 9, 9, 0, 0, 0, tzinfo=ZoneInfo("UTC"))
 
     account_added = FinancialAccount(
         person=person,
