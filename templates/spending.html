@@ -7,7 +7,7 @@
 {% block contents %}
     <div class="home-body">
         <h2>Past <span id="days-back">30</span> days</h2>
-        <div style="display: flex; align-items: center;">
+        <div style="display: flex; align-items: center; flex-wrap: wrap;">
             {#            <form method="post" style="display: flex; align-items: center;">#}
             {#                {% csrf_token %}#}
             <button class="button-general" onclick="setRange(30)">Past 30 days</button>

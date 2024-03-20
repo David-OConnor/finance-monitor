@@ -957,7 +957,8 @@ function setupSpendingHighlights() {
     h = createEl(
         "h3",
         {},
-        {marginRight: "40px"},
+        // {marginRight: "40px"},
+        {},
         "Total: "
     )
 
@@ -965,7 +966,7 @@ function setupSpendingHighlights() {
     h.appendChild(s)
     biggestCats.appendChild(h)
 
-    for (let highlight of SPENDING_HIGHLIGHTS.by_cat.slice(0, 3)) {
+    for (let highlight of SPENDING_HIGHLIGHTS.by_cat.slice(0, 4)) {
         text = catDisp(highlight[0]) + ": "
         h = createEl(
             "h4",
@@ -973,7 +974,9 @@ function setupSpendingHighlights() {
             {marginRight: "40px", marginBottom: 0, marginTop: 0, cursor: "pointer", fontWeight: "normal"},
             text
         )
-        let s = createEl("span", {class: "tran-neutral"}, {fontWeight: "bold"}, formatAmount(highlight[1][1], 0))
+
+        let amountText = formatAmount(highlight[1][1], 0).replace("-", "")
+        let s = createEl("span", {class: "tran-neutral"}, {fontWeight: "bold"}, amountText)
 
         // Terser text on mobile.
         let s2Text
@@ -999,19 +1002,25 @@ function setupSpendingHighlights() {
 
     let changes = getEl("biggest-changes")
 
-    h = createEl("h4", {}, {marginBottom: 0}, "Spending: ")
-    let s2 = createEl(
-        "span",
-        // {class: SPENDING_HIGHLIGHTS.total_change >= 0. ? "tran-pos" : "tran-neg"},
-        {class: "tran-neutral"},
-        {fontWeight: "bold"},
-        formatAmount(SPENDING_HIGHLIGHTS.total_change, 0)
-    )
+    h = createEl("h3", {}, {}, "Changes. Total: ")
+    let changeTotal = formatAmount(SPENDING_HIGHLIGHTS.total_change, 0)
+    if (SPENDING_HIGHLIGHTS.total_change > 0) {
+        changeTotal = "+" + changeTotal
+    }
+    s = createEl("span", {class: "tran-neutral"}, {}, changeTotal)
+    //
+    // h = createEl(
+    //     "h3",
+    //     {},
+    //     {marginRight: "40px"},
+    //     "Changes. Total: "
+    // )
 
-    h.appendChild(s2)
+    h.appendChild(s)
+    biggestCats.appendChild(h)
     changes.appendChild(h)
 
-    for (let catChange of SPENDING_HIGHLIGHTS.cat_changes.slice(0, 3)) {
+    for (let catChange of SPENDING_HIGHLIGHTS.cat_changes.slice(0, 4)) {
 
         // todo: + sign explicitly if spending went up.
         h = createEl(
@@ -1020,7 +1029,12 @@ function setupSpendingHighlights() {
             {fontWeight: "normal", cursor: "pointer", marginTop: 0, marginBottom: 0},
             catDisp(catChange[0]) + ": "
         )
-        let s = createEl("span", {class: "tran-neutral"}, {fontWeight: "bold"}, formatAmount(catChange[1], 0))
+
+        let changeText = formatAmount(catChange[1], 0)
+        if (catChange[1] > 0) {
+            changeText = "+" + changeText
+        }
+        let s = createEl("span", {class: "tran-neutral"}, {fontWeight: "bold"}, changeText)
         h.appendChild(s)
 
         h.addEventListener("click", _ => {
@@ -1046,7 +1060,7 @@ function setupSpendingHighlights() {
         largePurchases.appendChild(h)
     }
 
-    for (let purchase of SPENDING_HIGHLIGHTS.large_purchases.slice(0, 3)) {
+    for (let purchase of SPENDING_HIGHLIGHTS.large_purchases.slice(0, 4)) {
         text = purchase.description + ": "
         h = createEl(
             "h4",
