@@ -1,7 +1,8 @@
 import json
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from io import TextIOWrapper
 
+import pytz
 from django.db.models import Q
 from django import forms
 
@@ -448,14 +449,17 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         defaults={"name": metadata["institution"]["name"]},
     )
 
+    long_ago = datetime(1999, 9, 9, 0, 0, 0, tzinfo=pytz.UTC)
+
     account_added = FinancialAccount(
         person=person,
         institution=inst,
         name="",
         access_token=access_token,
         item_id=item_id,
-        last_refreshed=timezone.now(),
-        last_refreshed_recurring=timezone.now(),
+        last_refreshed=long_ago,
+        last_refreshed_recurring=long_ago,
+        last_refreshed_successfully=long_ago,
     )
     # todo: We can add subaccounts here if we wish, using metadata["accounts"].
     # todo: Sub-keys

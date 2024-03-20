@@ -391,5 +391,7 @@ function formatAmount(number, decimals) {
     // Format a currency value with commas, and either 2, or 0 decimals.
     let options = decimals ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } :
         { minimumFractionDigits: 0, maximumFractionDigits: 0 }
+
+
     return new Intl.NumberFormat('en-US', options).format(number);
 }

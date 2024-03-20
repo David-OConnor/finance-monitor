@@ -191,22 +191,25 @@ def refresh_account_balances(account: FinancialAccount):
 
     # todo:  Handle  sub-acct entries in DB that have missing data.
     for sub in balance_data:
-        sub_acc_model, _ = SubAccount.objects.update_or_create(
-            account=account,
-            plaid_id=sub.account_id,
-            defaults={
-                # "plaid_id_persistent": acc_sub.persistent_account_id,
-                "plaid_id_persistent": "",  # todo temp
-                "name": sub.name,
-                "name_official": sub.official_name,
-                "type": AccountType.from_str(str(sub.type)).value,
-                "sub_type": SubAccountType.from_str(str(sub.subtype)).value,
-                "iso_currency_code": sub.balances.iso_currency_code,
-                "available": sub.balances.available,
-                "current": sub.balances.current,
-                "limit": sub.balances.limit,
-            },
-        )
+        try:
+            sub_acc_model, _ = SubAccount.objects.update_or_create(
+                account=account,
+                plaid_id=sub.account_id,
+                defaults={
+                    # "plaid_id_persistent": acc_sub.persistent_account_id,
+                    "plaid_id_persistent": "",  # todo temp
+                    "name": sub.name,
+                    "name_official": sub.official_name,
+                    "type": AccountType.from_str(str(sub.type)).value,
+                    "sub_type": SubAccountType.from_str(str(sub.subtype)).value,
+                    "iso_currency_code": sub.balances.iso_currency_code,
+                    "available": sub.balances.available,
+                    "current": sub.balances.current,
+                    "limit": sub.balances.limit,
+                },
+            )
+        except IntegrityError:
+            print(f"This subaccount already exists: {sub}")
 
     account.save()
 
@@ -266,7 +269,8 @@ def refresh_transactions(account: FinancialAccount) -> None:
             account=account,
             institution_name=account.institution.name,
             category=TransactionCategory.from_plaid(tran.category, tran.name, rules).value,
-            amount=tran.amount,
+            # todo: Sort out what pos vs negative transactions mean, here and import
+            amount=-tran.amount,
             # Note: Other fields like "merchant_name" are available, but aren't used on many transactcions.
             description=tran.name,
             date=tran.date,

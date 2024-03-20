@@ -270,6 +270,7 @@ class FinancialAccount(Model):
         return f"Account. Person: {self.person} Inst: {self.institution.name}"
 
     class Meta:
+        unique_together = ["person", "institution"]
         ordering = ["name"]
 
 
@@ -354,7 +355,7 @@ class SubAccount(Model):
 
     class Meta:
         ordering = ["name"]
-        unique_together = [["account", "plaid_id"], ["account", "name"]]
+        unique_together = [["account", "plaid_id"], ["account", "name", "name_official"]]
 
 
 class Transaction(Model):

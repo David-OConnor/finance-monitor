@@ -237,7 +237,7 @@ function createAccRow(acc, type) {
     if (["Credit", "Loan"].includes(type)) {
         val *= -1
     }
-    // todo: Negate Acc if
+
     const valClass = val > 0 ? "tran-pos" : "tran-neg"
 
     // Format with a comma, and no decimal places
@@ -560,10 +560,18 @@ function createTranRow(tran) {
         })
 
     } else {
+        let tranClass = tran.amount > 0. ? "tran-pos" : "tran-neutral"
+        let amtText = formatAmount(tran.amount, true)
+        if (tran.amount > 0.) {
+            amtText = "+ " + amtText
+        } else {
+            amtText = amtText.replace("-", "")
+        }
+
         h = createEl("h4",
             // {class: "tran-heading " +  tran.amount_class},
-            {class: "tran-heading " +  "tran-neutral"},
-            {textAlign: "right", marginRight: "40px"}, formatAmount(tran.amount, true)
+            {class: "tran-heading " + tranClass},
+            {textAlign: "right", marginRight: "40px"}, amtText
         )
     }
 

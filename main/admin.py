@@ -36,7 +36,7 @@ class SubAccountAdmin(ModelAdmin):
         "limit",
         "ignored",
     )
-    search = ("name", "plaid_id", "name_official")
+    search_fields = ("name", "plaid_id", "name_official")
 
 
 @admin.register(models.Transaction)

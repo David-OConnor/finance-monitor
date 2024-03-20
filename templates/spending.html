@@ -25,18 +25,20 @@
 
         <div style="display: flex; justify-content: center;">
             {#            <h2 style="margin-right: 40px;">Income: <span  id="income-total">{{ income_total|floatformat:"0g" }}</span></h2>#}
-            <h2 style="margin-right: 40px;">Income: <span  id="income-total"></span></h2>
+            <h2 style="margin-right: 40px;">Income: <span id="income-total" class="tran-pos"></span></h2>
             {#            <h2>Expenses: <span id="expenses-total">{{ expenses_total|floatformat:"0g" }}</span></h2>#}
-            <h2>Expenses: <span id="expenses-total"></span></h2>
+            <h2>Expenses: <span id="expenses-total" class="tran-neg"></span></h2>
         </div>
 
-        <div id="plot-wrapper" style="width: 460px; margin-bottom: 40px;">
-            <canvas id="plot"></canvas>
-        </div>
+        <div style="display: flex; justify-content: center; flex-wrap: wrap;">
+            <div id="plot-wrapper" style="width: 460px; margin-bottom: 40px;">
+                <canvas id="plot"></canvas>
+            </div>
 
-        <div style="display: flex; justify-content: space-evenly">
 
-            <div style="display: flex; flex-direction: column;">
+{#        <div style="display: flex; justify-content: space-evenly">#}
+
+            <div style="display: flex; flex-direction: column; margin-left: 80px; margin-right: 80px;">
                 <h2>Spending by category</h2>
                 <div id="spending-section">
                     {#                    {% for highlight in highlights.by_cat %}#}
@@ -137,10 +139,13 @@
         function populate() {
             let sectionSpending = getEl("spending-section")
             sectionSpending.replaceChildren()
-            console.log(HIGHLIGHTS, "HL")
+
             for (let item of HIGHLIGHTS.by_cat) {
+                let amountText = formatAmount(item[1][1])
+                amountText = amountText.replace("-", "")
+
                 let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0}, catDisp(item[0]) + ": ")
-                let s = createEl("span", {class: "tran-neutral"},  {}, formatAmount(item[1][1]))
+                let s = createEl("span", {class: "tran-neutral"},  {}, amountText)
                 h4.appendChild(s)
                 sectionSpending.appendChild(h4)
             }
@@ -148,8 +153,13 @@
             let sectionChanges = getEl("change-section")
             sectionChanges.replaceChildren()
             for (let item of HIGHLIGHTS.cat_changes) {
+                let amountText = formatAmount(item[1])
+                if (item[1] > 0) {
+                    amountText = "+" + amountText
+                }
+
                 let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0}, catDisp(item[0]) + ": ")
-                let s = createEl("span", {class: "tran-neutral"},  {}, formatAmount(item[1]))
+                let s = createEl("span", {class: "tran-neutral"},  {}, amountText)
                 h4.appendChild(s)
                 sectionChanges.appendChild(h4)
             }

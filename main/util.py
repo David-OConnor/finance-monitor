@@ -35,6 +35,7 @@ CATS_NON_SPENDING = [
     TransactionCategory.DEPOSIT,
     TransactionCategory.DEBIT,
     TransactionCategory.CREDIT_CARD,
+    TransactionCategory.INVESTMENTS,
 ]
 
 
