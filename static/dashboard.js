@@ -20,17 +20,13 @@ const PAGE_SIZE = 60
 const HIGHLIGHT_COLOR = "#fffbdb"
 const FEE_COLOR = "#fff0ff"
 
+// Show this many items in the highlights category, per section.
+const HIGHLIGHTS_SIZE = 5
 
-// todo: Config object?
-
-// Includes all loaded transactions
-// let TRANSACTIONS = [] // Loaded from template initially
-// let ACCOUNTS = [] // Loaded from temp templatme initially.
 
 // let TRANSACTIONS_DISPLAYED = []
 let TRANSACTION_ICONS = true
 let EDIT_MODE_TRAN = false
-let EDIT_MODE_ACC = false
 
 // We use an object vice map for serialization compatibility.
 let TRANSACTIONS_UPDATED = {}
@@ -967,7 +963,7 @@ function setupSpendingHighlights() {
     h.appendChild(s)
     biggestCats.appendChild(h)
 
-    for (let highlight of SPENDING_HIGHLIGHTS.by_cat.slice(0, 4)) {
+    for (let highlight of SPENDING_HIGHLIGHTS.by_cat.slice(0, HIGHLIGHTS_SIZE)) {
         text = catDisp(highlight[0]) + ": "
         h = createEl(
             "h4",
@@ -1021,7 +1017,7 @@ function setupSpendingHighlights() {
     biggestCats.appendChild(h)
     changes.appendChild(h)
 
-    for (let catChange of SPENDING_HIGHLIGHTS.cat_changes.slice(0, 4)) {
+    for (let catChange of SPENDING_HIGHLIGHTS.cat_changes.slice(0, HIGHLIGHTS_SIZE)) {
 
         // todo: + sign explicitly if spending went up.
         h = createEl(
@@ -1061,7 +1057,7 @@ function setupSpendingHighlights() {
         largePurchases.appendChild(h)
     }
 
-    for (let purchase of SPENDING_HIGHLIGHTS.large_purchases.slice(0, 4)) {
+    for (let purchase of SPENDING_HIGHLIGHTS.large_purchases.slice(0, HIGHLIGHTS_SIZE)) {
         text = purchase.description + ": "
         h = createEl(
             "h4",

@@ -168,7 +168,7 @@ class TransactionCategory(Enum):
             return cls.BILLS_AND_UTILITIES
         if "invest" in s:
             return cls.INVESTMENTS
-        if "fees" in s or "interest_charge" in s:
+        if "fees" in s or "interest charge" in s:
             return cls.FEES
         if "taxes" in s:
             return cls.TAXES
@@ -397,6 +397,59 @@ replacements = [
     ("grocer", TransactionCategory.GROCERIES),
     ("winco", TransactionCategory.GROCERIES),
     ("foods", TransactionCategory.GROCERIES),
+    ("meijer", TransactionCategory.GROCERIES),  # Can also be shops
+    ("wholesale", TransactionCategory.GROCERIES),  # Can also be shops
+    ("publix", TransactionCategory.GROCERIES),  # Can also be shops
+    #
+    ("panda express", TransactionCategory.FAST_FOOD),
+    ("jersey mike", TransactionCategory.FAST_FOOD),
+    ("aunt anne", TransactionCategory.FAST_FOOD),
+    ("quizno", TransactionCategory.FAST_FOOD),
+    ("golden corral", TransactionCategory.RESTAURANTS),
+    ("hard rock cafe", TransactionCategory.RESTAURANTS),
+    ("buffalo wild wings", TransactionCategory.RESTAURANTS),
+    ("chipotle", TransactionCategory.FAST_FOOD),
+    ("nathan's famous", TransactionCategory.FAST_FOOD),
+    ("little caesar", TransactionCategory.FAST_FOOD),
+    ("tgi friday", TransactionCategory.RESTAURANTS),
+    ("papa john", TransactionCategory.FAST_FOOD),
+    ("chilis", TransactionCategory.RESTAURANTS),
+    ("boston market", TransactionCategory.RESTAURANTS),
+    ("white castle", TransactionCategory.FAST_FOOD),
+    ("long horn steak", TransactionCategory.RESTAURANTS),
+    ("five guys", TransactionCategory.FAST_FOOD),
+    ("a&w", TransactionCategory.RESTAURANTS),
+    ("mrs. fields", TransactionCategory.FAST_FOOD),
+    ("red robin", TransactionCategory.RESTAURANTS),
+    ("waffle house", TransactionCategory.RESTAURANTS),
+    ("marie callender", TransactionCategory.RESTAURANTS),
+    ("dennys", TransactionCategory.RESTAURANTS),
+    ("cold stone", TransactionCategory.FAST_FOOD),
+    ("red lobster", TransactionCategory.RESTAURANTS),
+    ("mcdonalds", TransactionCategory.FAST_FOOD),
+    ("outback steak", TransactionCategory.RESTAURANTS),
+    ("cracker barrel", TransactionCategory.RESTAURANTS),
+    ("popeyes", TransactionCategory.FAST_FOOD),
+    ("taco bell", TransactionCategory.FAST_FOOD),
+    ("texas roadhouse", TransactionCategory.RESTAURANTS),
+    ("kfc", TransactionCategory.FAST_FOOD),
+    ("olive garden", TransactionCategory.RESTAURANTS),
+    ("applebee", TransactionCategory.RESTAURANTS),
+    ("burger king", TransactionCategory.FAST_FOOD),
+    ("chick-fil-a", TransactionCategory.FAST_FOOD),
+    ("sonic", TransactionCategory.FAST_FOOD),
+    ("subway", TransactionCategory.FAST_FOOD),
+    ("panera", TransactionCategory.FAST_FOOD),
+    ("dominos", TransactionCategory.FAST_FOOD),
+    ("cheesecake factory", TransactionCategory.RESTAURANTS),
+    ("ihop", TransactionCategory.RESTAURANTS),
+    ("cinnabon", TransactionCategory.FAST_FOOD),
+    ("pizza hut", TransactionCategory.FAST_FOOD),
+    ("dunkin", TransactionCategory.FAST_FOOD),
+    ("kirspy kreme", TransactionCategory.FAST_FOOD),
+    ("wendys", TransactionCategory.FAST_FOOD),
+    ("dairy queen", TransactionCategory.FAST_FOOD),
+    ("baskin-robbins", TransactionCategory.FAST_FOOD),
     #
     ("at&t", TransactionCategory.BILLS_AND_UTILITIES),
     ("cox cable", TransactionCategory.BILLS_AND_UTILITIES),
@@ -481,7 +534,9 @@ replacements = [
     ("amway", TransactionCategory.SHOPS),
     ("ultra beauty", TransactionCategory.SHOPS),
     ("menards", TransactionCategory.SHOPS),
+    ("amazon", TransactionCategory.SHOPS),
     #
+    ("interest", TransactionCategory.FEES),
 ]
 
 
