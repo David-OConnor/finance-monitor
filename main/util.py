@@ -245,7 +245,7 @@ def setup_spending_highlights(
     trans = load_transactions(None, None, person, "", start, end, None)
 
     by_cat = {}
-    large_purchases = []
+    large_transactions = []
 
     total = 0.0
 
@@ -264,16 +264,16 @@ def setup_spending_highlights(
             by_cat[cat.value][0] += 1
             by_cat[cat.value][1] += tran.amount
 
-        if tran.amount >= LARGE_PURCHASE_THRESH:
-            large_purchases.append(
+        if abs(tran.amount) >= LARGE_PURCHASE_THRESH:
+            large_transactions.append(
                 {"description": tran.description, "amount": tran.amount}
             )
 
         total += tran.amount
 
     # Sort by value
-    by_cat = sorted(by_cat.items(), key=lambda x: x[1][1], reverse=True)
-    large_purchases = sorted(large_purchases, key=lambda x: x["amount"], reverse=True)
+    by_cat = sorted(by_cat.items(), key=lambda x: x[1][1])
+    large_transactions = sorted(large_transactions, key=lambda x: x["amount"])
 
     total_change = None
     # This check prevents an infinite recursion.
@@ -306,7 +306,7 @@ def setup_spending_highlights(
         "total": total,
         "total_change": total_change,
         "cat_changes": cat_changes,
-        "large_purchases": large_purchases,
+        "large_purchases": large_transactions,
     }
 
 

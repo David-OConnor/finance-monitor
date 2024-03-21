@@ -206,8 +206,9 @@ function filterTransactions() {
                         if (!existingTranIds.includes(tranLoaded.id)) {
                             TRANSACTIONS.push(tranLoaded)
                         }
-                        refreshTransactions()
                     }
+
+                    refreshTransactions()
                 });
         }
     }
@@ -462,10 +463,11 @@ function createTranRow(tran) {
         }
 
         let s
+        let iconId = "tran-icon-" + tran.id.toString()
         if (TRANSACTION_ICONS) {
-            s = createEl("span", {}, {}, catIconFromVal(tran.category))
+            s = createEl("span", {id: iconId}, {}, catIconFromVal(tran.category))
         } else {
-            s = createEl("span", {}, {}, catNameFromVal(tran.category))
+            s = createEl("span", {id: iconId}, {}, catNameFromVal(tran.category))
         }
 
         d.appendChild(s)
@@ -1127,7 +1129,31 @@ function init() {
     let check = getEl("icon-checkbox")
     check.addEventListener("click", _ => {
         TRANSACTION_ICONS = !TRANSACTION_ICONS
-        refreshTransactions() // todo: Dangerous potentially re infinite recursions, but seems to be OK.
+
+        if (EDIT_MODE_TRAN) {
+            return
+        }
+
+        for (let tran of TRANSACTIONS) {
+            let el= getEl("tran-icon-" + tran.id.toString())
+            // We won't find the icon if we've loaded more than is on the page.
+            if (el === null) {
+                continue
+            }
+
+            if (CAT_QUICKEDIT === tran.id) {
+                continue
+            }
+
+            let iconText
+            if (TRANSACTION_ICONS) {
+                iconText = catIconFromVal(tran.category)
+            } else {
+                iconText = catNameFromVal(tran.category)
+            }
+            el.textContent = iconText
+
+        }
     })
 
     setupEditTranButton()
