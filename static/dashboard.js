@@ -181,7 +181,6 @@ function filterTransactions() {
     transactions = transactions.slice(startI, endI)
 
     if (!TRANSACTIONS_LOADED) {  // A check against doing this multiple times (or finititely) in a row.
-        console.log("Trans not loaded")
         TRANSACTIONS_LOADED = true
 
         // If, after filtering, we don't have a full page of information, request more from the backend.
