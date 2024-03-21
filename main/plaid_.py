@@ -8,6 +8,7 @@ import json
 from typing import Optional, Iterable, List, Tuple
 
 from django.core.mail import send_mail
+from django.db.models import Q
 from django.utils import timezone
 
 from plaid import ApiException
@@ -294,8 +295,8 @@ def refresh_transactions(account: FinancialAccount) -> None:
     for tran in modified:
         print("\n\n Modifing transaction:\n", tran, "\n\n")
         tran_db = Transaction.objects.filter(
-            account=account,
-            plaid_id=tran.transaction_id,
+            # account=account,
+            Q(plaid_id=tran.transaction_id) | Q(plaid_id=tran.pending_transaction_id) & Q(account=account),
         )
 
         try:
@@ -322,8 +323,8 @@ def refresh_transactions(account: FinancialAccount) -> None:
     for tran in removed:
         print("\n\n Deleting transaction:\n", tran, "\n\n")
         _ = Transaction.objects.filter(
-            account=account,
-            plaid_id=tran.transaction_id,
+            # account=account,
+            Q(plaid_id=tran.transaction_id) | Q(plaid_id=tran.pending_transaction_id) & Q(account=account),
         ).delete()
 
     account.plaid_cursor = cursor
