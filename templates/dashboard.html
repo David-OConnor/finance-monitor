@@ -9,7 +9,7 @@
 
         <div style="display: flex; align-items: center;">
             <h2 style="margin-right: 32px">Net worth: <span class="{{ totals.net_worth_class }}">{{ totals.net_worth }}</span></h2>
-{#            <h2 class="hide-on-mobile" style="margin-left: 32px; margin-right: 32px">Accounts</h2>#}
+            {#            <h2 class="hide-on-mobile" style="margin-left: 32px; margin-right: 32px">Accounts</h2>#}
 
             <button id="link-button" class="button-general">➕ Syncing account</button>
             <button id="add-manual-button" class="button-general" onclick="toggleAddManual()">➕ Manual account</button>
@@ -123,19 +123,27 @@
             <h2>Spending highlights (last 30 days)</h2>
 
             {#            <div id="biggest-cats" style="display: flex; flex-wrap: wrap;"></div>#}
-            <div id="spending-highlights" style="
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: auto;
-">
 
+            <div id="spending-highlights">
                 <div id="biggest-cats" style="grid-column: 1/2"></div>
                 <div id="biggest-changes" style="grid-column: 2/3">
                 </div>
                 <div id="large-purchases" style="grid-column: 3/4">
-                    <h3 id="large-purchases-h">Large purchases:</h3>
+                    <h3 id="large-purchases-h" class="spending-highlight-title">Large purchases:</h3>
                 </div>
             </div>
+
+                        {#                        <div id="spending-highlights" style="#}
+            {#            display: flex;#}
+            {#            flex-wrap: wrap;#}
+            {#">#}
+            {#                <div id="biggest-cats" style="margin-right: 32px;"></div>#}
+            {#                <div id="biggest-changes" style="margin-right: 32px;">#}
+            {#                </div>#}
+            {#                <div id="large-purchases" style="">#}
+            {#                    <h3 id="large-purchases-h">Large purchases:</h3>#}
+            {#                </div>#}
+            {#            </div>#}
 
         </div>
 

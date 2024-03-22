@@ -388,6 +388,29 @@ img {
     margin-top: 12px;
 }
 
+@media (min-width : 800px) {
+    #spending-highlights {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: auto;
+    }
+
+    .spending-highlight-title {
+    }
+}
+
+@media (max-width : 800px) {
+    #spending-highlights {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+        .spending-highlight-title {
+            margin-bottom: 0;
+            margin-top: 32x;
+    }
+}
+
 /* latin-ext */
 @font-face {
   font-family: 'Karla';

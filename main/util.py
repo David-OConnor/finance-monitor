@@ -346,8 +346,6 @@ def setup_spending_data(
         start = (now - relativedelta(months=months_back)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         end = (start + relativedelta(months=1) - timedelta(seconds=1))
 
-        print(f"Months back: {months_back}, {start} - {end}")
-
         # todo: DRY with above.
         trans_in_month = load_transactions(None, None, person, "", start, end, None)
         expense_transactions = filter_trans_spending(trans_in_month)
@@ -356,8 +354,6 @@ def setup_spending_data(
             expenses_in_month += t.amount
 
         over_time.append((start.date().isoformat(), expenses_in_month))
-
-    print("Over time: ", over_time)
 
     return {
         "highlights": spending_highlights,

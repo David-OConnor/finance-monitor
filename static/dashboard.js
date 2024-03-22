@@ -953,7 +953,7 @@ function setupSpendingHighlights() {
 
     h = createEl(
         "h3",
-        {},
+        {class: "spending-highlight-title"},
         // {marginRight: "40px"},
         {},
         "Total: "
@@ -999,7 +999,7 @@ function setupSpendingHighlights() {
 
     let changes = getEl("biggest-changes")
 
-    h = createEl("h3", {}, {}, "Changes. Total: ")
+    h = createEl("h3", {class: "spending-highlight-title"}, {}, "Changes. Total: ")
     let changeTotal = formatAmount(SPENDING_HIGHLIGHTS.total_change, 0)
     if (SPENDING_HIGHLIGHTS.total_change > 0) {
         changeTotal = "+" + changeTotal
