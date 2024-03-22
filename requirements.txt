@@ -9,7 +9,7 @@ requests~=2.31.0
 django-cors-headers~=4.2.0
 pydantic~=2.3.0
 
-dateutil ~=2.9.0
+python-dateutil ~= 2.9.0
 
 plaid-python~=19.0.0
 stripe==2.63.0
