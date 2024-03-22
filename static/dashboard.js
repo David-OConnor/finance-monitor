@@ -501,11 +501,12 @@ function createTranRow(tran) {
         col.appendChild(h)
 
         if (tran.pending) {
+            let text = onMobile() ? "| P" : "| Pending"
             col.appendChild(createEl(
                 "h4",
                 {class: "tran-heading"},
                 {color: "#999999", fontWeight: "normal", marginLeft: "8px"},
-                "| Pending")
+                text)
             )
         }
     }
