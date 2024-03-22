@@ -10,7 +10,7 @@
 
         <h2 style="text-align: center">Categorization rules</h2>
         <h2 id="rule-success" style="color: #39a839; visibility: collapse; text-align: center;">Rule save successful.</h2>
-        <div style="display: flex; flex-direction: column; align-items: center">
+        <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
 
             <div style="display: flex;">
                 <button class="button-general" onclick="saveRules()" style="margin-bottom: 12px;">Save rule changes</button>
@@ -30,7 +30,7 @@
 
                     <h4 style="margin: 0 10px;">➡</h4>
                     <div id="cat-div-{{ rule.id }}"></div>
-                    <button class="button-general" style="height: 40px;" onclick="deleteRule({{ rule.id }})">❌</button>
+                    <button class="button-general" style="height: 40px; margin-right: 40px;" onclick="deleteRule({{ rule.id }})">❌</button>
                 </div>
             {% endfor %}
         </div>

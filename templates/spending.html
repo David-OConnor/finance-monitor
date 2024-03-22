@@ -56,6 +56,16 @@
                 </div>
             </div>
         </div>
+
+
+    <div style="display: flex; margin-top: 20px;">
+        <h2>Spending over time</h2>
+
+            <div id="plot-over-time-wrapper" style="width: 460px; margin-bottom: 40px;">
+                <canvas id="plot-over-time"></canvas>
+            </div>
+    </div>
+
     </div>
 
     <script src="../static/util.js"></script>
@@ -73,6 +83,7 @@
         let HIGHLIGHTS = {by_cat: []}
         let INCOME_TOTAL = 0
         let EXPENSES_TOTAL = 0
+        let SPENDING_OVER_TIME = []
 
         let LOOKBACK = 30
 
@@ -125,6 +136,9 @@
                     HIGHLIGHTS = r.highlights
                     INCOME_TOTAL = r.income_total
                     EXPENSES_TOTAL = r.expenses_total
+                    SPENDING_OVER_TIME = r.over_time
+
+                    console.log(SPENDING_OVER_TIME, "SOT")
 
                     LOOKBACK = daysBack
 
@@ -132,7 +146,8 @@
                     getEl("expenses-total").textContent = formatAmount(EXPENSES_TOTAL, 0)
 
                     populate()
-                    setupCharts()
+                    setupPieCharts()
+                    setupTrendCharts()
                 });
         }
 
@@ -169,7 +184,7 @@
 
         }
 
-        function setupCharts() {
+        function setupPieCharts() {
             // https://www.chartjs.org/docs/latest/charts/doughnut.html#doughnut
 
             {#const config = {#}
@@ -241,9 +256,49 @@
 
         }
 
+        function setupTrendCharts() {
+            // https://www.chartjs.org/docs/latest/charts/doughnut.html#doughnut
+
+            {#const config = {#}
+            {#    type: 'doughnut',#}
+            {#    data: data,#}
+
+            document.getElementById('plot-over-time').remove()
+
+            let el = document.createElement("canvas")
+            el.setAttribute("id", "plot-over-time")
+            document.getElementById("plot-over-time-wrapper").appendChild(el)
+
+            let chartArea = document.getElementById('plot-over-time').getContext('2d')
+
+            let labels = []
+            let values = []
+            for (let item of SPENDING_OVER_TIME) {
+                labels.push(item[0])
+                values.push(item[1])
+            }
+
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: "Spending over time",
+                    data: values,
+                    backgroundColor: PLOT_COLORS,
+                    hoverOffset: 4
+                }]
+            };
+
+            const myChart = new Chart(chartArea, {
+                type: 'line',
+                data: data,
+                options: {}
+            })
+        }
+
         function init() {
             setRange(30)
-            setupCharts()
+            setupPieCharts()
+            setupTrendCharts()
         }
 
         init()

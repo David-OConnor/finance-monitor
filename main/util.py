@@ -3,7 +3,8 @@ import json
 from collections import defaultdict
 from io import TextIOWrapper
 from typing import List, Dict, Iterable, Optional, Tuple
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
+from dateutil.relativedelta import relativedelta
 
 from django.core.mail import send_mail
 from django.db.models import Q
@@ -332,9 +333,6 @@ def setup_spending_data(
         income_total += t.amount
 
     expense_transactions = filter_trans_spending(trans)
-
-    print("Len exp: ", len(expense_transactions))
-
     expenses_total = 0.0
     for t in expense_transactions:
         expenses_total += t.amount
@@ -342,10 +340,30 @@ def setup_spending_data(
     # TODO. no! Doubles the query.
     spending_highlights = setup_spending_highlights(person, start_days_back, end_days_back, False)
 
+    over_time = []
+    for months_back in range(0, 12):
+        now = timezone.now()
+        start = (now - relativedelta(months=months_back)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end = (start + relativedelta(months=1) - timedelta(seconds=1))
+
+        print(f"Months back: {months_back}, {start} - {end}")
+
+        # todo: DRY with above.
+        trans_in_month = load_transactions(None, None, person, "", start, end, None)
+        expense_transactions = filter_trans_spending(trans_in_month)
+        expenses_in_month = 0.0
+        for t in expense_transactions:
+            expenses_in_month += t.amount
+
+        over_time.append((start.date().isoformat(), expenses_in_month))
+
+    print("Over time: ", over_time)
+
     return {
         "highlights": spending_highlights,
         "income_total": income_total,
         "expenses_total": expenses_total,
+        "over_time": over_time,
     }
 
 
