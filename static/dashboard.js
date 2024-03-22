@@ -472,7 +472,8 @@ function createTranRow(tran) {
     row.appendChild(col)
 
     // Flex for pending indicator.
-    col = createEl("td", {class: "transaction-cell"}, {display: "flex"})
+    // col = createEl("td", {class: "transaction-cell"}, {display: "flex"})
+    col = createEl("td", {class: "transaction-cell"})
 
     if (EDIT_MODE_TRAN) {
         let ip = createEl(
@@ -510,7 +511,39 @@ function createTranRow(tran) {
             )
         }
     }
+    row.appendChild(col)
 
+    // Institution name: Hide on mobile.
+    col = createEl("td", {class: "transaction-cell"}, {display: "flex"})
+    if (!onMobile()) {
+        if (EDIT_MODE_TRAN) {
+            let ip = createEl(
+                "input",
+                {value: tran.institution_name},
+            )
+
+            ip.addEventListener("input", e => {
+                let updated = {
+                    ...tran,
+                    institution_name: e.target.value
+                }
+                // todo: DRY!
+                TRANSACTIONS_UPDATED[String(tran.id)] = updated
+            })
+
+            col.appendChild(ip)
+        } else {
+            let h = createEl(
+                "h4",
+                {class: "tran-heading"},
+                {fontWeight: "normal", marginLeft: "0px"},
+                tran.institution_name,
+            )
+            col.appendChild(h)
+        }
+    } else {
+        getEl("institution-col").textContent = ""  // Blank the column name
+    }
     row.appendChild(col)
 
     col = createEl("td", {class: "transaction-cell"}, {})
@@ -612,23 +645,24 @@ function createTranRow(tran) {
     } else {
         let h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
 
-        // Highlighter icon.
-        // let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, backgroundColor: "#fff5e9", cursor: "pointer"}, "🖍️")
-        let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, cursor: "pointer"}, "🖍️")
+        if (!onMobile()) {
+            // Highlighter icon.
+            let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, cursor: "pointer"}, "🖍️")
 
-        s.addEventListener("click", _ => {
-            let data = {id: tran.id}
-            fetch("/toggle-highlight", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
-                .then(result => result.json())
-                .then(r => {
-                });
+            s.addEventListener("click", _ => {
+                let data = {id: tran.id}
+                fetch("/toggle-highlight", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
+                    .then(result => result.json())
+                    .then(r => {
+                    });
 
-            tran.highlighted = !tran.highlighted
-            let bgColor = tran.highlighted ? HIGHLIGHT_COLOR : "white"
-            getEl("tran-row-" + tran.id.toString()).style.backgroundColor = bgColor
-        })
+                tran.highlighted = !tran.highlighted
+                let bgColor = tran.highlighted ? HIGHLIGHT_COLOR : "white"
+                getEl("tran-row-" + tran.id.toString()).style.backgroundColor = bgColor
+            })
 
-        h.appendChild(s)
+            h.appendChild(s)
+        }
 
         col.appendChild(h)
     }

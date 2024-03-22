@@ -133,7 +133,7 @@
                 </div>
             </div>
 
-                        {#                        <div id="spending-highlights" style="#}
+            {#                        <div id="spending-highlights" style="#}
             {#            display: flex;#}
             {#            flex-wrap: wrap;#}
             {#">#}
@@ -204,6 +204,7 @@
                 />
             </div>
 
+            <small class="hide-on-mobile" style="font-weight: normal; margin-left: 12px;">Click a category to change it.</small>
             <table class="tran-table">
                 <thead>
                 <tr style="height: 40px; border-bottom: 2px solid black;">
@@ -216,10 +217,14 @@
                     <th>
                         <div style="display: flex; align-items: center; margin-left: 20px;">
                             <button id="edit-transactions" class="button-small">✎Edit transactions</button>
-                            <small class="hide-on-mobile" style="font-weight: normal; margin-left: 12px;">Click a category to change it.</small>
                         </div>
                     </th>
+
+                    {#                    Institution name #}
+                    {#                    <th class="hide-on-mobile">Institution</th>#}
+                    <th id="institution-col">Institution</th>
                     {#                Notes#}
+
                     <th style="text-align: left">Notes</th>
                     <th><button class="button-small" onClick="addTranManual()">➕Add</button></th>
                     <th></th>

@@ -417,25 +417,24 @@ class Transaction(Model):
         # cats = cleanup_categories(cats)
 
         # Only display the year if not the present one.
+        # todo: Not using DT at all, for now. It seems to vary by merchant if its present
         if self.date.year == date.today().year:
-            if self.datetime is not None:
-                date_display = self.datetime.strftime("%m/%d %H:%M")
-            else:
-                date_display = self.date.strftime("%m/%d")
+            # if self.datetime is not None:
+            #     date_display = self.datetime.strftime("%m/%d %H:%M")
+            # else:
+            date_display = self.date.strftime("%m/%d")
         else:
-            if self.datetime is not None:
-                date_display = self.datetime.strftime("%m/%d%y %H:%M")
-            else:
-                date_display = self.date.strftime("%m/%d/%y")
+            # if self.datetime is not None:
+            #     date_display = self.datetime.strftime("%m/%d%y %H:%M")
+            # else:
+            date_display = self.date.strftime("%m/%d/%y")
 
         description = self.description
 
         # todo: Modify to serialize values vice displayl.
         return {
             "id": self.id,  # DB primary key.
-            # "categories": [cat.value for cat in cats],
             "category": self.category,
-            # "categories_icon": [cat.to_icon() for cat in cats],
             # Currently just used for search on FE. Could be replaced their by JS fns we already have.
             "category_text": TransactionCategory(self.category).to_str(),
             "description": description,
@@ -450,6 +449,7 @@ class Transaction(Model):
             "logo_url": self.logo_url if self.logo_url else "",
             "pending": self.pending,
             "highlighted": self.highlighted,
+            "institution_name": self.institution_name,
         }
 
     def __str__(self):
