@@ -395,3 +395,23 @@ function formatAmount(number, decimals) {
 
     return new Intl.NumberFormat('en-US', options).format(number);
 }
+
+
+function createCatSel(initVal) {
+    // Create a category selector. Must add a listener later; relatively generic.
+   let sel = createEl("select", {id: "tran-filter-sel"}, {height: "40px"})
+
+    let opt = createEl("option", {value: -2}, {}, "All categories")
+    sel.appendChild(opt)
+
+    for (let cat of catNames) {
+        opt = createEl("option", {value: cat[0]}, {}, cat[1])
+
+        if (cat[0] === initVal) {
+            opt.setAttribute("selected", "")
+        }
+        sel.appendChild(opt)
+    }
+
+    return sel
+}

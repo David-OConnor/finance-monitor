@@ -31,6 +31,7 @@ let EDIT_MODE_TRAN = false
 // We use an object vice map for serialization compatibility.
 let TRANSACTIONS_UPDATED = {}
 let ACCOUNTS_UPDATED = {}
+let SPLIT_TRAN_ID = null
 
 // See models.py
 const ACC_TYPE_CHECKING = 0
@@ -315,72 +316,52 @@ function refreshAccounts() {
 function createCatEdit(tran, searchText) {
     // Create a select element for categories.
     // todo: Allow creating custom elements here, and search.
-    let sel = createEl("select", {}, {})
 
-    let opt
-    for (let cat of catNames) {
-        if (searchText) {
-            console.log("Search text")
+    let sel = createCatSel(tran.category)
+
+    sel.addEventListener("input", e => {
+        let updated = {
+            ...tran,
+            category: parseInt(e.target.value)
         }
+        // todo: DRY!
+        TRANSACTIONS_UPDATED[String(tran.id)] = updated
 
-        opt = createEl("option", {value: cat[0]}, {}, cat[1])
-        if (cat[0] === tran.category) {
-            opt.setAttribute("selected", "")
-        }
-
-        sel.appendChild(opt)
-
-        sel.addEventListener("input", e => {
-            let updated = {
-                ...tran,
-                category: parseInt(e.target.value)
-            }
-            // todo: DRY!
-            TRANSACTIONS_UPDATED[String(tran.id)] = updated
-
-            TRANSACTIONS = [
-                ...TRANSACTIONS.filter(t => t.id !== tran.id),
-                updated
-            ]
-
-            // if (autoSave) {
-            //     // todo: DRY with setup tran edit button, although with some differences, like
-            //     // nulling quick edit, and refreshing transactions.
-            //
-            //     const data = {
-            //         // Discard keys; we mainly use them for updating internally here.
-            //         transactions: Object.values(TRANSACTIONS_UPDATED),
-            //         create_rule: CAT_ALWAYS,
-            //     }
-            //
-            //     // Save transactions to the database.
-            //     fetch("/edit-transactions", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
-            //         .then(result => result.json())
-            //         .then(r => {
-            //             if (!r.success) {
-            //                 // console.error("Transaction save failed")
-            //             } else {
-            //                 // window.location.reload(); // todo temp until we can update cat in place.
-            //             }
-            //         });
-            //
-            //     // todo: Like in many cases, you're getting some sort of unpleasant, but not fatal recusion. Why?
-            //     // todo: And, only edit the specific icon div you're changing... Don't run refreshTransactions at all!
-            //     TRANSACTIONS = [
-            //         ...TRANSACTIONS.filter(t => t.id !== tran.id),
-            //         updated
-            //     ]
-            //     CAT_QUICKEDIT = null
-            //     CAT_ALWAYS = false
-            //     refreshTransactions()
-            // }
-        })
-    }
+        TRANSACTIONS = [
+            ...TRANSACTIONS.filter(t => t.id !== tran.id),
+            updated
+        ]
+    })
 
     return sel
 }
 
+function createSplitFormRow(splitId, cat, amount) {
+    let row = createEl("div", {}, {display: "flex"})
+
+    let catSel = createCatSel()
+    catSel.id = "split-cat-" + splitId.toString()
+
+    row.appendChild(catSel)
+
+    let amtIp = createEl(
+        "input",
+        {
+            id: "split-amt-" + splitId.toString(),
+            type: "number",
+            value: formatAmount(amount, 2).replace("-", "")
+        },
+        {width: "80px", marginLeft: "20px",}
+    )
+
+    row.appendChild(amtIp)
+
+    return row
+}
+
 function createSplitter(id) {
+    SPLIT_TRAN_ID = id
+
     const tran = TRANSACTIONS.find(t => t.id === id)
     getEl("split-tran").style.visibility = "visible"
 
@@ -392,26 +373,10 @@ function createSplitter(id) {
     let body = getEl("split-tran-body")
     body.replaceChildren()
 
-    for (let splitId=0; splitId<=1; splitId++) {
-        let row = createEl("div", {}, {display: "flex"})
+    const numItems = 2
 
-        // id: "split-amt-" + splitId.toString() on cat sel
-        let catSel = createCatEdit(tran, "")
-        row.appendChild(catSel)
-
-        let amtIp = createEl(
-            "input",
-            {
-                id: "split-amt-" + splitId.toString(),
-                type: "number",
-                value: formatAmount(tran.amount / 2., 2).replace("-", "")
-            },
-            {width: "80px", marginLeft: "20px",}
-        )
-
-        row.appendChild(amtIp)
-
-        body.appendChild(row)
+    for (let splitId=0; splitId<=numItems - 1; splitId++) {
+        body.appendChild(createSplitFormRow(splitId, tran.category,tran.amount / numItems))
     }
 }
 
@@ -1211,16 +1176,7 @@ function setupSpendingHighlights() {
 function setupCatFilter(searchText) {
     // Set up the main transaction category filter. Done in JS for consistency with other CAT filters.
     let div = getEl("tran-cat-filter")
-
-    let sel = createEl("select", {id: "tran-filter-sel"}, {height: "40px"})
-
-    let opt = createEl("option", {value: -2}, {}, "All categories")
-    sel.appendChild(opt)
-
-    for (let cat of catNames) {
-        opt = createEl("option", {value: cat[0]}, {}, cat[1])
-        sel.appendChild(opt)
-    }
+    let sel = createCatSel(-1)
 
     sel.addEventListener("input", e => {
         FILTER_CAT = parseInt(e.target.value)
@@ -1306,6 +1262,14 @@ function init() {
         getEl("biggest-change-h").textContent = "Changes:"
         getEl("large-purchases-h").textContent = "Large:"
     }
+
+    document.addEventListener("keydown",function(e){
+        if(e.key === "Escape") {
+            CAT_QUICKEDIT = null
+            CAT_ALWAYS = false
+            refreshTransactions() // todo: Don't refresh all. just the text edit in question.
+        }
+    });
 }
 
 init()
@@ -1359,7 +1323,6 @@ function addTranManual() {
             // TRANSACTIONS = TRANSACTIONS.filter(t => t.id !== tempId0)
 
             if (r.success) {
-                console.log("Add resp: ", r)
                 TRANSACTIONS.push({
                     ...newTran,
                     id: r.ids[0],
@@ -1400,10 +1363,73 @@ function changePage(direction) {
     refreshTransactions()
 }
 
-document.addEventListener("keydown",function(e){
-    if(e.key === "Escape") {
-        CAT_QUICKEDIT = null
-        CAT_ALWAYS = false
-        refreshTransactions() // todo: Don't refresh all. just the text edit in question.
+function saveSplit() {
+    // We use the existing add and modify APIs, vice a special one.
+    let tranParent = TRANSACTIONS.find(t => t.id === SPLIT_TRAN_ID
+    )
+    let tran_name = "New transaction " + (highestNum + 1).toString()
+
+    const newTran =  {
+        ...tranParent,
+        amount: 0.,
+        category: -1,
+
     }
-});
+    // TRANSACTIONS.push(newTran)
+
+    const payload = {transactions: [newTran]}
+
+    // Modify the parent as required.
+    const data = {
+        // Discard keys; we mainly use them for updating internally here.
+        transactions: Object.values(TRANSACTIONS_UPDATED),
+        create_rule: CAT_ALWAYS,
+    }
+
+    // Save transactions to the database.
+    fetch("/edit-transactions", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
+        .then(result => result.json())
+        .then(r => {
+            if (!r.success) {
+                console.error("Transaction save failed")
+            }
+        });
+
+    // Add additional transactions.
+    fetch("/add-transactions", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+        .then(result => result.json())
+        .then(r => {
+            if (r.success) {
+                TRANSACTIONS.push({
+                    ...newTran,
+                    id: r.ids[0],
+                })
+
+                // todo: For a snapier response, consider adding immediatley, and retroactively changing its id.
+                const row = createTranRow(newTran)
+                getEl("transaction-tbody").prepend(row)
+            } else {
+                console.error("Problem adding this transaction")
+            }
+        });
+
+    getEl("split-tran").style.visibility = "collapse"
+    SPLIT_TRAN_ID = null
+}
+
+function hideSplit() {
+    // Hide teh split section.
+    getEl("split-tran").style.visibility = "collapse"
+    SPLIT_TRAN_ID = null
+}
+
+function addSplitTran() {
+    // Add a row to the split tran form.
+
+    let body = getEl("split-tran-body")
+    const tran = TRANSACTIONS.find(t => t.id === SPLIT_TRAN_ID)
+
+    body.appendChild(createSplitFormRow(SPLIT_TRAN_ID, tran.category, 0.))
+}
+
+

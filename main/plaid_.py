@@ -324,7 +324,8 @@ def refresh_transactions(account: FinancialAccount) -> None:
         print("\n\n Deleting transaction:\n", tran, "\n\n")
         _ = Transaction.objects.filter(
             # account=account,
-            Q(plaid_id=tran.transaction_id) | Q(plaid_id=tran.pending_transaction_id) & Q(account=account),
+            # Q(plaid_id=tran.transaction_id) | Q(plaid_id=tran.pending_transaction_id) & Q(account=account),
+            plaid_id=tran.transaction_id, account=account,
         ).delete()
 
     account.plaid_cursor = cursor

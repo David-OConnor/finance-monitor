@@ -224,7 +224,15 @@
                 margin-bottom: 20px;
 ">
                 <h3>Split this transaction: <span id="split-tran-title" style="font-weight: normal;"></span></h3>
-                <div id="split-tran-body" style="display: flex; flex-direction: column;"></div>
+                <div style="display: flex">
+                    <div id="split-tran-body" style="display: flex; flex-direction: column;"></div>
+
+                    <div style="display: flex; align-items: center;">
+                        <button class="button-general" onclick="saveSplit()">✓ Split</button>
+                        <button class="button-general" onclick="hideSplit()">Cancel</button>
+                        <button class="button-general" onclick="addSplitTran()">➕ Add item</button>
+                    </div>
+                </div>
             </section>
 
 

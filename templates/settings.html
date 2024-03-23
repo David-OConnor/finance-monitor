@@ -216,22 +216,9 @@
             rulesDeleted.push(id)
         }
 
-        function createCatSel(id, catInit) {
-            // For each rule, we run this to create a select element, populated with rules.
-            // todo: C+P with dashboard.
-            let sel = createEl("select", {id: "rule-category-" + id.toString()}, {height: "40px"})
-
-            let opt = createEl("option", {value: -2}, {}, "All categories")
-            sel.appendChild(opt)
-
-            for (let cat of catNames) {
-                opt = createEl("option", {value: cat[0]}, {}, cat[1])
-
-                if (cat[0] === catInit) {
-                    opt.setAttribute("selected", "")
-                }
-                sel.appendChild(opt)
-            }
+        function createCatSel2(id, catInit) {
+            let sel = createCatSel(catInit)
+            sel.id = "rule-category-" + id.toString()
 
             sel.addEventListener("input", e => {
                 updateRule(id)
@@ -243,7 +230,7 @@
         let div
         {% for rule in rules %}
             div = getEl("cat-div-{{ rule.id }}")
-            div.appendChild(createCatSel({{ rule.id }}, {{ rule.category }}))
+            div.appendChild(createCatSel2({{ rule.id }}, {{ rule.category }}))
         {% endfor %}
 
         function saveRules() {
