@@ -380,6 +380,41 @@ function createCatEdit(tran, searchText) {
     return sel
 }
 
+function createSplitter(id) {
+    const tran = TRANSACTIONS.find(t => t.id === id)
+    getEl("split-tran").style.visibility = "visible"
+
+    let h = getEl("split-tran-title")
+    h.textContent = tran.description + ": " + tran.date_display + ", "
+    let s = createEl("span", {class: "tran-neutral"}, {fontWeight: "bold"}, formatAmount(tran.amount, 2).replace("-", ""))
+    h.appendChild(s)
+
+    let body = getEl("split-tran-body")
+    body.replaceChildren()
+
+    for (let splitId=0; splitId<=1; splitId++) {
+        let row = createEl("div", {}, {display: "flex"})
+
+        // id: "split-amt-" + splitId.toString() on cat sel
+        let catSel = createCatEdit(tran, "")
+        row.appendChild(catSel)
+
+        let amtIp = createEl(
+            "input",
+            {
+                id: "split-amt-" + splitId.toString(),
+                type: "number",
+                value: formatAmount(tran.amount / 2., 2).replace("-", "")
+            },
+            {width: "80px", marginLeft: "20px",}
+        )
+
+        row.appendChild(amtIp)
+
+        body.appendChild(row)
+    }
+}
+
 function createTranRow(tran) {
     // Return a single transaction row.
     const row = createEl("tr", {id: "tran-row-" + tran.id.toString()},{borderBottom: "1px solid #cccccc"} )
@@ -663,6 +698,62 @@ function createTranRow(tran) {
 
             h.appendChild(s)
         }
+
+        // Split button
+        let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, cursor: "pointer"}, "↔️")
+
+        s.addEventListener("click", _ => {
+            createSplitter(tran.id)
+
+            // let tran_name = "New transaction " + (highestNum + 1).toString()
+
+            // const newTran =  {
+            //     // id: tempId,
+            //     amount: 0.,
+            //     // amount_class: "tran-pos",
+            //     amount_class: "tran-neutral",
+            //     category: -1,
+            //     // categories_icon: [],
+            //     // categories_text: [],
+            //     date: new Date().toISOString().split('T')[0],
+            //     date_display: "03/11",
+            //     description: tran_name,
+            //     id: -999,
+            //     logo_url: "",
+            //     notes: "",
+            //     currency_code: "USD",
+            //     institution_name: "",
+            //     pending: false
+            // }
+            // // TRANSACTIONS.push(newTran)
+            //
+            // const payload = {transactions: [newTran]}
+
+            // fetch("/add-transactions", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+            //     .then(result => result.json())
+            //     .then(r => {
+            //         // // We could just hold off on adding the transaction to the UI, but I think this approach
+            //         // // will feel more responsive due to showing the tran immediately.
+            //         // TRANSACTIONS = TRANSACTIONS.filter(t => t.id !== tempId0)
+            //
+            //         if (r.success) {
+            //             console.log("Add resp: ", r)
+            //             TRANSACTIONS.push({
+            //                 ...newTran,
+            //                 id: r.ids[0],
+            //             })
+            //
+            //             // todo: For a snapier response, consider adding immediatley, and retroactively changing its id.
+            //             const row = createTranRow(newTran)
+            //             getEl("transaction-tbody").prepend(row)
+            //         } else {
+            //             console.error("Problem splitting this transaction")
+            //             // (We've just removed it from the state above)
+            //         }
+            //     });
+        })
+
+        h.appendChild(s)
 
         col.appendChild(h)
     }

@@ -341,7 +341,8 @@ def setup_spending_data(
     spending_highlights = setup_spending_highlights(person, start_days_back, end_days_back, False)
 
     over_time = []
-    for months_back in range(0, 12):
+    # for months_back in range(0, 12):
+    for months_back in range(12, 0, -1):
         now = timezone.now()
         start = (now - relativedelta(months=months_back)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         end = (start + relativedelta(months=1) - timedelta(seconds=1))
@@ -353,7 +354,8 @@ def setup_spending_data(
         for t in expense_transactions:
             expenses_in_month += t.amount
 
-        over_time.append((start.date().isoformat(), expenses_in_month))
+        over_time.append((start.date().strftime("%b %y"), expenses_in_month))
+
 
     return {
         "highlights": spending_highlights,
