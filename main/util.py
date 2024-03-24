@@ -193,8 +193,13 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         month_start = (now - relativedelta(months=months_back)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         month_end = (month_start + relativedelta(months=1) - timedelta(seconds=1))
 
+        if month_start.year == now.year:
+            month_name = month_start.strftime("%b")
+        else:
+            month_name = month_start.strftime("%b %y")
+
         month_picker_items.append((
-            month_start.strftime("%b"),
+            month_name,
             month_start.date().isoformat(),
             month_end.date().isoformat()
         ))
