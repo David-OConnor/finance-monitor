@@ -38,24 +38,25 @@
         </div>
 
         <h2 style="text-align: center; margin-top: 80px;">Custom categories</h2>
+    <h2 id="cat-success" style="color: #39a839; visibility: collapse; text-align: center;">Category save successful.</h2>
         {#        <h2 id="rule-success" style="color: #39a839; visibility: collapse; text-align: center;">Rule save successful.</h2>#}
         <div style="display: flex; flex-direction: column; align-items: center">
 
             <div style="display: flex;">
-                <button class="button-general" onclick="saveCategories()" style="margin-bottom: 12px;">Save category changes</button>
-                <button class="button-general" onclick="addRule()" style="margin-bottom: 12px;">➕ Add</button>
+                <button class="button-general" onclick="saveCats()" style="margin-bottom: 12px;">Save category changes</button>
+                <button class="button-general" onclick="addCat()" style="margin-bottom: 12px;">➕ Add</button>
             </div>
 
             {% for cat in custom_categories %}
                 <div id="cat-{{ cat.id }}" style="display: flex; align-items: center; margin-bottom: 8px;">
                     <input
-                            id="cat-name-{{ rule.id }}"
+                            id="cat-name-{{ cat.id }}"
                             style="width: 200px;"
                             value="{{ cat.name }}"
-                            oninput="updateCategoryCustom({{ cata.id }})"
+                            oninput="updateCat({{ cat.id }})"
                     />
 
-                    <button class="button-general" style="height: 40px;" onclick="deleteRule({{ rule.id }})">❌</button>
+                    <button class="button-general" style="height: 40px;" onclick="deleteCat({{ cat.id }})">❌</button>
                 </div>
             {% endfor %}
         </div>
@@ -164,6 +165,10 @@
         let rulesAdded = []
         let rulesDeleted = []
 
+        let catsUpdated = {}
+        let catsAdded = []
+        let catsDeleted = []
+
         {#Set up the import start#}
         const importStart = getEl('import-start')
         importStart.addEventListener('click', function() {
@@ -219,6 +224,44 @@
             rulesDeleted.push(id)
         }
 
+        function updateCat(id) {
+            catsUpdated[id] = {
+                id: id,
+                name: getEl("cat-name-" + id.toString()).value,
+            }
+        }
+
+        function addCat() {
+            {#getEl("rule-" + id.toString()).remove()#}
+            catsAdded.push({
+                name: "New Category",
+            })
+
+            // todo temp until we pass ID from backend
+            const payload = {
+                edited: [],
+                added: [{
+                    name: "New Category",
+                }],
+                deleted: [],
+            }
+            fetch("/edit-categories", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("Category addition failed to save")
+                    } else {
+                        // todo: Pass the new ID from the UI, and add the row.
+                        window.location.reload()
+                    }
+                });
+        }
+
+        function deleteCat(id) {
+            getEl("cat-" + id.toString()).remove()
+            catsDeleted.push(id)
+        }
+
         function createCatSel2(id, catInit) {
             let sel = createCatSel(catInit, "", false)
             sel.id = "rule-category-" + id.toString()
@@ -259,25 +302,27 @@
                 });
         }
 
-        function Categories() {
+        function saveCats() {
+            // todo: DRR with save rules!
             // Save custom categories
             const payload = {
-                edited: Object.values(rulesUpdated),
+                edited: Object.values(catsUpdated),
                 {#added: rulesAdded,#}
                 added: [], // todo temp handled separate
-                deleted: rulesDeleted,
+                deleted: catsDeleted,
             }
-            fetch("/edit-rules", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+            console.log(payload, "PL")
+            fetch("/edit-categories", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
                 .then(result => result.json())
                 .then(r => {
                     if (!r.success) {
                         console.error("Category edits failed to save")
                     } else {
-                        if (rulesAdded.length) {
+                        if (catsAdded.length) {
                             // todo: Temp until we pass new ID from the backend
                             window.location.reload()
                         }
-                        getEl("rule-success").style.visibility = "visible"
+                        getEl("cat-success").style.visibility = "visible"
                     }
                 });
         }

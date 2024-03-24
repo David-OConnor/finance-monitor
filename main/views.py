@@ -851,6 +851,88 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
     return JsonResponse({"success": success})
 
 
+@login_required
+def edit_categories(request: HttpRequest) -> HttpResponse:
+    """We use this to edit custom categories eg from the settings page."""
+
+    # todo: DRY with `edit_rules`.
+    success = True
+
+    data = load_body(request)
+    person = request.user.person
+
+    print("DATA", data)
+
+    for cat in data["edited"]:
+        cat_db, _ = CategoryCustom.objects.update_or_create(
+            person=person,
+            id=cat["id"],
+            defaults={
+                "name": cat["name"],
+            },
+        )
+
+    for cat in data["added"]:
+        # The person check here prevents abuse by the frontend.
+
+        # anti-dupe logic; C+P from rule changes. todo. Use a hlper fn instead.
+        name_base = cat["name"]
+        # Normalize the description to handle "New transaction", "new transaction" equally.
+        normalized_name_base = name_base.strip().lower()
+        cat_db = CategoryCustom(
+            person=person,
+            name=name_base,
+        )
+
+        # Attempt to save the new rule, handling IntegrityError for duplicate descriptions.
+        # ChatGPT code to increment an integer at the end of the description, if we encounter a duplicate.
+        # todo: Once working, re-use this, as a fn, for custom cats.
+        success = False
+        attempt = 0
+        while not success:
+            try:
+                cat_db.save()
+                success = True
+            except IntegrityError:
+                print("Error adding a custom category: ", cat_db)
+                success = False
+                # todo: Put in this logic if we use a unique constraint on name.
+                # attempt += 1
+                # # Find the current highest number for this base description
+                # latest_cat = CategoryCustom.objects.filter(
+                #     name__iregex=r'^' + re.escape(normalized_name_base) + r' \d+$'
+                # ).aggregate(max_number=Max('description'))
+                # max_number = latest_cat['max_number']
+                # if max_number:
+                #     # Extract the number and increment it for the new description
+                #     last_number = int(re.search(r'\d+$', max_number).group())
+                #     new_number = last_number + 1
+                # else:
+                #     # This is the first duplicate, so start with 1
+                #     new_number = 1
+                #
+                # # Update the description with the new number
+                # cat_db.name = f"{name_base} {new_number}"
+
+
+        # # todo: Pass added IDs to the UI.
+        # try:
+        #     rule_db.save()
+        # except IntegrityError:
+        #     # Increment a number in the description, then try again.
+        #     try:
+        #         rule_db.save()
+        #     except IntegrityError:
+        #         print(f"\nIntegrity error when saving a new category rule: {rule_db}\n")
+        #         success = False
+
+    for id_ in data["deleted"]:
+        # The person check here prevents abuse by the frontend.
+        c = CategoryCustom.objects.get(id=id_, person=person)
+        CategoryCustom.objects.get(id=id_, person=person).delete()
+
+    return JsonResponse({"success": success})
+
 # class CustomPasswordResetView(PasswordResetView):
 #     print("\nCustom PW view")
 #     template_name = 'password_reset.html'
