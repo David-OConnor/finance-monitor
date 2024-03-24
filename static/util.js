@@ -403,7 +403,7 @@ function formatAmount(number, decimals) {
 }
 
 
-function createCatSel(initVal, includeAll) {
+function createCatSel(initVal, filter, includeAll) {
     // Create a category selector. Must add a listener later; relatively generic.
    let sel = createEl("select", {id: "tran-filter-sel"}, {height: "40px"})
 
@@ -414,6 +414,10 @@ function createCatSel(initVal, includeAll) {
 
     for (let cat of catNames) {
         let opt = createEl("option", {value: cat[0]}, {}, catDisp(cat[0]))
+
+        if (filter && !catNameFromVal(cat[0]).toLowerCase().includes(filter)) {
+            continue
+        }
 
         if (cat[0] === initVal) {
             opt.setAttribute("selected", "")

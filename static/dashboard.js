@@ -318,7 +318,7 @@ function createCatEdit(tran, searchText) {
     // Create a select element for categories.
     // todo: Allow creating custom elements here, and search.
 
-    let sel = createCatSel(tran.category, false)
+    let sel = createCatSel(tran.category, searchText, false)
 
     sel.addEventListener("input", e => {
         let updated = {
@@ -340,7 +340,7 @@ function createCatEdit(tran, searchText) {
 function createSplitFormRow(cat, amount, description) {
     let row = createEl("div", {}, {display: "flex"})
     console.log(description, "D")
-    let catSel = createCatSel(cat, false)
+    let catSel = createCatSel(cat, "", false)
     catSel.id = "split-cat-" + NUM_NEW_SPLITS.toString()
 
     if (NUM_NEW_SPLITS > 0) {
@@ -422,19 +422,22 @@ function createTranRow(tran) {
         col.appendChild(d)
 
     } else if (tran.id === CAT_QUICKEDIT) {
-        d.appendChild(createCatEdit(tran, QUICK_CAT_SEARCH)) // Auto-save.
+        let dCatFilter = createEl("div", {id: "div-cat-filter"})
+        dCatFilter.appendChild(createCatEdit(tran, QUICK_CAT_SEARCH)) // Auto-save.
+        d.appendChild(dCatFilter)
 
-        // h = createEl("h4", {}, {}, "🔎")
-        // d.appendChild(h)
+        let h = createEl("h4", {}, {}, "🔎")
+        d.appendChild(h)
 
         // todo: Put this back.
-        // let search = createEl("input", {id: "quick-cat-search"}, {width: "70px"},)
-        // search.addEventListener("input", e => {
-        //     QUICK_CAT_SEARCH = e.target.value
-        //     refreshTransactions()
-        // })
-        // d.appendChild(search)
-
+        let search = createEl("input", {id: "quick-cat-search"}, {width: "70px"},)
+        search.addEventListener("input", e => {
+            QUICK_CAT_SEARCH = e.target.value
+            dCatFilter.replaceChildren() // todo: If not working, getElById.
+            dCatFilter.appendChild(createCatEdit(tran, QUICK_CAT_SEARCH)) // Auto-save.
+            // refreshTransactions()
+        })
+        d.appendChild(search)
         col.appendChild(d)
 
         let btn = createEl("button", {id: "always-btn", class: "button-small"}, {}, "Always")
@@ -478,7 +481,7 @@ function createTranRow(tran) {
         if (TRANSACTION_ICONS) {
             s = createEl("span", {id: iconId}, {}, catIconFromVal(tran.category))
         } else {
-            s = createEl("span", {id: iconId}, {}, catNameFromVal(tran.category))
+            s = createEl("span", {id: iconId}, {paddingRight: "20px"}, catNameFromVal(tran.category))
         }
 
         d.appendChild(s)
@@ -515,17 +518,18 @@ function createTranRow(tran) {
             {fontWeight: "normal", marginLeft: "0px"},
             tran.description
         )
-        col.appendChild(h)
+
 
         if (tran.pending) {
             let text = onMobile() ? "| P" : "| Pending"
-            col.appendChild(createEl(
-                "h4",
+            h.appendChild(createEl(
+                "span",
                 {class: "tran-heading"},
                 {color: "#999999", fontWeight: "normal", marginLeft: "8px"},
                 text)
             )
         }
+        col.appendChild(h)
     }
     row.appendChild(col)
 
@@ -689,15 +693,18 @@ function createTranRow(tran) {
     }
 
     // Split button
-    let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, cursor: "pointer"}, "↔️")
+    // Pending transactions are likely to be modified by the institution; splitting them will cause unexpected behavior.
+    if (!tran.pending) {
+        let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, cursor: "pointer"}, "↔️")
 
-    s.addEventListener("click", _ => {
-        createSplitter(tran.id)
-    })
+        s.addEventListener("click", _ => {
+            createSplitter(tran.id)
+        })
 
-    col.appendChild(s)
+        col.appendChild(s)
+    }
+
     row.appendChild(col)
-
     return row
 }
 
@@ -1154,7 +1161,7 @@ function setupSpendingHighlights() {
 function setupCatFilter(searchText) {
     // Set up the main transaction category filter. Done in JS for consistency with other CAT filters.
     let div = getEl("tran-cat-filter")
-    let sel = createCatSel(-2, true)
+    let sel = createCatSel(-2, "", true)
 
     sel.addEventListener("input", e => {
         FILTER_CAT = parseInt(e.target.value)
@@ -1203,8 +1210,10 @@ function init() {
             let iconText
             if (TRANSACTION_ICONS) {
                 iconText = catIconFromVal(tran.category)
+                el.style.paddingRight = "0"
             } else {
                 iconText = catNameFromVal(tran.category)
+                el.style.paddingRight = "20px"
             }
             el.textContent = iconText
 
