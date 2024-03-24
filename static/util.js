@@ -397,12 +397,14 @@ function formatAmount(number, decimals) {
 }
 
 
-function createCatSel(initVal) {
+function createCatSel(initVal, includeAll) {
     // Create a category selector. Must add a listener later; relatively generic.
    let sel = createEl("select", {id: "tran-filter-sel"}, {height: "40px"})
 
-    let opt = createEl("option", {value: -2}, {}, "All categories")
-    sel.appendChild(opt)
+    if (includeAll) {
+        let opt = createEl("option", {value: -2}, {}, "All categories")
+        sel.appendChild(opt)
+    }
 
     for (let cat of catNames) {
         opt = createEl("option", {value: cat[0]}, {}, cat[1])

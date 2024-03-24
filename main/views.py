@@ -173,6 +173,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
 def add_transactions(request: HttpRequest) -> HttpResponse:
     """Add one or more transactions, eg manually added by the user on the UI."""
     data = load_body(request)
+    result = {"success": True}
 
     for tran in data.get("transactions", []):
         print("Tran adding: ", tran)

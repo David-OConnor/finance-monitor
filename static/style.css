@@ -70,7 +70,8 @@ img {
 
 @media (max-width : 800px) {
     .home-body {
-        padding: 10px;
+        /*padding: 10px;*/
+        padding: 0px;
     }
 
     #menu {

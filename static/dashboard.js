@@ -32,6 +32,7 @@ let EDIT_MODE_TRAN = false
 let TRANSACTIONS_UPDATED = {}
 let ACCOUNTS_UPDATED = {}
 let SPLIT_TRAN_ID = null
+let NUM_NEW_SPLITS = 0
 
 // See models.py
 const ACC_TYPE_CHECKING = 0
@@ -317,7 +318,7 @@ function createCatEdit(tran, searchText) {
     // Create a select element for categories.
     // todo: Allow creating custom elements here, and search.
 
-    let sel = createCatSel(tran.category)
+    let sel = createCatSel(tran.category, false)
 
     sel.addEventListener("input", e => {
         let updated = {
@@ -336,25 +337,36 @@ function createCatEdit(tran, searchText) {
     return sel
 }
 
-function createSplitFormRow(splitId, cat, amount) {
+function createSplitFormRow(cat, amount, description) {
     let row = createEl("div", {}, {display: "flex"})
 
-    let catSel = createCatSel()
-    catSel.id = "split-cat-" + splitId.toString()
-
+    let catSel = createCatSel(cat, false)
+    catSel.id = "split-cat-" + NUM_NEW_SPLITS.toString()
     row.appendChild(catSel)
+
+        let descripIp = createEl(
+        "input",
+        {
+            id: "split-description-" + NUM_NEW_SPLITS.toString(),
+            value: description,
+        },
+        {width: "200px", marginLeft: "20px",}
+    )
+
+    row.appendChild(descripIp)
 
     let amtIp = createEl(
         "input",
         {
-            id: "split-amt-" + splitId.toString(),
+            id: "split-amt-" + NUM_NEW_SPLITS.toString(),
             type: "number",
-            value: formatAmount(amount, 2).replace("-", "")
+            value: amount,
         },
         {width: "80px", marginLeft: "20px",}
     )
 
     row.appendChild(amtIp)
+    NUM_NEW_SPLITS += 1
 
     return row
 }
@@ -366,7 +378,7 @@ function createSplitter(id) {
     getEl("split-tran").style.visibility = "visible"
 
     let h = getEl("split-tran-title")
-    h.textContent = tran.description + ": " + tran.date_display + ", "
+    h.textContent = tran.description + ": " + tran.institution_name + ", " + tran.date_display + ", "
     let s = createEl("span", {class: "tran-neutral"}, {fontWeight: "bold"}, formatAmount(tran.amount, 2).replace("-", ""))
     h.appendChild(s)
 
@@ -376,7 +388,7 @@ function createSplitter(id) {
     const numItems = 2
 
     for (let splitId=0; splitId<=numItems - 1; splitId++) {
-        body.appendChild(createSplitFormRow(splitId, tran.category,tran.amount / numItems))
+        body.appendChild(createSplitFormRow(tran.category,tran.amount / numItems, tran.description))
     }
 }
 
@@ -1176,7 +1188,7 @@ function setupSpendingHighlights() {
 function setupCatFilter(searchText) {
     // Set up the main transaction category filter. Done in JS for consistency with other CAT filters.
     let div = getEl("tran-cat-filter")
-    let sel = createCatSel(-1)
+    let sel = createCatSel(-1, true)
 
     sel.addEventListener("input", e => {
         FILTER_CAT = parseInt(e.target.value)
@@ -1365,62 +1377,72 @@ function changePage(direction) {
 
 function saveSplit() {
     // We use the existing add and modify APIs, vice a special one.
-    let tranParent = TRANSACTIONS.find(t => t.id === SPLIT_TRAN_ID
-    )
-    let tran_name = "New transaction " + (highestNum + 1).toString()
+    let tranParent = TRANSACTIONS.find(t => t.id === SPLIT_TRAN_ID)
+    tranParent.amount = parseInt(getEl("split-amt-0").value)
+    tranParent.category = parseInt(getEl("split-cat-0").value)
+    tranParent.description = getEl("split-description-0").value
 
-    const newTran =  {
-        ...tranParent,
-        amount: 0.,
-        category: -1,
-
-    }
-    // TRANSACTIONS.push(newTran)
-
-    const payload = {transactions: [newTran]}
+    TRANSACTIONS = [...TRANSACTIONS.filter(t => t.id !== tranParent.id), tranParent]
+    refreshTransactions() // todo: Not ideal, vice a ninja update, as below.
 
     // Modify the parent as required.
-    const data = {
-        // Discard keys; we mainly use them for updating internally here.
-        transactions: Object.values(TRANSACTIONS_UPDATED),
-        create_rule: CAT_ALWAYS,
+    const payloadModify = {
+        transactions: [tranParent],
+        create_rule: false,
     }
 
     // Save transactions to the database.
-    fetch("/edit-transactions", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
+    fetch("/edit-transactions", { body: JSON.stringify(payloadModify), ...FETCH_HEADERS_POST })
         .then(result => result.json())
         .then(r => {
             if (!r.success) {
-                console.error("Transaction save failed")
+                console.error("Transaction split (edit component) failed")
             }
         });
 
+
+    let payloadAdd = {transactions: []}
+    for (let i= 1; i < NUM_NEW_SPLITS; i++) {
+        let tranName = tranParent.description + " Split " + i.toString()
+
+        payloadAdd.transactions.push({
+            ...tranParent,
+            description: getEl("split-description-" + i.toString()).value,
+            amount: parseInt(getEl("split-amt-" + i.toString()).value),
+            category: parseInt(getEl("split-cat-" + i.toString()).value),
+        })
+    }
+
     // Add additional transactions.
-    fetch("/add-transactions", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+    fetch("/add-transactions", { body: JSON.stringify(payloadAdd), ...FETCH_HEADERS_POST })
         .then(result => result.json())
         .then(r => {
             if (r.success) {
-                TRANSACTIONS.push({
-                    ...newTran,
-                    id: r.ids[0],
-                })
+                for (let newTran of payloadAdd.transactions) {
+                    TRANSACTIONS.push({
+                        ...newTran,
+                        id: r.ids[0],
+                    })
 
-                // todo: For a snapier response, consider adding immediatley, and retroactively changing its id.
-                const row = createTranRow(newTran)
-                getEl("transaction-tbody").prepend(row)
+                    // todo: For a snapier response, consider adding immediatley, and retroactively changing its id.
+                    const row = createTranRow(newTran)
+                    getEl("transaction-tbody").prepend(row)
+                }
             } else {
-                console.error("Problem adding this transaction")
+                console.error("Problem adding this new split transaction.")
             }
         });
 
     getEl("split-tran").style.visibility = "collapse"
     SPLIT_TRAN_ID = null
+    NUM_NEW_SPLITS = 0
 }
 
 function hideSplit() {
     // Hide teh split section.
     getEl("split-tran").style.visibility = "collapse"
     SPLIT_TRAN_ID = null
+    NUM_NEW_SPLITS = 0
 }
 
 function addSplitTran() {
@@ -1429,7 +1451,7 @@ function addSplitTran() {
     let body = getEl("split-tran-body")
     const tran = TRANSACTIONS.find(t => t.id === SPLIT_TRAN_ID)
 
-    body.appendChild(createSplitFormRow(SPLIT_TRAN_ID, tran.category, 0.))
+    body.appendChild(createSplitFormRow(tran.category, 0., tran.description))
 }
 
 

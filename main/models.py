@@ -450,6 +450,7 @@ class Transaction(Model):
             "pending": self.pending,
             "highlighted": self.highlighted,
             "institution_name": self.institution_name,
+            "currency_code": self.currency_code,
         }
 
     def __str__(self):
