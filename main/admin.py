@@ -50,6 +50,11 @@ class RecurringAdmin(ModelAdmin):
     list_display = ("description", "account", "last_date", "average_amount")
 
 
+@admin.register(models.CategoryRule)
+class CategoryRuleAdmin(ModelAdmin):
+    list_display = ("description", "category")
+    search_fields = ("description", "category")
+
 @admin.register(models.SnapshotAccount)
 class SnapAccountAdmin(ModelAdmin):
     list_display = ("account", "dt", "value")

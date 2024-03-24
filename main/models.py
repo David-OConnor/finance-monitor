@@ -435,8 +435,6 @@ class Transaction(Model):
         return {
             "id": self.id,  # DB primary key.
             "category": self.category,
-            # Currently just used for search on FE. Could be replaced their by JS fns we already have.
-            "category_text": TransactionCategory(self.category).to_str(),
             "description": description,
             "notes": self.notes if self.notes else "",
             "amount": self.amount,
@@ -455,7 +453,7 @@ class Transaction(Model):
 
     def __str__(self):
         return (
-            f"Transaction. {self.description} Amount: {self.amount}, date: {self.date}"
+            f"Transaction. Id: {self.id}, {self.description}, {self.institution_name}, Amount: {self.amount}, date: {self.date}"
         )
 
     class Meta:
@@ -576,7 +574,7 @@ class CategoryRule(Model):
     category = IntegerField(choices=TransactionCategory.choices())
 
     class Meta:
-        ordering = ["person"]
+        ordering = ["description"]
         unique_together = ["person", "description"]
 
     def __str__(self):

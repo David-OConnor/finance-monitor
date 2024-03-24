@@ -130,6 +130,7 @@ function filterTransactions() {
     const valueThresh = VALUE_THRESH
     let start = new Date("1999-09-09")
     let end = new Date("2099-09-09")
+
     // Start and end will be empty strings if null
     if (FILTER_START.length) {
         start = new Date(FILTER_START)
@@ -150,7 +151,8 @@ function filterTransactions() {
         transactions = transactions.filter(t => {
             return t.description.toLowerCase().includes(searchText) ||
                 t.notes.toLowerCase().includes(searchText) ||
-                t.category_text.toLowerCase().includes(searchText)
+                t.institution_name.toLowerCase().includes(searchText) ||
+                catNameFromVal(t.category).toLowerCase().includes(searchText)
         })
     }
 
@@ -807,8 +809,6 @@ function setupEditTranButton() {
 }
 
 function saveTransactions() {
-    console.log("SAVING...", TRANSACTIONS_UPDATED)
-
     const data = {
         // Discard keys; we mainly use them for updating internally here.
         transactions: Object.values(TRANSACTIONS_UPDATED),
@@ -1180,7 +1180,6 @@ function init() {
             .then(result => result.json())
             .then(r => {
                 LINK_TOKEN = r.link_token
-                console.log("Link token set: ", LINK_TOKEN)
                 getPublicToken()
             });
     });
@@ -1281,13 +1280,9 @@ function addTranManual() {
     let tran_name = "New transaction " + (highestNum + 1).toString()
 
     const newTran =  {
-        // id: tempId,
         amount: 0.,
-        // amount_class: "tran-pos",
         amount_class: "tran-neutral",
         category: -1,
-        // categories_icon: [],
-        // categories_text: [],
         date: new Date().toISOString().split('T')[0],
         date_display: "03/11",
         description: tran_name,
@@ -1298,7 +1293,6 @@ function addTranManual() {
         institution_name: "",
         pending: false
     }
-    // TRANSACTIONS.push(newTran)
 
     const payload = {transactions: [newTran]}
 
@@ -1310,10 +1304,8 @@ function addTranManual() {
             // TRANSACTIONS = TRANSACTIONS.filter(t => t.id !== tempId0)
 
             if (r.success) {
-                TRANSACTIONS.push({
-                    ...newTran,
-                    id: r.ids[0],
-                })
+                newTran.id = r.ids[0]
+                TRANSACTIONS.push(newTran)
 
                 // todo: For a snapier response, consider adding immediatley, and retroactively changing its id.
                 const row = createTranRow(newTran)

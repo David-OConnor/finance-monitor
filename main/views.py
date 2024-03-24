@@ -1,6 +1,8 @@
 import json
 from datetime import date, timedelta, datetime
 from zoneinfo import ZoneInfo
+from django.db.models import Max
+import re
 
 from django.db.models import Q
 from django import forms
@@ -79,8 +81,6 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     data = load_body(request)
     # todo: Use pages or last index A/R.
 
-    print("Loading transactions. Data received: ", data)
-
     start_i = data["start_i"]
     end_i = data["end_i"]
     search = data.get("search")
@@ -97,7 +97,7 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     else:
         end = None
 
-    if category is not None:
+    if category is not None and category != -2:  # We use -2 on the frontend for all categories.
         category = TransactionCategory(category)
 
     tran = util.load_transactions(start_i, end_i, person, search, start, end, category)
@@ -129,29 +129,20 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
     """Edit transactions."""
     data = load_body(request)
 
-    # todo: This is being spammed, along with "Refreshing transactions" on the frontend!!!
-
     result = {"success": True}
     person = request.user.person
 
     for tran in data.get("transactions", []):
+        tran_db = Transaction.objects.get(
+            (Q(account__person=request.user.person) | Q(person=request.user.person)) & Q(id=tran["id"])
+        )  # Prevent exploits
 
-        # todo: Do it.
-        # if json.loads(existing.categories).contains tran["categories"]:
-        #     send_mail(
-        #
-        #     )
-
-        tran_db = Transaction.objects.filter(id=tran["id"])
-        tran_db = tran_db.filter(
-            Q(account__person=request.user.person) | Q(person=request.user.person)
-        ).first()  # Prevent exploits
+        print("Tran DB editing: ", tran_db)
         # todo: Don't override the original description for a linked transaction; use a separate field.
-
-        print(tran["amount"], tran["description"], "AMT, desc")
 
         tran_db.category = tran["category"]
         tran_db.description = tran["description"]
+        tran_db.institution_name = tran["institution_name"]
         tran_db.notes = tran["notes"]
         tran_db.amount = tran["amount"]
         tran_db.date = tran["date"]
@@ -176,7 +167,6 @@ def add_transactions(request: HttpRequest) -> HttpResponse:
     result = {"success": True}
 
     for tran in data.get("transactions", []):
-        print("Tran adding: ", tran)
         # todo: Do it.
 
         tran_db = Transaction(
@@ -193,6 +183,7 @@ def add_transactions(request: HttpRequest) -> HttpResponse:
 
         try:
             tran_db.save()
+            print("Tran adding: ", tran_db)
 
             # todo: This id setup is not set up to handle multiple. Fine for now.
             result = {"success": True, "ids": [tran_db.id]}
@@ -801,18 +792,57 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
 
     for rule in data["added"]:
         # The person check here prevents abuse by the frontend.
+
+        description_base = rule["description"]
+        # Normalize the description to handle "New transaction", "new transaction" equally.
+        normalized_description_base = description_base.strip().lower()
         rule_db = CategoryRule(
             person=person,
-            description=rule["description"],
+            description=description_base,
             category=rule["category"],
         )
-        # todo: Pass added IDs to the UI.
-        try:
-            rule_db.save()
-        except IntegrityError:
-            success = False
-        else:
-            util.change_tran_cats_from_rule(rule_db, person)
+
+        # Attempt to save the new rule, handling IntegrityError for duplicate descriptions.
+        # ChatGPT code to increment an integer at the end of the description, if we encounter a duplicate.
+        # todo: Once working, re-use this, as a fn, for custom cats.
+        success = False
+        attempt = 0
+        while not success:
+            try:
+                rule_db.save()
+                util.change_tran_cats_from_rule(rule_db, person)
+                success = True
+            except IntegrityError:
+                attempt += 1
+                # Find the current highest number for this base description
+                latest_rule = CategoryRule.objects.filter(
+                    description__iregex=r'^' + re.escape(normalized_description_base) + r' \d+$'
+                ).aggregate(max_number=Max('description'))
+                max_number = latest_rule['max_number']
+                if max_number:
+                    # Extract the number and increment it for the new description
+                    last_number = int(re.search(r'\d+$', max_number).group())
+                    new_number = last_number + 1
+                else:
+                    # This is the first duplicate, so start with 1
+                    new_number = 1
+
+                # Update the description with the new number
+                rule_db.description = f"{description_base} {new_number}"
+
+
+        # # todo: Pass added IDs to the UI.
+        # try:
+        #     rule_db.save()
+        # except IntegrityError:
+        #     # Increment a number in the description, then try again.
+        #     try:
+        #         rule_db.save()
+        #     except IntegrityError:
+        #         print(f"\nIntegrity error when saving a new category rule: {rule_db}\n")
+        #         success = False
+            else:
+                util.change_tran_cats_from_rule(rule_db, person)
 
     for id_ in data["deleted"]:
         # The person check here prevents abuse by the frontend.

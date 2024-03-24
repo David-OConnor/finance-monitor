@@ -80,7 +80,7 @@ def load_transactions(
 
     if search_text:
         trans = trans.filter(
-            Q(description__icontains=search_text) | Q(notes__icontains=search_text)
+            Q(description__icontains=search_text) | Q(notes__icontains=search_text) | Q(institution_name__icontains=search_text)
         )
 
     if start is not None:

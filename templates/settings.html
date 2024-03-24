@@ -18,7 +18,9 @@
             </div>
 
             <p>You can also add rules from the Dashboard, by clicking a category, then the <i>Always</i> button</p>
+        </div>
 
+        <div style="display: flex; flex-wrap: wrap;">
             {% for rule in rules %}
                 <div id="rule-{{ rule.id }}" style="display: flex; align-items: center; margin-bottom: 8px;">
                     <input
@@ -40,7 +42,7 @@
         <div style="display: flex; flex-direction: column; align-items: center">
 
             <div style="display: flex;">
-                <button class="button-general" onclick="saveRules()" style="margin-bottom: 12px;">Save category changes</button>
+                <button class="button-general" onclick="saveCategories()" style="margin-bottom: 12px;">Save category changes</button>
                 <button class="button-general" onclick="addRule()" style="margin-bottom: 12px;">➕ Add</button>
             </div>
 
@@ -204,8 +206,9 @@
                 .then(result => result.json())
                 .then(r => {
                     if (!r.success) {
-                        console.error("Rule edits failed to save")
+                        console.error("Rule addition failed to save")
                     } else {
+                        // todo: Pass the new ID from the UI, and add the row.
                         window.location.reload()
                     }
                 });
@@ -234,6 +237,7 @@
         {% endfor %}
 
         function saveRules() {
+            // Save transaction rules.
             const payload = {
                 edited: Object.values(rulesUpdated),
                 {#added: rulesAdded,#}
@@ -245,6 +249,29 @@
                 .then(r => {
                     if (!r.success) {
                         console.error("Rule edits failed to save")
+                    } else {
+                        if (rulesAdded.length) {
+                            // todo: Temp until we pass new ID from the backend
+                            window.location.reload()
+                        }
+                        getEl("rule-success").style.visibility = "visible"
+                    }
+                });
+        }
+
+        function Categories() {
+            // Save custom categories
+            const payload = {
+                edited: Object.values(rulesUpdated),
+                {#added: rulesAdded,#}
+                added: [], // todo temp handled separate
+                deleted: rulesDeleted,
+            }
+            fetch("/edit-rules", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("Category edits failed to save")
                     } else {
                         if (rulesAdded.length) {
                             // todo: Temp until we pass new ID from the backend
