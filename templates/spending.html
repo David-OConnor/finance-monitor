@@ -58,11 +58,19 @@
         </div>
 
 
-    <div style="display: flex; margin-top: 20px;">
+    <div style="display: flex; margin-top: 20px; align-items:  center; flex-direction: column">
         <h2>Spending over time</h2>
 
             <div id="plot-over-time-wrapper" style="width: 700px; margin-bottom: 40px;">
                 <canvas id="plot-over-time"></canvas>
+            </div>
+    </div>
+
+    <div style="display: flex; margin-top: 20px; align-items:  center; flex-direction: column">
+        <h2>Net income over time</h2>
+
+            <div id="income-over-time-wrapper" style="width: 700px; margin-bottom: 40px;">
+                <canvas id="income-over-time"></canvas>
             </div>
     </div>
 
@@ -72,7 +80,7 @@
     <script src="../static/js_libs/chart.min.js"></script>
 
     <script>
-        document.getElementById("menu-spending").classList.add("menu-highlighted")
+        getEl("menu-spending").classList.add("menu-highlighted")
 
         {# Load template variables into JS. #}
 
@@ -84,6 +92,7 @@
         let INCOME_TOTAL = 0
         let EXPENSES_TOTAL = 0
         let SPENDING_OVER_TIME = []
+        let INCOME_OVER_TIME = []
 
         let LOOKBACK = 30
 
@@ -136,7 +145,8 @@
                     HIGHLIGHTS = r.highlights
                     INCOME_TOTAL = r.income_total
                     EXPENSES_TOTAL = r.expenses_total
-                    SPENDING_OVER_TIME = r.over_time
+                    SPENDING_OVER_TIME = r.spending_over_time
+                    INCOME_OVER_TIME = r.income_over_time
 
                     console.log(SPENDING_OVER_TIME, "SOT")
 
@@ -159,7 +169,7 @@
                 let amountText = formatAmount(item[1][1])
                 amountText = amountText.replace("-", "")
 
-                let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0}, catDisp(item[0]) + ": ")
+                let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0, fontWeight: "normal"}, catDisp(item[0]) + ": ")
                 let s = createEl("span", {class: "tran-neutral"},  {}, amountText)
                 h4.appendChild(s)
                 sectionSpending.appendChild(h4)
@@ -173,7 +183,7 @@
                     amountText = "+" + amountText
                 }
 
-                let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0}, catDisp(item[0]) + ": ")
+                let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0, fontWeight: "normal"}, catDisp(item[0]) + ": ")
                 let s = createEl("span", {class: "tran-neutral"},  {}, amountText)
                 h4.appendChild(s)
                 sectionChanges.appendChild(h4)
@@ -191,13 +201,13 @@
             {#    type: 'doughnut',#}
             {#    data: data,#}
 
-            document.getElementById('plot').remove()
+            getEl('plot').remove()
 
             let el = document.createElement("canvas")
             el.setAttribute("id", "plot")
-            document.getElementById("plot-wrapper").appendChild(el)
+            getEl("plot-wrapper").appendChild(el)
 
-            let chartArea = document.getElementById('plot').getContext('2d')
+            let chartArea = getEl('plot').getContext('2d')
 
             let labels = []
             let values = []
@@ -263,13 +273,14 @@
             {#    type: 'doughnut',#}
             {#    data: data,#}
 
-            document.getElementById('plot-over-time').remove()
+            // Set up spending over time.
+            getEl('plot-over-time').remove()
 
             let el = document.createElement("canvas")
             el.setAttribute("id", "plot-over-time")
-            document.getElementById("plot-over-time-wrapper").appendChild(el)
+            getEl("plot-over-time-wrapper").appendChild(el)
 
-            let chartArea = document.getElementById('plot-over-time').getContext('2d')
+            let chartArea = getEl('plot-over-time').getContext('2d')
 
             let labels = []
             let values = []
@@ -278,7 +289,7 @@
                 values.push(item[1])
             }
 
-            const data = {
+            let data = {
                 labels: labels,
                 datasets: [{
                     label: "Spending over time",
@@ -288,7 +299,43 @@
                 }]
             };
 
-            const myChart = new Chart(chartArea, {
+            let myChart = new Chart(chartArea, {
+                type: 'line',
+                data: data,
+                options: {}
+            })
+            
+            // todo: DRY with above!
+            
+            // Set up net income over time
+            getEl('income-over-time').remove()
+
+            el = document.createElement("canvas")
+            el.setAttribute("id", "income-over-time")
+            getEl("income-over-time-wrapper").appendChild(el)
+
+            chartArea = getEl('income-over-time').getContext('2d')
+
+            labels = []
+            values = []
+            for (let i=0; i<INCOME_OVER_TIME.length; i++) {
+            {#for (item of INCOME_OVER_TIME) {#}
+                labels.push(INCOME_OVER_TIME[i][0])
+                console.log("Income in this period: ", INCOME_OVER_TIME[i], "Spending: ", SPENDING_OVER_TIME[i])
+                values.push(INCOME_OVER_TIME[i][1] + SPENDING_OVER_TIME[i][1])
+            }
+
+            data = {
+                labels: labels,
+                datasets: [{
+                    label: "Net income over time",
+                    data: values,
+                    backgroundColor: PLOT_COLORS,
+                    hoverOffset: 4
+                }]
+            };
+
+            myChart = new Chart(chartArea, {
                 type: 'line',
                 data: data,
                 options: {}

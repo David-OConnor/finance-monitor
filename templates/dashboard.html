@@ -9,11 +9,9 @@
 
         <div style="display: flex; align-items: center;">
             <h2 style="margin-right: 32px">Net worth: <span class="{{ totals.net_worth_class }}">{{ totals.net_worth }}</span></h2>
-            {#            <h2 class="hide-on-mobile" style="margin-left: 32px; margin-right: 32px">Accounts</h2>#}
 
             <button id="link-button" class="button-general">➕ Syncing account</button>
             <button id="add-manual-button" class="button-general" onclick="toggleAddManual()">➕ Manual account</button>
-            {#            <button id="edit-accounts" class="button-general">✎ Edit</button>#}
             <p class="hide-on-mobile">Click an account to edit it</p>
 
         </div>
@@ -252,14 +250,16 @@
                         </div>
                     </th>
 
-                    {#                    Institution name #}
+                    {# Institution name #}
                     {#                    <th class="hide-on-mobile">Institution</th>#}
                     <th id="institution-col">Institution</th>
-                    {#                Notes#}
+
+                    {# Notes #}
 
                     <th style="text-align: left">Notes</th>
                     <th><button class="button-small" onClick="addTranManual()">➕Add</button></th>
                     <th></th>
+                    <th class="hide-on-mobile">Tools</th>
                 </tr>
                 </thead>
                 <tbody id="transaction-tbody"></tbody>

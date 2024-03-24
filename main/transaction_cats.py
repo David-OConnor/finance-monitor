@@ -98,6 +98,7 @@ class TransactionCategory(Enum):
     GIFTS = 32
     EDUCATION = 33
     ALCOHOL = 34
+    HEALTH_AND_PERSONAL_CARE = 35
 
     @classmethod
     def from_str(cls, s: str) -> "TransactionCategory":
@@ -183,6 +184,8 @@ class TransactionCategory(Enum):
             return cls.EDUCATION
         if "alcohol" in s or "bar" in s:
             return cls.ALCOHOL
+        if "health" in s or "personal care" in s:
+            return cls.HEALTH_AND_PERSONAL_CARE
 
         print("Fallthrough in parsing transaction category: ", s)
 
@@ -274,6 +277,8 @@ class TransactionCategory(Enum):
             return "Education"
         if self == TransactionCategory.ALCOHOL:
             return "Alcohol and bars"
+        if self == TransactionCategory.HEALTH_AND_PERSONAL_CARE:
+            return "Health and personal care"
 
         print("Fallthrough on cat to string", self)
         return "Fallthrough"
@@ -335,7 +340,7 @@ class TransactionCategory(Enum):
         if self == TransactionCategory.HOME_AND_GARDEN:
             return "🏡"
         if self == TransactionCategory.MEDICAL:
-            return "☤"
+            return "⚕️"
         if self == TransactionCategory.ENTERTAINMENT:
             return "🎥"
         if self == TransactionCategory.BILLS_AND_UTILITIES:
@@ -356,6 +361,8 @@ class TransactionCategory(Enum):
             return "🎓"
         if self == TransactionCategory.ALCOHOL:
             return "🍺"
+        if self == TransactionCategory.HEALTH_AND_PERSONAL_CARE:
+            return "🛁"
 
         print("Fallthrough on cat to icon", self)
         return "Fallthrough"
@@ -502,12 +509,25 @@ replacements = [
     #
     ("pharmacy", TransactionCategory.MEDICAL),
     #
+    ("cvs", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("walgreen", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("beauty", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("cosmetic", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("sephora", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("dermstore", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("detox", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("fragrance", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("bluemercury", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("credo", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("perfumania", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("ulta", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("fsastore", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("avon", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    #
     ("costco", TransactionCategory.SHOPS),
     ("kroger", TransactionCategory.SHOPS),
     ("home depot", TransactionCategory.SHOPS),
     ("target", TransactionCategory.SHOPS),
-    ("cvs", TransactionCategory.SHOPS),
-    ("walgreen", TransactionCategory.SHOPS),
     ("lowes", TransactionCategory.SHOPS),
     ("lowe's", TransactionCategory.SHOPS),
     ("best buy", TransactionCategory.ELECTRONICS),
@@ -537,6 +557,10 @@ replacements = [
     ("amazon", TransactionCategory.SHOPS),
     #
     ("interest", TransactionCategory.FEES),
+    ("online payment", TransactionCategory.TRANSFER),
+    ("cash reward", TransactionCategory.INCOME),
+    ("deposit-ach", TransactionCategory.INCOME),
+    ("gusto", TransactionCategory.INCOME),
 ]
 
 

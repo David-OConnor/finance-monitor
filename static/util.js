@@ -207,6 +207,9 @@ function catNameFromVal(val) {
     if (val === 34) {
         return "Alcohol and bars"
     }
+    if (val === 35) {
+        return "Health/personal care"
+    }
 
     console.error("Fallthrough on cat name", val)
     return "Uncategorized"
@@ -324,6 +327,9 @@ function catIconFromVal(val){
     if (val === 34) {
         return "🍺"
     }
+    if (val === 35) {
+        return "🛁"
+    }
 
     console.error("Fallthrough on cat icon", val)
     return "❓"
@@ -371,7 +377,7 @@ function getCrsfToken() {
 
 // todo: There is actually no elegant way to get a range iterator in JS...
 const catVals = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-    21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34]
+    21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
 
 let catNames = catVals.map(v => [v, catNameFromVal(v)])
 // Sort alphabetically, by cat name.
@@ -407,7 +413,7 @@ function createCatSel(initVal, includeAll) {
     }
 
     for (let cat of catNames) {
-        opt = createEl("option", {value: cat[0]}, {}, cat[1])
+        let opt = createEl("option", {value: cat[0]}, {}, catDisp(cat[0]))
 
         if (cat[0] === initVal) {
             opt.setAttribute("selected", "")

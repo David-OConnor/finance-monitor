@@ -508,7 +508,6 @@ def spending(request: HttpRequest) -> HttpResponse:
     if account_status is not None:
         return account_status
 
-    # context = util.setup_spending_data(person, 30, 0)
     context = {}
 
     return render(request, "spending.html", context)

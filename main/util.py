@@ -340,7 +340,8 @@ def setup_spending_data(
     # TODO. no! Doubles the query.
     spending_highlights = setup_spending_highlights(person, start_days_back, end_days_back, False)
 
-    over_time = []
+    spending_over_time = []
+    income_over_time = []
     # for months_back in range(0, 12):
     for months_back in range(12, 0, -1):
         now = timezone.now()
@@ -349,19 +350,27 @@ def setup_spending_data(
 
         # todo: DRY with above.
         trans_in_month = load_transactions(None, None, person, "", start, end, None)
-        expense_transactions = filter_trans_spending(trans_in_month)
+
         expenses_in_month = 0.0
+        expense_transactions = filter_trans_spending(trans_in_month)
         for t in expense_transactions:
             expenses_in_month += t.amount
+        spending_over_time.append((start.date().strftime("%b %y"), expenses_in_month))
 
-        over_time.append((start.date().strftime("%b %y"), expenses_in_month))
-
+        income_in_month = 0.0
+        income_transactions = [
+            t for t in trans_in_month if TransactionCategory.INCOME.value == t.category
+        ]
+        for t in income_transactions:
+            income_in_month += t.amount
+        income_over_time.append((start.date().strftime("%b %y"), income_in_month))
 
     return {
         "highlights": spending_highlights,
         "income_total": income_total,
         "expenses_total": expenses_total,
-        "over_time": over_time,
+        "spending_over_time": spending_over_time,
+        "income_over_time": income_over_time,
     }
 
 

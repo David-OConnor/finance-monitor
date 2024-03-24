@@ -296,7 +296,7 @@ function refreshAccounts() {
 
             // todo: Remove minus sign for cleanness?
             const class_ = total > 0 ? "tran-pos" : "tran-neg"
-            totalFormatted = formatAmount(total, false)
+            totalFormatted = formatAmount(total, 0)
             h2 = createEl("h2", {class: class_}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, totalFormatted) // total todo
 
             d2.appendChild(h1)
@@ -339,12 +339,16 @@ function createCatEdit(tran, searchText) {
 
 function createSplitFormRow(cat, amount, description) {
     let row = createEl("div", {}, {display: "flex"})
-
+    console.log(description, "D")
     let catSel = createCatSel(cat, false)
     catSel.id = "split-cat-" + NUM_NEW_SPLITS.toString()
-    row.appendChild(catSel)
 
-        let descripIp = createEl(
+    if (NUM_NEW_SPLITS > 0) {
+        description = description + " Split " +  NUM_NEW_SPLITS.toString()
+    }
+
+    row.appendChild(catSel)
+    let descripIp = createEl(
         "input",
         {
             id: "split-description-" + NUM_NEW_SPLITS.toString(),
@@ -656,85 +660,42 @@ function createTranRow(tran) {
         col.appendChild(d)
     } else {
         let h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
-
-        if (!onMobile()) {
-            // Highlighter icon.
-            let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, cursor: "pointer"}, "🖍️")
-
-            s.addEventListener("click", _ => {
-                let data = {id: tran.id}
-                fetch("/toggle-highlight", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
-                    .then(result => result.json())
-                    .then(r => {
-                    });
-
-                tran.highlighted = !tran.highlighted
-                let bgColor = tran.highlighted ? HIGHLIGHT_COLOR : "white"
-                getEl("tran-row-" + tran.id.toString()).style.backgroundColor = bgColor
-            })
-
-            h.appendChild(s)
-        }
-
-        // Split button
-        let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, cursor: "pointer"}, "↔️")
-
-        s.addEventListener("click", _ => {
-            createSplitter(tran.id)
-
-            // let tran_name = "New transaction " + (highestNum + 1).toString()
-
-            // const newTran =  {
-            //     // id: tempId,
-            //     amount: 0.,
-            //     // amount_class: "tran-pos",
-            //     amount_class: "tran-neutral",
-            //     category: -1,
-            //     // categories_icon: [],
-            //     // categories_text: [],
-            //     date: new Date().toISOString().split('T')[0],
-            //     date_display: "03/11",
-            //     description: tran_name,
-            //     id: -999,
-            //     logo_url: "",
-            //     notes: "",
-            //     currency_code: "USD",
-            //     institution_name: "",
-            //     pending: false
-            // }
-            // // TRANSACTIONS.push(newTran)
-            //
-            // const payload = {transactions: [newTran]}
-
-            // fetch("/add-transactions", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
-            //     .then(result => result.json())
-            //     .then(r => {
-            //         // // We could just hold off on adding the transaction to the UI, but I think this approach
-            //         // // will feel more responsive due to showing the tran immediately.
-            //         // TRANSACTIONS = TRANSACTIONS.filter(t => t.id !== tempId0)
-            //
-            //         if (r.success) {
-            //             console.log("Add resp: ", r)
-            //             TRANSACTIONS.push({
-            //                 ...newTran,
-            //                 id: r.ids[0],
-            //             })
-            //
-            //             // todo: For a snapier response, consider adding immediatley, and retroactively changing its id.
-            //             const row = createTranRow(newTran)
-            //             getEl("transaction-tbody").prepend(row)
-            //         } else {
-            //             console.error("Problem splitting this transaction")
-            //             // (We've just removed it from the state above)
-            //         }
-            //     });
-        })
-
-        h.appendChild(s)
-
         col.appendChild(h)
     }
 
+    row.appendChild(col)
+
+    // mobile?
+    col = createEl("td", {class: "transaction-cell"})
+
+
+    if (!onMobile()) {
+        // Highlighter icon.
+        let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, cursor: "pointer"}, "🖍️")
+
+        s.addEventListener("click", _ => {
+            let data = {id: tran.id}
+            fetch("/toggle-highlight", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
+                .then(result => result.json())
+                .then(r => {
+                });
+
+            tran.highlighted = !tran.highlighted
+            let bgColor = tran.highlighted ? HIGHLIGHT_COLOR : "white"
+            getEl("tran-row-" + tran.id.toString()).style.backgroundColor = bgColor
+        })
+
+        col.appendChild(s)
+    }
+
+    // Split button
+    let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, cursor: "pointer"}, "↔️")
+
+    s.addEventListener("click", _ => {
+        createSplitter(tran.id)
+    })
+
+    col.appendChild(s)
     row.appendChild(col)
 
     return row
@@ -827,7 +788,7 @@ function setupEditTranButton() {
             }
 
             EDIT_MODE_TRAN = false
-            btn.textContent = "Edit transactions"
+            btn.textContent = "✎ Edit"
             saveTransactions()
         } else {
             // Enable editing on click.
@@ -1062,7 +1023,7 @@ function setupSpendingHighlights() {
         "Total: "
     )
 
-    let s = createEl("span", {class: "tran-neutral"}, {}, formatAmount(SPENDING_HIGHLIGHTS.total, 0))
+    let s = createEl("span", {class: "tran-neutral"}, {}, formatAmount(SPENDING_HIGHLIGHTS.total, 0).replace("-", ""))
     h.appendChild(s)
     biggestCats.appendChild(h)
 
@@ -1169,7 +1130,12 @@ function setupSpendingHighlights() {
             {marginRight: "40px", fontWeight: "normal", marginTop: 0, marginBottom: 0},
             text
         )
-        let s = createEl("span", {class: "tran-neutral"}, {fontWeight: "bold"}, formatAmount(purchase.amount, 0))
+        let s = createEl(
+            "span",
+            {class: "tran-neutral"},
+            {fontWeight: "bold"},
+            formatAmount(purchase.amount, 0).replace("-", "")
+        )
         // let s2 = createEl("span", {}, {}, " in " + purchase[1][0] + " transactions")
 
         h.appendChild(s)
@@ -1188,7 +1154,7 @@ function setupSpendingHighlights() {
 function setupCatFilter(searchText) {
     // Set up the main transaction category filter. Done in JS for consistency with other CAT filters.
     let div = getEl("tran-cat-filter")
-    let sel = createCatSel(-1, true)
+    let sel = createCatSel(-2, true)
 
     sel.addEventListener("input", e => {
         FILTER_CAT = parseInt(e.target.value)
@@ -1403,8 +1369,6 @@ function saveSplit() {
 
     let payloadAdd = {transactions: []}
     for (let i= 1; i < NUM_NEW_SPLITS; i++) {
-        let tranName = tranParent.description + " Split " + i.toString()
-
         payloadAdd.transactions.push({
             ...tranParent,
             description: getEl("split-description-" + i.toString()).value,

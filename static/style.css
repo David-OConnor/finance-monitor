@@ -63,15 +63,15 @@ img {
     .home-body {
         padding: 40px;
         background-color: #F8F8F8;
-        margin-left: 10%;
-        margin-right: 10%;
+        /*margin-left: 5%;*/
+        /*margin-right: 5%;*/
     }
 }
 
 @media (max-width : 800px) {
     .home-body {
         /*padding: 10px;*/
-        padding: 0px;
+        padding: 0;
     }
 
     #menu {
