@@ -157,6 +157,17 @@
             <h2 style="margin-right: 4px;">Transactions</h2>
             {# Required to show borders?#}
 
+            {#  A section with clickable months #}
+            <div class="hide-on-mobile" style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
+                {% for item in month_picker_items %}
+                    <button
+                            class="button-general"
+                            style="margin-left: 8px; margin-right: 8px;"
+                            onclick="changeDates('{{ item.1 }}', '{{ item.2 }}')"
+                    >{{ item.0 }}</button>
+                {% endfor %}
+            </div>
+
             <form style="display: flex; flex-wrap: wrap; align-items: center;">
                 <div style="display: flex; align-items: center; margin-right: 32px;">
                     <span>🔍</span>

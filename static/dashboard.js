@@ -64,7 +64,6 @@ function getPublicToken() {
         // token: await fetch("/create_link_token", {...FETCH_HEADERS_POST }).link_token,
         token: LINK_TOKEN,
         onLoad: function() {
-            console.log("Link loaded")
             // Optional, called when Link loads
         },
         onSuccess: function(public_token, metadata) {
@@ -76,8 +75,6 @@ function getPublicToken() {
             //     public_token: public_token,
             // });
             //
-            console.log("Received a public token; sending to the backend.")
-            console.log("Metadata: ", metadata)
 
             const payload = {
                 public_token: public_token,
@@ -96,7 +93,6 @@ function getPublicToken() {
                 });
         },
         onExit: function(err, metadata) {
-            console.log("Link flow exited")
             // The user exited the Link flow.
             if (err != null) {
                 // The user encountered a Plaid API error prior to exiting.
@@ -106,8 +102,6 @@ function getPublicToken() {
             // Storing this information can be helpful for support.
         },
         onEvent: function(eventName, metadata) {
-            console.log("Link flow event: ", eventName)
-            console.log("Metadata: ", metadata)
             // Optionally capture Link flow events, streamed through
             // this callback as your users connect an Item to Plaid.
             // For example:
@@ -1245,17 +1239,17 @@ function init() {
     setupCatFilter()
 
     if (onMobile()) {
-        getEl("biggest-change-h").textContent = "Changes:"
-        getEl("large-purchases-h").textContent = "Large:"
+        // getEl("biggest-change-h").textContent = "Changes:"
+        // getEl("large-purchases-h").textContent = "Large:"
+    } else {
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                CAT_QUICKEDIT = null
+                CAT_ALWAYS = false
+                refreshTransactions() // todo: Don't refresh all. just the text edit in question.
+            }
+        });
     }
-
-    document.addEventListener("keydown",function(e){
-        if(e.key === "Escape") {
-            CAT_QUICKEDIT = null
-            CAT_ALWAYS = false
-            refreshTransactions() // todo: Don't refresh all. just the text edit in question.
-        }
-    });
 }
 
 init()
@@ -1419,4 +1413,14 @@ function addSplitTran() {
     body.appendChild(createSplitFormRow(tran.category, 0., tran.description))
 }
 
+function changeDates(start, end) {
+    // Used, eg by the month quickpick buttons, to change the dates.
+    // FILTER_START = start
+    // FILTER_END = end
+    getEl("tran-filter-start").value = start
+    getEl("tran-filter-end").value = end
 
+    updateTranFilter()
+
+    refreshTransactions()
+}

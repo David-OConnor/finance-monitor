@@ -186,10 +186,24 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         accs = json.dumps(accs)
         tran = json.dumps(tran)
 
+    month_picker_items = []
+    # todo: This month setup  DRY from setup_spending_data.
+    for months_back in range(12, -1, -1):
+        now = timezone.now()
+        month_start = (now - relativedelta(months=months_back)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        month_end = (month_start + relativedelta(months=1) - timedelta(seconds=1))
+
+        month_picker_items.append((
+            month_start.strftime("%b"),
+            month_start.date().isoformat(),
+            month_end.date().isoformat()
+        ))
+
     return {
         "totals": totals_display,
         "sub_accs": accs,
         "transactions": tran,
+        "month_picker_items": month_picker_items
     }
 
 
