@@ -243,6 +243,11 @@ def filter_trans_spending(trans) -> List[Transaction]:
     result = []
 
     for tran in trans:
+        # For now, assume all custom categories are considered to be spending.
+        if tran.category > 1_000:
+            result.append(tran)
+            continue
+
         cat = TransactionCategory(tran.category)
 
         if cat not in CATS_NON_SPENDING:
@@ -276,13 +281,14 @@ def setup_spending_highlights(
     # print(trans_spending, "TS")
 
     for tran in trans_spending:
-        cat = TransactionCategory(tran.category)
+        # cat = TransactionCategory(tran.category)
+        cat = tran.category
 
-        if cat.value not in by_cat.keys():
-            by_cat[cat.value] = [1, tran.amount]  # count, total, transactions serialized
+        if cat not in by_cat.keys():
+            by_cat[cat] = [1, tran.amount]  # count, total, transactions serialized
         else:
-            by_cat[cat.value][0] += 1
-            by_cat[cat.value][1] += tran.amount
+            by_cat[cat][0] += 1
+            by_cat[cat][1] += tran.amount
 
         if abs(tran.amount) >= LARGE_PURCHASE_THRESH:
             large_transactions.append(

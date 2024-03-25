@@ -166,6 +166,14 @@
                             onclick="changeDates('{{ item.1 }}', '{{ item.2 }}')"
                     >{{ item.0 }}</button>
                 {% endfor %}
+
+                {# All months #}
+                <button
+                        class="button-general"
+                        style="margin-left: 8px; margin-right: 8px;"
+{#                        onclick="changeDates('1980-01-01', '2030-01-01')"#}
+                        onclick="changeDates(null, null)"
+                >All</button>
             </div>
 
             <form style="display: flex; flex-wrap: wrap; align-items: center;">
@@ -293,6 +301,7 @@
             let TRANSACTIONS = {{ transactions|safe }};
             let TOTALS = {{ totals|safe }};
             let SPENDING_HIGHLIGHTS = {{ spending_highlights|safe }};
+            let CUSTOM_CATEGORIES = {{custom_categories|safe }};
 
         </script>
 

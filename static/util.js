@@ -210,6 +210,15 @@ function catNameFromVal(val) {
     if (val === 35) {
         return "Health/personal care"
     }
+    if (val > 1000 && CUSTOM_CATEGORIES !== undefined) {
+        // This is a custom category
+        for (let cat of CUSTOM_CATEGORIES) {
+            let effectiveId = 1000 + cat.id
+            if (val === effectiveId) {
+                return cat.name
+            }
+        }
+    }
 
     console.error("Fallthrough on cat name", val)
     return "Uncategorized"
@@ -330,6 +339,15 @@ function catIconFromVal(val){
     if (val === 35) {
         return "🛁"
     }
+    if (val > 1000 && CUSTOM_CATEGORIES !== undefined) {
+        // This is a custom category
+        for (let cat of CUSTOM_CATEGORIES) {
+            let effectiveId = 1000 + cat.id
+            if (val === effectiveId) {
+                return cat.name
+            }
+        }
+    }
 
     console.error("Fallthrough on cat icon", val)
     return "❓"
@@ -379,6 +397,7 @@ function getCrsfToken() {
 const catVals = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
     21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
 
+
 let catNames = catVals.map(v => [v, catNameFromVal(v)])
 // Sort alphabetically, by cat name.
 catNames.sort((a, b) =>(a[1].localeCompare(b[1])))
@@ -405,11 +424,31 @@ function formatAmount(number, decimals) {
 
 function createCatSel(initVal, filter, includeAll) {
     // Create a category selector. Must add a listener later; relatively generic.
-   let sel = createEl("select", {id: "tran-filter-sel"}, {height: "40px"})
+    let sel = createEl("select", {id: "tran-filter-sel"}, {height: "40px"})
 
     if (includeAll) {
         let opt = createEl("option", {value: -2}, {}, "All categories")
         sel.appendChild(opt)
+    }
+
+    // Prepend custom categories, if available.
+    if (CUSTOM_CATEGORIES !== undefined) {
+        for (let cat of CUSTOM_CATEGORIES) {
+            // For custom categories, we add 1000 to the ID as the unique cat identifier in the DB and local state.
+            let effectiveId = 1000 + cat.id
+
+            // todo: DRY with below
+            let opt = createEl("option", {value: effectiveId}, {}, cat.name)
+
+            if (filter && !cat.name.toLowerCase().includes(filter)) {
+                continue
+            }
+
+            if (effectiveId === initVal) {
+                opt.setAttribute("selected", "")
+            }
+            sel.appendChild(opt)
+        }
     }
 
     for (let cat of catNames) {

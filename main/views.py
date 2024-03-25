@@ -309,6 +309,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     context = util.load_dash_data(request.user.person)
 
     context["spending_highlights"] = json.dumps(spending_highlights)
+    context["custom_categories"] = [c.serialize() for c in CategoryCustom.objects.filter(person=person)]
 
     return render(request, "dashboard.html", context)
 
@@ -499,7 +500,9 @@ def spending(request: HttpRequest) -> HttpResponse:
     if account_status is not None:
         return account_status
 
-    context = {}
+    context = {
+        "custom_categories": [c.serialize() for c in CategoryCustom.objects.filter(person=request.user.person)]
+    }
 
     return render(request, "spending.html", context)
 

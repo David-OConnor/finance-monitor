@@ -497,6 +497,12 @@ class CategoryCustom(Model):
     def __str__(self):
         return f"Custom cat. {self.person}, {self.name}"
 
+    def serialize(self) -> Dict[str, str]:
+        return {
+            "id": self.id,  # DB primary key.
+            "name": self.name,
+        }
+
 
 class RecurringTransaction(Model):
     account = ForeignKey(SubAccount, related_name="recurring", on_delete=CASCADE)
