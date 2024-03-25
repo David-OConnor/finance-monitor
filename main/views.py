@@ -574,6 +574,7 @@ def settings(request: HttpRequest) -> HttpResponse:
     context = {
         "rules": CategoryRule.objects.filter(person=request.user.person),
         "custom_categories": CategoryCustom.objects.filter(person=request.user.person),
+        "custom_categories_ser": [c.serialize() for c in CategoryCustom.objects.filter(person=request.user.person)],
         "password_change": False,
     }
 

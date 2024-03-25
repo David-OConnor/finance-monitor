@@ -169,6 +169,8 @@
         let catsAdded = []
         let catsDeleted = []
 
+        let CUSTOM_CATEGORIES = {{ custom_categories_ser|safe }}
+
         {#Set up the import start#}
         const importStart = getEl('import-start')
         importStart.addEventListener('click', function() {
