@@ -381,6 +381,13 @@ class TransactionCategory(Enum):
         )
 
 
+# Statically set up all cat names, for use in filtering.
+CAT_NAMES = []
+for cat_val in range(-1, 35):
+    CAT_NAMES.append(
+        (cat_val, TransactionCategory(cat_val).to_str().lower())
+    )
+
 # A mapping of keywords to manual transactions
 replacements = [
     ("coffee", TransactionCategory.COFFEE_SHOP),

@@ -63,14 +63,15 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
     return net_worth
 
 
+
 def load_transactions(
-    start_i: Optional[int],
-    end_i: Optional[int],
-    person: Person,
-    search_text: Optional[str],
-    start: Optional[date],
-    end: Optional[date],
-    category: Optional[TransactionCategory],
+        start_i: Optional[int],
+        end_i: Optional[int],
+        person: Person,
+        search_text: Optional[str],
+        start: Optional[date],
+        end: Optional[date],
+        category: Optional[TransactionCategory],
 ) -> List[Transaction]:
     """Create a set of transactions, serialized for use with the frontend. These
     are combined from all sub-accounts."""
@@ -79,8 +80,12 @@ def load_transactions(
     trans = Transaction.objects.filter(Q(account__person=person) | Q(person=person))
 
     if search_text:
+        search_text = search_text.lower()
+
+        cat_vals = [c[0] for c in transaction_cats.CAT_NAMES if search_text in c[1]]
         trans = trans.filter(
             Q(description__icontains=search_text) | Q(notes__icontains=search_text) | Q(institution_name__icontains=search_text)
+            | Q(category__in=cat_vals)
         )
 
     if start is not None:
@@ -88,11 +93,13 @@ def load_transactions(
     if end is not None:
         trans = trans.filter(date__lte=end)
 
-    # This filter takes advantage of `categories` being a JSON Field.
+    # Note: this hard-set category filter is independent from filtering transaction category by search text.
     if category is not None:
         print("\n\n CATEGORY", category, "\n\n)")
         trans = trans.filter(category=category.value)
 
+    # Make sure this index filter is last; it's related to selectingly loading only what's needed at a time
+    # on the frontend.
     if start_i is not None and end_i is not None:
         return trans[start_i:end_i]
     return trans
@@ -123,7 +130,7 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
     }
 
     for sub_acc in SubAccount.objects.filter(
-        Q(account__person=person) | Q(person=person)
+            Q(account__person=person) | Q(person=person)
     ):
         if sub_acc.ignored:
             continue
@@ -259,7 +266,7 @@ def filter_trans_spending(trans) -> List[Transaction]:
 
 # def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Person, num_days: int) -> List[Tuple[TransactionCategory, List[int, float, Dict[str, str]]]]:
 def setup_spending_highlights(
-    person: Person, start_days_back: int, end_days_back: int, is_lookback: bool
+        person: Person, start_days_back: int, end_days_back: int, is_lookback: bool
 ):
     """Find the biggest recent spending highlights."""
     now = timezone.now()
@@ -338,7 +345,7 @@ def setup_spending_highlights(
 
 
 def setup_spending_data(
-    person: Person, start_days_back: int, end_days_back: int
+        person: Person, start_days_back: int, end_days_back: int
 ) -> dict:
     # todo: DRY/C+P! This is bad because it repeats the same transaction query. Fix it for performance reasons.
     now = timezone.now()
@@ -418,8 +425,8 @@ def change_tran_cats_from_rule(rule: CategoryRule, person: Person):
     """This is a bit of a forward decision, but retroactively re-categorize transactions matching
     a given description, based on a new or updated rule."""
     for tran in Transaction.objects.filter(
-        Q(person=person) | Q(account__person=person),
-        description__iexact=rule.description,
+            Q(person=person) | Q(account__person=person),
+            description__iexact=rule.description,
     ):
         tran.category = rule.category
         tran.save()
