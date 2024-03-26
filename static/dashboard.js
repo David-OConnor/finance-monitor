@@ -225,7 +225,8 @@ function createAccRow(acc, type) {
         }
     }
 
-    let h_a = createEl("h4", {class: "acct-hdg"}, {marginRight: "26px"}, name)
+    // Flex and align items for the health indicator
+    let h_a = createEl("h4", {class: "acct-hdg"}, {marginRight: "26px", display: "flex", alignItems: "center"}, name)
 
     let val = acc.current
     if (["Credit", "Loan"].includes(type)) {
@@ -240,7 +241,7 @@ function createAccRow(acc, type) {
 
     for (let health of ACC_HEALTH) {
         if (health[0] === acc.id) {
-            let healthSpan = createEl("span", {}, {}, health[1] ? "🟢" : "🔴")
+            let healthSpan = createEl("span", {}, {fontSize: "0.6em", marginRight: "4px"}, health[1] ? "🟢" : "🔴")
             h_a.prepend(healthSpan)
         }
     }
@@ -1075,7 +1076,8 @@ function setupSpendingHighlights() {
         h = createEl(
             "h4",
             {},
-            {marginRight: "40px", marginBottom: 0, marginTop: 0, cursor: "pointer", fontWeight: "normal"},
+            // {marginRight: "40px", marginBottom: 0, marginTop: 0, cursor: "pointer", fontWeight: "normal"},
+            {marginBottom: 0, marginTop: 0, cursor: "pointer", fontWeight: "normal"},
             text
         )
 
@@ -1160,7 +1162,8 @@ function setupSpendingHighlights() {
             "h4",
             {},
             // {marginRight: "40px", cursor: "pointer"},
-            {marginRight: "40px", fontWeight: "normal"},
+            // {marginRight: "40px", fontWeight: "normal"},
+            {fontWeight: "normal"},
             "(None)"
         )
         largePurchases.appendChild(h)
@@ -1172,7 +1175,8 @@ function setupSpendingHighlights() {
             "h4",
             {},
             // {marginRight: "40px", cursor: "pointer"},
-            {marginRight: "40px", fontWeight: "normal", marginTop: 0, marginBottom: 0},
+            // {marginRight: "40px", fontWeight: "normal", marginTop: 0, marginBottom: 0},
+            {fontWeight: "normal", marginTop: 0, marginBottom: 0},
             text
         )
         let s = createEl(
@@ -1296,6 +1300,10 @@ function init() {
     setupCatFilter()
 
     if (onMobile()) {
+        // Delete " acccount" on these buttons, to save space.
+        getEl("link-button").textContent = "➕ Syncing"
+        getEl("add-manual-button").textContent = "➕ Manual"
+
         // getEl("biggest-change-h").textContent = "Changes:"
         // getEl("large-purchases-h").textContent = "Large:"
     } else {
