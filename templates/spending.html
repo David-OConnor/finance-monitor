@@ -62,8 +62,8 @@
             <div style="display: flex; margin-top: 20px; margin-right: 60px; align-items:  center; flex-direction: column">
                 <h2>Spending over time</h2>
 
-                <div id="plot-over-time-wrapper" style="width: 500px; margin-bottom: 40px;">
-                    <canvas id="plot-over-time"></canvas>
+                <div id="spending-over-time-wrapper" style="width: 500px; margin-bottom: 40px;">
+                    <canvas id="spending-over-time"></canvas>
                 </div>
             </div>
 
@@ -303,19 +303,19 @@
             {#    data: data,#}
 
             // Set up spending over time.
-            getEl('plot-over-time').remove()
+            getEl('spending-over-time').remove()
 
             let el = document.createElement("canvas")
-            el.setAttribute("id", "plot-over-time")
-            getEl("plot-over-time-wrapper").appendChild(el)
+            el.setAttribute("id", "spending-over-time")
+            getEl("spending-over-time-wrapper").appendChild(el)
 
-            let chartArea = getEl('plot-over-time').getContext('2d')
+            let chartArea = getEl('spending-over-time').getContext('2d')
 
             let labels = []
             let values = []
             for (let item of SPENDING_OVER_TIME) {
                 labels.push(item[0])
-                values.push(item[1])
+                values.push(-item[1])
             }
 
             let data = {
@@ -357,7 +357,6 @@
             for (let i=0; i<INCOME_OVER_TIME.length; i++) {
                 {#for (item of INCOME_OVER_TIME) {#}
                 labels.push(INCOME_OVER_TIME[i][0])
-                console.log("Income in this period: ", INCOME_OVER_TIME[i], "Spending: ", SPENDING_OVER_TIME[i])
                 values.push(INCOME_OVER_TIME[i][1] + SPENDING_OVER_TIME[i][1])
             }
 

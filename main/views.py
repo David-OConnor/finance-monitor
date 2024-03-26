@@ -1,5 +1,6 @@
 import json
 from datetime import date, timedelta, datetime
+from io import TextIOWrapper
 from zoneinfo import ZoneInfo
 from django.db.models import Max
 import re

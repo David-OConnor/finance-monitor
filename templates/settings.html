@@ -62,6 +62,7 @@
         </div>
 
         <h2 style="text-align: center; margin-top: 80px;">Import and export transactions</h2>
+        <h2 id="import-loading" style="color: #ce935c; text-align: center; visibility: collapse;">Importing...</h2>
 
         <div style="display: flex; justify-content: center;">
             {#            Import / export form #}
@@ -77,7 +78,7 @@
                 <input type="file" name="file" required id="id_file"
                        style="color: black; background-color: #aaaaaa; height: 38px;">
 
-                <button id="import-start" class="button-general" type="submit">Import from Mint ↑</button>
+                <button id="import-start" class="button-general" type="submit" onclick="setImportLoading()">Import from Mint ↑</button>
             </form>
 
             {#            Have a button show the import dialog#}
@@ -327,6 +328,10 @@
                         getEl("cat-success").style.visibility = "visible"
                     }
                 });
+        }
+
+        function setImportLoading() {
+            getEl("import-loading").style.visibility = "visible"
         }
 
     </script>
