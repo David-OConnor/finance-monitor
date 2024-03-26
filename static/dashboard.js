@@ -530,6 +530,10 @@ function createTranRow(tran) {
             tran.description
         )
 
+        if (onMobile()) {
+            h.style.fontSize = "0.8em"
+        }
+
 
         if (tran.pending) {
             let text = onMobile() ? "| P" : "| Pending"
