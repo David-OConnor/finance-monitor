@@ -1281,7 +1281,8 @@ function init() {
                     tran_new
                 ]
             }
-            if (r.sub_accs.length > 0) {
+            if (r.sub_accs.length > 0 || r.acc_health.length > 0) {
+                ACC_HEALTH = r.acc_health
                 refreshAccounts()
             }
             if (r.transactions.length > 0) {

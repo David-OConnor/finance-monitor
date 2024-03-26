@@ -40,7 +40,7 @@ CATS_NON_SPENDING = [
 ]
 
 # Show an account as unhealthy if the last successful refresh was older than this.
-ACCOUNT_UNHEALTHY_REFRESH_HOURS = 24
+ACCOUNT_UNHEALTHY_REFRESH_HOURS = 18
 
 
 def unw_helper(net_worth: float, sub_acc: SubAccount) -> float:
