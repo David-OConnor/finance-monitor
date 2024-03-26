@@ -224,7 +224,23 @@
 
         function deleteRule(id) {
             getEl("rule-" + id.toString()).remove()
-            rulesDeleted.push(id)
+            {#rulesDeleted.push(id)#}
+
+                        const payload = {
+                edited: [],
+                added: [],
+                deleted: [id],
+            }
+            fetch("/edit-rules", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("Rule addition failed to save")
+                    } else {
+                        // todo: Pass the new ID from the UI, and add the row.
+                        window.location.reload()
+                    }
+                });
         }
 
         function updateCat(id) {
@@ -262,7 +278,24 @@
 
         function deleteCat(id) {
             getEl("cat-" + id.toString()).remove()
-            catsDeleted.push(id)
+            {#catsDeleted.push(id)#}
+
+            // todo: DRY
+            const payload = {
+                edited: [],
+                added: [],
+                deleted: [id],
+            }
+            fetch("/edit-categories", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("Category addition failed to save")
+                    } else {
+                        // todo: Pass the new ID from the UI, and add the row.
+                        window.location.reload()
+                    }
+                });
         }
 
         function createCatSel2(id, catInit) {

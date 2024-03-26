@@ -39,6 +39,9 @@ CATS_NON_SPENDING = [
     TransactionCategory.INVESTMENTS,
 ]
 
+# Show an account as unhealthy if the last successful refresh was older than this.
+ACCOUNT_UNHEALTHY_REFRESH_HOURS = 24
+
 
 def unw_helper(net_worth: float, sub_acc: SubAccount) -> float:
     if not sub_acc.ignored and sub_acc.current is not None:
@@ -213,11 +216,26 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
             month_end.date().isoformat()
         ))
 
+    # return health status by
+    acc_health = []
+    now = timezone.now()
+    for acc in person.accounts.all():
+        if (now - acc.last_refreshed_successfully).total_seconds() > ACCOUNT_UNHEALTHY_REFRESH_HOURS * 3600:
+            for sub_acc in acc.sub_accounts.all():
+                acc_health.append([sub_acc.id, False])
+        else:
+            for sub_acc in acc.sub_accounts.all():
+                acc_health.append([sub_acc.id, True])
+
+    if not no_preser:
+        acc_health = json.dumps(acc_health)
+
     return {
         "totals": totals_display,
         "sub_accs": accs,
         "transactions": tran,
-        "month_picker_items": month_picker_items
+        "month_picker_items": month_picker_items,
+        "acc_health": acc_health,
     }
 
 

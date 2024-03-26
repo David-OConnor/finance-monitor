@@ -326,6 +326,7 @@ def post_dash_load(request: HttpRequest) -> HttpResponse:
     data = {
         "sub_accs": [],
         "transactions": [],
+        "acc_health": [],
     }
     # Get new balance and transaction data from Plaid. This only populates if there is new data available.
     if plaid_.update_accounts(accounts):

@@ -238,12 +238,20 @@ function createAccRow(acc, type) {
     const valueFormatted = formatAmount(val, false)
     let h_b = createEl("h4", {class: "acct-hdg " + valClass}, {}, valueFormatted)
 
+    for (let health of ACC_HEALTH) {
+        if (health[0] === acc.id) {
+            let healthSpan = createEl("span", {}, {}, health[1] ? "🟢" : "🔴")
+            h_a.prepend(healthSpan)
+        }
+    }
+
     div.appendChild(h_a)
     div.appendChild(h_b)
 
     div.addEventListener("click", _ => {
         setupAccEditForm(acc.id)
     })
+
     return div
 }
 
