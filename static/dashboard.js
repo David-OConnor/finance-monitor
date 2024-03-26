@@ -1220,6 +1220,8 @@ function init() {
         // Parse JSON if able.
         .then(result => result.json())
         .then(r => {
+            console.log("Post load data received")
+            // todo: Loading/spinning indicator on screen until the update is complete.
             for (let acc_new of r.sub_accs) {
                 ACCOUNTS = [
                     ...ACCOUNTS.filter(a => a.id !== acc_new.id),
@@ -1232,6 +1234,14 @@ function init() {
                     ...TRANSACTIONS.filter(a => a.id !== tran_new.id),
                     tran_new
                 ]
+            }
+            if (r.sub_accs.len > 0) {
+                refreshAccounts()
+            }
+            // todo: Not working. Is this timing out?
+            if (r.transactions.len > 0) {
+                console.log("Refreshing fetch trans!")
+                refreshTransactions()
             }
         });
 

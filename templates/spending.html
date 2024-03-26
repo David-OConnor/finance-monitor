@@ -36,7 +36,7 @@
             </div>
 
 
-{#        <div style="display: flex; justify-content: space-evenly">#}
+            {#        <div style="display: flex; justify-content: space-evenly">#}
 
             <div style="display: flex; flex-direction: column; margin-left: 80px; margin-right: 80px;">
                 <h2>Spending by category</h2>
@@ -58,26 +58,33 @@
         </div>
 
 
-    <div style="display: flex; margin-top: 20px; align-items:  center; flex-direction: column">
-        <h2>Spending over time</h2>
+        <div style="display: flex; margin-top: 20px; align-items:  center; flex-direction: column">
+            <h2>Spending over time</h2>
 
             <div id="plot-over-time-wrapper" style="width: 700px; margin-bottom: 40px;">
                 <canvas id="plot-over-time"></canvas>
             </div>
-    </div>
+        </div>
 
-    <div style="display: flex; margin-top: 20px; align-items:  center; flex-direction: column">
-        <h2>Net income over time</h2>
+        <div style="display: flex; margin-top: 20px; align-items:  center; flex-direction: column">
+            <h2>Net income over time</h2>
 
             <div id="income-over-time-wrapper" style="width: 700px; margin-bottom: 40px;">
                 <canvas id="income-over-time"></canvas>
             </div>
-    </div>
+        </div>
 
     </div>
 
     <script src="../static/util.js"></script>
     <script src="../static/js_libs/chart.min.js"></script>
+    {#     todo: Experimenting, for labels on teh plot #}
+    <!-- Include after Chart.js script -->
+
+{#    todo: Download locally; don't use the CDN#}
+
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
 
     <script>
         getEl("menu-spending").classList.add("menu-highlighted")
@@ -148,8 +155,6 @@
                     EXPENSES_TOTAL = r.expenses_total
                     SPENDING_OVER_TIME = r.spending_over_time
                     INCOME_OVER_TIME = r.income_over_time
-
-                    console.log(SPENDING_OVER_TIME, "SOT")
 
                     LOOKBACK = daysBack
 
@@ -224,15 +229,36 @@
                     data: values,
                     backgroundColor: PLOT_COLORS,
                     hoverOffset: 4
-                }]
+                }],
             };
 
-            const myChart = new Chart(chartArea, {
-                {#type: 'pie',#}
-                type: 'doughnut',
+            const chartSpendingPie = new Chart(chartArea, {
+                type: "pie",
+                {#type: 'doughnut',#}
                 data: data,
-                options: {}
+                options: {
+                    animation: false,
+                    plugins: {
+                        legend: {
+                            display: false // This will hide the legend
+                        },
+                        // Configuration options for the datalabels plugin
+                        datalabels: {
+                            color: '#bbbbbb',
+                            textAlign: 'center',
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: (value, ctx) => {
+                                // Optionally, you can format the label display
+                                return ctx.chart.data.labels[ctx.dataIndex];
+                            }
+                        }
+                    }
+
+                }
             })
+
             {#    radius: 0, // Don't show circles on the points.#}
             {#    responsive: true,#}
             {#    scales: {#}
@@ -300,14 +326,21 @@
                 }]
             };
 
-            let myChart = new Chart(chartArea, {
+            let chartSpending = new Chart(chartArea, {
                 type: 'line',
                 data: data,
-                options: {}
+                options: {
+                    animation: false,
+                    plugins: {
+                        legend: {
+                            display: false // This will hide the legend
+                        }
+                    }
+                }
             })
-            
+
             // todo: DRY with above!
-            
+
             // Set up net income over time
             getEl('income-over-time').remove()
 
@@ -320,7 +353,7 @@
             labels = []
             values = []
             for (let i=0; i<INCOME_OVER_TIME.length; i++) {
-            {#for (item of INCOME_OVER_TIME) {#}
+                {#for (item of INCOME_OVER_TIME) {#}
                 labels.push(INCOME_OVER_TIME[i][0])
                 console.log("Income in this period: ", INCOME_OVER_TIME[i], "Spending: ", SPENDING_OVER_TIME[i])
                 values.push(INCOME_OVER_TIME[i][1] + SPENDING_OVER_TIME[i][1])
@@ -336,10 +369,17 @@
                 }]
             };
 
-            myChart = new Chart(chartArea, {
+            let chartIncome = new Chart(chartArea, {
                 type: 'line',
                 data: data,
-                options: {}
+                options: {
+                    animation: false,
+                    plugins: {
+                        legend: {
+                            display: false // This will hide the legend
+                        }
+                    }
+                }
             })
         }
 

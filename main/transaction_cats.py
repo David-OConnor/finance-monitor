@@ -186,6 +186,8 @@ class TransactionCategory(Enum):
             return cls.ALCOHOL
         if "health" in s or "personal care" in s:
             return cls.HEALTH_AND_PERSONAL_CARE
+        if "interest" in s:
+            return cls.FEES
 
         print("Fallthrough in parsing transaction category: ", s)
 

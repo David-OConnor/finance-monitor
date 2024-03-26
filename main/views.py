@@ -336,6 +336,7 @@ def post_dash_load(request: HttpRequest) -> HttpResponse:
         # todo: We need to make sure this is called regularly, even if the user doesn't log into the page.
         util.take_snapshots(accounts, person)
 
+    print("\n\n\nUpdated trans; returning\n\n\n")
     return JsonResponse(data)
 
 
