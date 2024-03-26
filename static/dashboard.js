@@ -1046,6 +1046,7 @@ function setupAccEditForm(id) {
 function setupSpendingHighlights() {
     // Consider a template for this instead; it should be faster.
     let biggestCats  = getEl("biggest-cats")
+    biggestCats.replaceChildren()
 
     let h, text
 
@@ -1096,6 +1097,7 @@ function setupSpendingHighlights() {
     }
 
     let changes = getEl("biggest-changes")
+    changes.replaceChildren()
 
     h = createEl("h3", {class: "spending-highlight-title"}, {}, "Changes. Total: ")
     let changeTotal = formatAmount(SPENDING_HIGHLIGHTS.total_change, 0)
@@ -1143,6 +1145,7 @@ function setupSpendingHighlights() {
     }
 
     let largePurchases  = getEl("large-purchases")
+    largePurchases.replaceChildren()
 
     if (SPENDING_HIGHLIGHTS.large_purchases.length === 0) {
         h = createEl(
@@ -1248,12 +1251,14 @@ function init() {
 
     setupEditTranButton()
 
+    let refreshIndicator = getEl("refreshing-indicator")
+    refreshIndicator.style.visibility = "visible"
     // Tell the backend to start updating account data values etc, and receive updates based on that here.
     fetch("/post-dash-load", FETCH_HEADERS_GET)
         // Parse JSON if able.
         .then(result => result.json())
         .then(r => {
-            console.log("Post load data received")
+            refreshIndicator.style.visibility = "collapse"
             // todo: Loading/spinning indicator on screen until the update is complete.
             for (let acc_new of r.sub_accs) {
                 ACCOUNTS = [
@@ -1268,13 +1273,13 @@ function init() {
                     tran_new
                 ]
             }
-            if (r.sub_accs.len > 0) {
+            if (r.sub_accs.length > 0) {
                 refreshAccounts()
             }
-            // todo: Not working. Is this timing out?
-            if (r.transactions.len > 0) {
-                console.log("Refreshing fetch trans!")
+            if (r.transactions.length > 0) {
                 refreshTransactions()
+                // todo: This won't work until you also update spending highlights.
+                setupSpendingHighlights()
             }
         });
 
