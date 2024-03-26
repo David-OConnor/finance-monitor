@@ -6,14 +6,15 @@
 
 {% block contents %}
     <div class="home-body">
-        <h2>Past <span id="days-back">30</span> days</h2>
         <div style="display: flex; align-items: center; flex-wrap: wrap;">
+
+            <h2 style="margin-right: 20px;">Past <span id="days-back">30</span> days</h2>
             {#            <form method="post" style="display: flex; align-items: center;">#}
             {#                {% csrf_token %}#}
-            <button class="button-general" onclick="setRange(30)">Past 30 days</button>
-            <button class="button-general" onclick="setRange(60)">Past 60 days</button>
-            <button class="button-general" onclick="setRange(90)">Past 90 days</button>
-            <button class="button-general" onclick="setRange(-1)">Custom:</button>
+            <button id="range-30" class="button-general" onclick="setRange(30)">Past 30 days</button>
+            <button id="range-60" class="button-general" onclick="setRange(60)">Past 60 days</button>
+            <button id="range-90" class="button-general" onclick="setRange(90)">Past 90 days</button>
+            <button id="range-custom" class="button-general" onclick="setRange(-1)">Custom:</button>
 
             <h3 style="margin-right: 6px;">Start:</h3>
             <input id="start" type="date" />
@@ -131,14 +132,66 @@
         function setRange(daysBack) {
             // Set the date range.
 
+            let activeColor = "#349614"
+            let activeWeight = "bold"
+
+            let activeBtn
+            let inactiveBtns = []
+            if (daysBack === 30) {
+                activeBtn = getEl("range-30")
+                inactiveBtns = [
+                    getEl("range-60"),
+                    getEl("range-90"),
+                    getEl("range-custom"),
+                ]
+            } else if (daysBack === 60) {
+                activeBtn = getEl("range-60")
+                inactiveBtns = [
+                    getEl("range-30"),
+                    getEl("range-90"),
+                    getEl("range-custom"),
+                ]
+            } else if (daysBack === 90) {
+                activeBtn = getEl("range-90")
+                inactiveBtns = [
+                    getEl("range-30"),
+                    getEl("range-60"),
+                    getEl("range-custom"),
+                ]
+            } else if (daysBack === -1) {
+                activeBtn = getEl("range-custom")
+                inactiveBtns = [
+                    getEl("range-30"),
+                    getEl("range-60"),
+                    getEl("range-90"),
+                ]
+            }
+
+            activeBtn.style.color = activeColor
+            activeBtn.style.borderColor = activeColor
+            activeBtn.style.fontWeight = activeWeight
+
+            for (let btn of inactiveBtns) {
+                btn.style.color = null
+                btn.style.borderColor = null
+                btn.style.fontWeight = null
+            }
+
             LOOKBACK = daysBack
-            getEl("days-back").textContent = daysBack
+            if (daysBack === -1) {
+                getEl("days-back").textContent = "(Custom)"
+            } else {
+                getEl("days-back").textContent = daysBack.toString()
+            }
+
 
             let start, end
             if (daysBack === -1) {
                 // auto
-                start = getEl("start").value
-                end = getEl("end").value
+                const startDate = getEl("start").value
+                const endDate = getEl("end").value
+                start = parseInt((new Date() - new Date(startDate)) / (3600 * 1000*24))
+                end = parseInt((new Date() - new Date(endDate)) / (3600 * 1000*24))
             } else {
                 end = 0
                 start = daysBack
@@ -161,7 +214,7 @@
                     LOOKBACK = daysBack
 
                     getEl("income-total").textContent = formatAmount(INCOME_TOTAL, 0)
-                    getEl("expenses-total").textContent = formatAmount(EXPENSES_TOTAL, 0)
+                    getEl("expenses-total").textContent = formatAmount(-EXPENSES_TOTAL, 0)
 
                     populate()
                     setupPieCharts()
@@ -384,7 +437,21 @@
             })
         }
 
+        function setDatePickerDefaults() {
+
+            // Setup
+            const today = new Date();
+
+            // Subtract 30 days
+            const thirtyDaysAgo = new Date(today.setDate(today.getDate() - 30));
+
+            // Format the date as "YYYY-MM-DD"
+            getEl("start").value = thirtyDaysAgo.toISOString().split('T')[0]
+            getEl("end").value = (new Date()).toISOString().split('T')[0]
+        }
+
         function init() {
+            setDatePickerDefaults()
             setRange(30)
         }
 

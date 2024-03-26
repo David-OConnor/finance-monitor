@@ -83,6 +83,7 @@ def load_transactions(
         search_text = search_text.lower()
 
         cat_vals = [c[0] for c in transaction_cats.CAT_NAMES if search_text in c[1]]
+        print(cat_vals,  "CAT_VALS", "SEARCH TEXT: ", search_text)
         trans = trans.filter(
             Q(description__icontains=search_text) | Q(notes__icontains=search_text) | Q(institution_name__icontains=search_text)
             | Q(category__in=cat_vals)

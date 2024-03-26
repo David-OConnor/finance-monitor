@@ -1145,7 +1145,7 @@ function setupSpendingHighlights() {
     }
 
     let largePurchases  = getEl("large-purchases")
-    largePurchases.replaceChildren()
+    // largePurchases.replaceChildren()
 
     if (SPENDING_HIGHLIGHTS.large_purchases.length === 0) {
         h = createEl(
