@@ -58,19 +58,21 @@
         </div>
 
 
-        <div style="display: flex; margin-top: 20px; align-items:  center; flex-direction: column">
-            <h2>Spending over time</h2>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+            <div style="display: flex; margin-top: 20px; margin-right: 60px; align-items:  center; flex-direction: column">
+                <h2>Spending over time</h2>
 
-            <div id="plot-over-time-wrapper" style="width: 700px; margin-bottom: 40px;">
-                <canvas id="plot-over-time"></canvas>
+                <div id="plot-over-time-wrapper" style="width: 500px; margin-bottom: 40px;">
+                    <canvas id="plot-over-time"></canvas>
+                </div>
             </div>
-        </div>
 
-        <div style="display: flex; margin-top: 20px; align-items:  center; flex-direction: column">
-            <h2>Net income over time</h2>
+            <div style="display: flex; margin-top: 20px; align-items:  center; flex-direction: column">
+                <h2>Net income over time</h2>
 
-            <div id="income-over-time-wrapper" style="width: 700px; margin-bottom: 40px;">
-                <canvas id="income-over-time"></canvas>
+                <div id="income-over-time-wrapper" style="width: 500px; margin-bottom: 40px;">
+                    <canvas id="income-over-time"></canvas>
+                </div>
             </div>
         </div>
 
@@ -81,7 +83,7 @@
     {#     todo: Experimenting, for labels on teh plot #}
     <!-- Include after Chart.js script -->
 
-{#    todo: Download locally; don't use the CDN#}
+    {#    todo: Download locally; don't use the CDN#}
 
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 

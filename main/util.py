@@ -90,6 +90,7 @@ def load_transactions(
 
     # This filter takes advantage of `categories` being a JSON Field.
     if category is not None:
+        print("\n\n CATEGORY", category, "\n\n)")
         trans = trans.filter(category=category.value)
 
     if start_i is not None and end_i is not None:

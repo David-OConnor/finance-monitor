@@ -137,7 +137,6 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
             (Q(account__person=request.user.person) | Q(person=request.user.person)) & Q(id=tran["id"])
         )  # Prevent exploits
 
-        print("Tran DB editing: ", tran_db)
         # todo: Don't override the original description for a linked transaction; use a separate field.
 
         tran_db.category = tran["category"]

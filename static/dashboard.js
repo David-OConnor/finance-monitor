@@ -498,12 +498,18 @@ function createTranRow(tran) {
         )
 
         ip.addEventListener("input", e => {
+            // Re-load from the list as TS maneuver against odd edit pattern
+            let tran_ = TRANSACTIONS.find(t => t.id === tran.id)
             let updated = {
-                ...tran,
+                ...tran_,
                 description: e.target.value
             }
             // todo: DRY!
             TRANSACTIONS_UPDATED[String(tran.id)] = updated
+            TRANSACTIONS = [
+                ...TRANSACTIONS.filter(t => t.id !== tran.id),
+                updated,
+            ]
         })
 
         col.appendChild(ip)
@@ -539,12 +545,18 @@ function createTranRow(tran) {
             )
 
             ip.addEventListener("input", e => {
+                // Re-load from the list as TS maneuver against odd edit pattern
+                let tran_ = TRANSACTIONS.find(t => t.id === tran.id)
                 let updated = {
-                    ...tran,
+                    ...tran_,
                     institution_name: e.target.value
                 }
                 // todo: DRY!
                 TRANSACTIONS_UPDATED[String(tran.id)] = updated
+                TRANSACTIONS = [
+                    ...TRANSACTIONS.filter(t => t.id !== tran.id),
+                    updated,
+                ]
             })
 
             col.appendChild(ip)
@@ -568,12 +580,18 @@ function createTranRow(tran) {
         h = createEl("input", {value: tran.notes}, {marginRight: "30px"})
 
         h.addEventListener("input", e => {
+            // Re-load from the list as TS maneuver against odd edit pattern
+            let tran_ = TRANSACTIONS.find(t => t.id === tran.id)
             let updated = {
-                ...tran,
+                ...tran_,
                 notes: e.target.value
             }
             // todo: DRY!
             TRANSACTIONS_UPDATED[String(tran.id)] = updated
+            TRANSACTIONS = [
+                ...TRANSACTIONS.filter(t => t.id !== tran.id),
+                updated,
+            ]
         })
     } else {
         h = createEl(
@@ -597,12 +615,19 @@ function createTranRow(tran) {
 
         h.addEventListener("input", e => {
             if (isValidNumber(e.target.value)) {
+                // Re-load from the list as TS maneuver against odd edit pattern
+                let tran_ = TRANSACTIONS.find(t => t.id === tran.id)
                 let updated = {
-                    ...tran,
+                    ...tran_,
                     amount: parseFloat(e.target.value)
                 }
                 // todo: DRY!
                 TRANSACTIONS_UPDATED[String(tran.id)] = updated
+
+                TRANSACTIONS = [
+                    ...TRANSACTIONS.filter(t => t.id !== tran.id),
+                    updated,
+                ]
             }
         })
 
@@ -631,12 +656,18 @@ function createTranRow(tran) {
         let h = createEl("input", {type: "date", value: tran.date}, {width: "120px"})
 
         h.addEventListener("input", e => {
+            // Re-load from the list as TS maneuver against odd edit pattern
+            let tran_ = TRANSACTIONS.find(t => t.id === tran.id)
             let updated = {
-                ...tran,
+                ...tran_,
                 date: e.target.value
             }
             // todo: DRY!
             TRANSACTIONS_UPDATED[String(tran.id)] = updated
+            TRANSACTIONS = [
+                ...TRANSACTIONS.filter(t => t.id !== tran.id),
+                updated,
+            ]
         })
 
         let delBtn = createEl("button", {class: "button-small"}, {cursor: "pointer"}, "❌")
@@ -808,6 +839,8 @@ function saveTransactions() {
         transactions: Object.values(TRANSACTIONS_UPDATED),
         create_rule: CAT_ALWAYS,
     }
+
+    console.log("Tran edit data: ", data)
 
     // Save transactions to the database.
     fetch("/edit-transactions", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
