@@ -99,6 +99,7 @@ class TransactionCategory(Enum):
     EDUCATION = 33
     ALCOHOL = 34
     HEALTH_AND_PERSONAL_CARE = 35
+    CLOTHING = 36
 
     @classmethod
     def from_str(cls, s: str) -> "TransactionCategory":
@@ -137,7 +138,6 @@ class TransactionCategory(Enum):
             "shop" in s
             or "bookstore" in s
             or "hardware" in s
-            or "clothing" in s
             or "merchandise" in s
         ):
             return cls.SHOPS
@@ -202,6 +202,8 @@ class TransactionCategory(Enum):
             return cls.BUSINESS_SERVICES  # todo Eh...
         if "community" in s:
             return cls.UNCATEGORIZED  # todo...
+        if "clothing" in s:
+            return cls.CLOTHING
 
         print("Fallthrough in parsing transaction category: ", s)
 
@@ -295,6 +297,9 @@ class TransactionCategory(Enum):
             return "Alcohol and bars"
         if self == TransactionCategory.HEALTH_AND_PERSONAL_CARE:
             return "Health and personal care"
+        if self == TransactionCategory.CLOTHING:
+            return "Clothing"
+
 
         print("Fallthrough on cat to string", self)
         return "Fallthrough"
@@ -379,6 +384,8 @@ class TransactionCategory(Enum):
             return "🍺"
         if self == TransactionCategory.HEALTH_AND_PERSONAL_CARE:
             return "🛁"
+        if self == TransactionCategory.CLOTHING:
+            return "👕"
 
         print("Fallthrough on cat to icon", self)
         return "Fallthrough"
@@ -591,6 +598,35 @@ replacements = [
     ("cash reward", TransactionCategory.INCOME),
     ("deposit-ach", TransactionCategory.INCOME),
     ("gusto", TransactionCategory.INCOME),
+    # https://fashionunited.com/i/most-valuable-fashion-brands
+    ("uniqlo", TransactionCategory.CLOTHING),
+    ("nike", TransactionCategory.CLOTHING),
+    ("zara", TransactionCategory.CLOTHING),
+    ("h&m", TransactionCategory.CLOTHING),
+    ("lululemon", TransactionCategory.CLOTHING),
+    ("chanel", TransactionCategory.CLOTHING),
+    ("ralph lauren", TransactionCategory.CLOTHING),
+    ("tom ford", TransactionCategory.CLOTHING),
+    ("north face", TransactionCategory.CLOTHING),
+    ("macys", TransactionCategory.CLOTHING),
+    ("victoria's secret", TransactionCategory.CLOTHING),
+    ("levi's", TransactionCategory.CLOTHING),
+    ("sketchers", TransactionCategory.CLOTHING),
+    ("michael kors", TransactionCategory.CLOTHING),
+    ("rolex", TransactionCategory.CLOTHING),
+    ("ray ban", TransactionCategory.CLOTHING),
+    ("foot locker", TransactionCategory.CLOTHING),
+    ("dolce & gabana", TransactionCategory.CLOTHING),
+    ("under armour", TransactionCategory.CLOTHING),
+    ("armani", TransactionCategory.CLOTHING),
+    ("urban outfitters", TransactionCategory.CLOTHING),
+    ("hugo boss", TransactionCategory.CLOTHING),
+    ("calvin klein", TransactionCategory.CLOTHING),
+    ("tissot", TransactionCategory.CLOTHING),
+    ("hilfiger", TransactionCategory.CLOTHING),
+    ("jimmy choo", TransactionCategory.CLOTHING),
+    ("oakley", TransactionCategory.CLOTHING),
+    ("old navy", TransactionCategory.CLOTHING),
 ]
 
 
