@@ -120,6 +120,10 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
     try:
         response = CLIENT.accounts_balance_get(request)
     except ApiException as e:
+        if e.body.error_code.lower() == "INSTITUTION_NOT_RESPONDING":
+            print(f"\nInstitution not responding on balance update. Token: {access_token}")
+            return None
+
         print("\n\nAPI exception; unable to access this account: ", e)
         if not settings.DEPLOYED:
             send_mail(
@@ -128,7 +132,7 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
                 "contact@finance-monitor.com",
                 ["contact@finance-monitor.com"],
                 fail_silently=False,
-                html_message=f"Problem refershing accounts. Error: {e}",
+                html_message=f"Problem refreshing accounts. Error: {e}",
             )
         return None
 
