@@ -122,6 +122,8 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
     except ApiException as e:
         if e.body.error_code.lower() == "INSTITUTION_NOT_RESPONDING":
             print(f"\nInstitution not responding on balance update. Token: {access_token}")
+            # Note that returning None here prevents the `last_refreshed_successfully` DB field from being updated,
+            # so we can diagnose an unhealthy account by this being expired, should we keep getting this message.
             return None
 
         print("\n\nAPI exception; unable to access this account: ", e)

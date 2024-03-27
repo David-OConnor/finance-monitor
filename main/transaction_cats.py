@@ -188,6 +188,20 @@ class TransactionCategory(Enum):
             return cls.HEALTH_AND_PERSONAL_CARE
         if "interest" in s:
             return cls.FEES
+        if "third party" in s:
+            return cls.UNCATEGORIZED  # todo
+        if "paypal" in s:
+            return cls.SHOPS  # todo?
+        if "insurance" in s:
+            return cls.BILLS_AND_UTILITIES
+        if "office supplies" in s:
+            return cls.BUSINESS_SERVICES  # todo: Eh...
+        if "hotels" in s:
+            return cls.TRAVEL
+        if "government departments" in s:
+            return cls.BUSINESS_SERVICES  # todo Eh...
+        if "community" in s:
+            return cls.UNCATEGORIZED  # todo...
 
         print("Fallthrough in parsing transaction category: ", s)
 

@@ -8,6 +8,7 @@
 
     <div class="home-body">
 
+        {# Category rules #}
         <h2 style="text-align: center">Categorization rules</h2>
         <h2 id="rule-success" style="color: #39a839; visibility: collapse; text-align: center;">Rule save successful.</h2>
         <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
@@ -37,10 +38,11 @@
             {% endfor %}
         </div>
 
+        {# Custom categories #}
         <h2 style="text-align: center; margin-top: 80px;">Custom categories</h2>
-    <h2 id="cat-success" style="color: #39a839; visibility: collapse; text-align: center;">Category save successful.</h2>
+        <h2 id="cat-success" style="color: #39a839; visibility: collapse; text-align: center;">Category save successful.</h2>
         {#        <h2 id="rule-success" style="color: #39a839; visibility: collapse; text-align: center;">Rule save successful.</h2>#}
-        <div style="display: flex; flex-direction: column; align-items: center">
+        <section style="display: flex; flex-direction: column; align-items: center">
 
             <div style="display: flex;">
                 <button class="button-general" onclick="saveCats()" style="margin-bottom: 12px;">Save category changes</button>
@@ -59,12 +61,13 @@
                     <button class="button-general" style="height: 40px;" onclick="deleteCat({{ cat.id }})">❌</button>
                 </div>
             {% endfor %}
-        </div>
+        </section>
 
+        {# Import and export transactions #}
         <h2 style="text-align: center; margin-top: 80px;">Import and export transactions</h2>
         <h2 id="import-loading" style="color: #ce935c; text-align: center; visibility: collapse;">Importing...</h2>
 
-        <div style="display: flex; justify-content: center;">
+        <section style="display: flex; justify-content: center;">
             {#            Import / export form #}
             <form
                     id="import-form"
@@ -83,7 +86,7 @@
 
             {#            Have a button show the import dialog#}
             <button id="export" class="button-general">Export ↓</button>
-        </div>
+        </section>
 
         <h2 style="text-align: center; margin-top: 80px; margin-bottom: 0;">Change password</h2>
 
@@ -152,6 +155,24 @@
 
             </form>
         </div>
+
+        {# Delete account #}
+        <h2 style="text-align: center; margin-top: 80px;">Delete your account</h2>
+        <section style="display: flex; flex-direction: column; justify-content: center;">
+
+            <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <h3 style="color: #e36c2d;">Warning! This is irreversable. You will lose all account and transaction data. Consider
+                    exporting your transactions above prior to doing this.</h3>
+                <button class="button-general" onclick="preDeleteAccount()">❌ Click here to delete your account</button>
+
+                <button
+                        id="confirm-account-delete"
+                        class="button-general"
+                        style="visibility: collapse;"
+                        onclick="deleteAccount()"
+                >❌ Click here to confirm account deletion. This action is final.</button>
+            </div>
+        </section>
     </div>
 
     <script src="../static/util.js"></script>
@@ -226,7 +247,7 @@
             getEl("rule-" + id.toString()).remove()
             {#rulesDeleted.push(id)#}
 
-                        const payload = {
+            const payload = {
                 edited: [],
                 added: [],
                 deleted: [id],
@@ -365,6 +386,20 @@
 
         function setImportLoading() {
             getEl("import-loading").style.visibility = "visible"
+        }
+
+        function preDeleteAccount() {
+            getEl("confirm-account-delete").style.visibility = "visible"
+        }
+
+        function deleteAccount() {
+            fetch("/delete-user-account", { body: JSON.stringify({}), ...FETCH_HEADERS_POST })
+                .then(result => {
+                    // todo: The server returns a text response. Not sure which will take effect here.
+                    {#alert("Your account was successfully deleted")#}
+                    window.location.reload()
+                });
+
         }
 
     </script>

@@ -296,6 +296,23 @@ def delete_transactions(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+def delete_user_account(request: HttpRequest) -> HttpResponse:
+    """Delete the user's account"""
+
+    # todo: Actually erase the account, sub-account etc data. This is a soft-lock currently
+    # todo until we confirm the safety implications. Make sure to manually delete all user data
+    # todo locked in this method.
+    person = request.user.person
+    person.account_locked = True
+    person.user.is_active = False
+
+    person.save()
+    person.user.save()
+
+    return HttpResponse("Your Finance-Monitor account was successfully deleted.")
+
+
+@login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
     """The main account dashboard."""
     person = request.user.person
