@@ -646,9 +646,11 @@ function createTranRow(tran) {
 
     } else {
         let tranClass = tran.amount > 0. ? "tran-pos" : "tran-neutral"
-        let amtText = formatAmount(tran.amount, true)
+        let amtDecimals = Math.abs(tran.amount) < 100
+
+        let amtText = formatAmount(tran.amount, amtDecimals)
         if (tran.amount > 0.) {
-            amtText = "+ " + amtText
+            amtText = "+" + amtText
         } else {
             amtText = amtText.replace("-", "")
         }

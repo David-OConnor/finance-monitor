@@ -56,13 +56,13 @@ img {
     flex-direction: column;
 
     /*text-align: center;*/
-    background-color: white;
+    /*background-color: white;*/
+    background-color: #F8F8F8;
 }
 
 @media (min-width : 800px) {
     .home-body {
         padding: 40px;
-        background-color: #F8F8F8;
         /*margin-left: 5%;*/
         /*margin-right: 5%;*/
     }
