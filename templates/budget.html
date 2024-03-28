@@ -1,0 +1,30 @@
+{% extends 'base.html'  %}
+
+{% block head_contents %}
+    <title>Finance Monitor: Budget</title>
+{% endblock %}
+
+{% block contents %}
+    <div class="home-body">
+        <h1 style="text-align: center">Monthly budget</h1>
+    </div>
+
+    <script src="../static/util.js"></script>
+
+    <script>
+        getEl("menu-budget").classList.add("menu-highlighted")
+
+        {# Load template variables into JS. #}
+        let CUSTOM_CATEGORIES = {{custom_categories|safe }};
+
+        let HIGHLIGHTS = {by_cat: []}
+
+        function init() {
+        }
+
+        init()
+
+
+    </script>
+
+{% endblock %}

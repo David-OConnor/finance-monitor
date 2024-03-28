@@ -25,8 +25,7 @@ from main.models import (
     CategoryRule,
 )
 from wallet import settings
-from main.transaction_cats import TransactionCategory
-
+from main.transaction_cats import TransactionCategory, TransactionCategoryDiscret
 
 # Show an account as unhealthy if the last successful refresh was older than this.
 ACCOUNT_UNHEALTHY_REFRESH_HOURS = 18
@@ -53,7 +52,6 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
         net_worth = unw_helper(net_worth, sub_acc)
 
     return net_worth
-
 
 
 def load_transactions(
@@ -374,9 +372,20 @@ def setup_spending_data(
         income_total += t.amount
 
     expense_transactions = filter_trans_spending(trans)
+
     expenses_total = 0.0
+    expenses_discretionary = 0.0
+    expenses_nondiscret = 0.0
+
     for t in expense_transactions:
         expenses_total += t.amount
+
+        discret = TransactionCategoryDiscret.from_cat(TransactionCategory(t.category))
+        if discret == TransactionCategoryDiscret.DISCRETIONARY:
+            expenses_discretionary += t.amount
+        elif discret == TransactionCategoryDiscret.NON_DISCRETIONARY:
+            expenses_nondiscret += t.amount
+        # The third option here is a non-spending expense (transfer, fee etc)
 
     # TODO. no! Doubles the query.
     spending_highlights = setup_spending_highlights(person, start_days_back, end_days_back, False)
@@ -409,10 +418,13 @@ def setup_spending_data(
     # todo: QC this merchant check
     start_new_merchant_check = start - timedelta(days=360)
     merchants_new = find_new_merchants(person, (start, end), (start_new_merchant_check, start))
+
     return {
         "highlights": spending_highlights,
         "income_total": income_total,
         "expenses_total": expenses_total,
+        "expenses_discretionary": expenses_discretionary,
+        "expenses_nondiscret": expenses_nondiscret,
         "spending_over_time": spending_over_time,
         "income_over_time": income_over_time,
         "merchants_new": merchants_new,

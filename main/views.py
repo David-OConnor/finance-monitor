@@ -527,6 +527,17 @@ def spending(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+def budget(request: HttpRequest) -> HttpResponse:
+    """Page for setting a budget"""
+    person = request.user.person
+
+    context = {
+    }
+
+    return render(request, "budget.html", context)
+
+
+@login_required
 def recurring(request: HttpRequest) -> HttpResponse:
     """Page for recurring transactions"""
 

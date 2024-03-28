@@ -65,8 +65,17 @@ class CustomCategoryAdmin(ModelAdmin):
 @admin.register(models.SnapshotAccount)
 class SnapAccountAdmin(ModelAdmin):
     list_display = ("account", "dt", "value")
+    search_fields = ("value",)
 
 
 @admin.register(models.SnapshotPerson)
 class SnapPersonAdmin(ModelAdmin):
     list_display = ("person", "dt", "value")
+    search_fields = ("value",)
+
+
+@admin.register(models.BudgetItem)
+class BudgetItemAdmin(ModelAdmin):
+    list_display = ("person", "category", "amount", "notes")
+    # search_fields = ("value",)
+

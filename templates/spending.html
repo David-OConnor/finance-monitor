@@ -25,10 +25,15 @@
 
 
         <div style="display: flex; justify-content: center;">
-            {#            <h2 style="margin-right: 40px;">Income: <span  id="income-total">{{ income_total|floatformat:"0g" }}</span></h2>#}
             <h2 style="margin-right: 40px;">Income: <span id="income-total" class="tran-pos"></span></h2>
-            {#            <h2>Expenses: <span id="expenses-total">{{ expenses_total|floatformat:"0g" }}</span></h2>#}
-            <h2>Expenses: <span id="expenses-total" class="tran-neg"></span></h2>
+            <h2>Expenses:
+                <span id="expenses-total" class="tran-neg"></span>
+                <span style="font-weight: normal; margin-left: 6px;">(Discretionary:</span>
+                <span id="expenses-discretionary" class="tran-neg" style="font-weight: normal;"></span>
+                <span style="font-weight: normal;">Non-discretionary:</span>
+                <span id="expenses-nondiscret" class="tran-neg"style="font-weight: normal;"></span>
+                <span style="font-weight: normal;">)</span>
+            </h2>
         </div>
 
         <div style="display: flex; justify-content: center; flex-wrap: wrap;">
@@ -93,10 +98,9 @@
 
     {#    <script src=" https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js "></script>#}
     <script src="../static/js_libs/chart.min.js"></script>
-    <script src="../static/js_libs/chartjs-plugin-datalabels-220.min.js"></script>
+    <script src="../static/js_libs/plotly-2-30-0.min.js"></script>
+    {#    <script src="../static/js_libs/chartjs-plugin-datalabels-220.min.js"></script>#}
     {#    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>#}
-
-    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js" charset="utf-8"></script>
 
     {#     todo: Experimenting, for labels on teh plot #}
     <!-- Include after Chart.js script -->
@@ -115,8 +119,10 @@
         let CUSTOM_CATEGORIES = {{custom_categories|safe }};
 
         let HIGHLIGHTS = {by_cat: []}
-        let INCOME_TOTAL = 0
-        let EXPENSES_TOTAL = 0
+        let INCOME_TOTAL = 0.
+        let EXPENSES_TOTAL = 0.
+        let EXPENSES_DISCRETIONARY = 0.
+        let EXPENSES_NONDISCRET = 0.
         let SPENDING_OVER_TIME = []
         let INCOME_OVER_TIME = []
         let merchants_new = []
@@ -224,6 +230,8 @@
                     HIGHLIGHTS = r.highlights
                     INCOME_TOTAL = r.income_total
                     EXPENSES_TOTAL = r.expenses_total
+                    EXPENSES_DISCRETIONARY = r.expenses_discretionary
+                    EXPENSES_NONDISCRET = r.expenses_nondiscret
                     SPENDING_OVER_TIME = r.spending_over_time
                     INCOME_OVER_TIME = r.income_over_time
                     MERCHANTS_NEW = r.merchants_new
@@ -232,6 +240,8 @@
 
                     getEl("income-total").textContent = formatAmount(INCOME_TOTAL, 0)
                     getEl("expenses-total").textContent = formatAmount(-EXPENSES_TOTAL, 0)
+                    getEl("expenses-discretionary").textContent = formatAmount(-EXPENSES_DISCRETIONARY, 0)
+                    getEl("expenses-nondiscret").textContent = formatAmount(-EXPENSES_NONDISCRET, 0)
 
                     populate()
                     setupPieCharts()
@@ -303,7 +313,7 @@
             {#    type: 'doughnut',#}
             {#    data: data,#}
 
-            const PCT_THRESH_GROUP = 0.07
+            const PCT_THRESH_GROUP = 0.04
             // todo:  YOu could use the alreayd passed income.
             // todo: Misc cat
             let total = 0
@@ -344,13 +354,18 @@
             }];
 
             let layout = {
-                height: 480,
-                width: 480,
+                height: 420,
+                width: 420,
                 showlegend: false,
-                // backgroundColor: "black"
-                {#plot_bgcolor:"black",#}
+                margin: {
+                    l: 0,
+                    r: 0,
+                    b: 0,
+                    t: 0,
+                    pad: 0,
+
+                },
                 paper_bgcolor: "#F8F8F8",
-                // todo: How do we reduce the margins?
             };
 
             Plotly.newPlot('plot-wrapper', data_, layout, {displaylogo: false});

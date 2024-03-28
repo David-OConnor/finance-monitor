@@ -48,6 +48,7 @@ urlpatterns = [
     path("spending", views.spending),
     path("recurring", views.recurring),
     path("settings", views.settings),
+    path("budget", views.budget),
     path("privacy", views.privacy),
     path("terms", views.terms),
     # path("refresh-balances", views.refresh_balances),

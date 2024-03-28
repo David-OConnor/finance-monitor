@@ -586,3 +586,19 @@ class CategoryRule(Model):
 
     def __str__(self):
         return f"Category rule. Person: {self.person}, {self.description} => {self.category}"
+
+
+class BudgetItem(Model):
+    """A monthly budget; allocation by categories"""
+    person = ForeignKey(Person, related_name="budget_items", on_delete=CASCADE)
+    category = IntegerField(choices=TransactionCategory.choices())
+    notes = TextField(default="", blank=True, null=True)
+    amount = FloatField
+
+    class Meta:
+        pass
+        # ordering = ["description"]
+        # unique_together = ["person", "description"]
+
+    def __str__(self):
+        return f"Budget item. Person: {self.person}, {self.category}, {self.notes}, {self.amount}"
