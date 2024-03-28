@@ -68,7 +68,7 @@
         </div>
 
 
-        <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; margin-top: 60px;">
             <div style="display: flex; margin-top: 20px; margin-right: 60px; align-items:  center; flex-direction: column">
                 <h2>Spending over time</h2>
 
@@ -269,10 +269,27 @@
 
             let newMerchants = getEl("new-merchants-section")
             newMerchants .replaceChildren()
-            for (let merchant of MERCHANTS_NEW) {
-                let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0, fontWeight: "normal"}, merchant)
+
+            let h4
+            if (MERCHANTS_NEW.length === 0 ) {
+                h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0, fontWeight: "normal"}, "(None)")
                 newMerchants.appendChild(h4)
             }
+
+            for (let merchant of MERCHANTS_NEW) {
+                h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0, fontWeight: "normal", marginLeft: "6px"}, merchant[0])
+                console.log(merchant)
+                if (merchant[1] !== null && merchant[1].length !== 0) {
+                    let d = createEl("div", {}, {display: "flex"})
+                    let img = createEl("img", {"src": merchant[1], alt: "", width: "24px"})
+                    d.appendChild(img)
+                    d.appendChild(h4)
+                    newMerchants.appendChild(d)
+                } else {
+                    newMerchants.appendChild(h4)
+                }
+            }
+
         }
 
         function updateData() {
@@ -327,12 +344,13 @@
             }];
 
             let layout = {
-                height: 500,
-                width: 460,
+                height: 480,
+                width: 480,
                 showlegend: false,
                 // backgroundColor: "black"
                 {#plot_bgcolor:"black",#}
                 paper_bgcolor: "#F8F8F8",
+                // todo: How do we reduce the margins?
             };
 
             Plotly.newPlot('plot-wrapper', data_, layout, {displaylogo: false});

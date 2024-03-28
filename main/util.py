@@ -396,9 +396,8 @@ def setup_spending_data(
     income_over_time = []
     # for months_back in range(0, 12):
     for months_back in range(12, 0, -1):
-        now = timezone.now()
         start_ = (now - relativedelta(months=months_back)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        end_ = (start + relativedelta(months=1) - timedelta(seconds=1))
+        end_ = (start_ + relativedelta(months=1) - timedelta(seconds=1))
 
         # todo: DRY with above.
         trans_in_month = load_transactions(None, None, person, "", start_, end_, None)
@@ -421,7 +420,6 @@ def setup_spending_data(
     # todo: QC this merchant check
     start_new_merchant_check = start - timedelta(days=360)
     merchants_new = find_new_merchants(person, (start, end), (start_new_merchant_check, start))
-
     return {
         "highlights": spending_highlights,
         "income_total": income_total,
@@ -471,7 +469,7 @@ def send_debug_email(message: str):
     )
 
 
-def find_new_merchants(person: Person, range_new: (datetime, datetime), range_baseline: (datetime, datetime)) -> List[str]:
+def find_new_merchants(person: Person, range_new: (datetime, datetime), range_baseline: (datetime, datetime)) -> List[Tuple[str, str]]:
     """Find merchants that appear in a given time period that were not present in another period."""
 
     # todo: You could have a more optimized query by doing this more carefully; later.
@@ -479,6 +477,6 @@ def find_new_merchants(person: Person, range_new: (datetime, datetime), range_ba
     tran_baseline = load_transactions(None, None, person, None, range_baseline[0], range_baseline[1], None)
 
     merchants_base = list(set([t.merchant.lower() for t in tran_baseline]))
-    return list(set([t.merchant.lower() for t in tran_new if t.merchant.lower() not in merchants_base]))
+    return list(set([(t.merchant.lower(), t.logo_url) for t in tran_new if t.merchant.lower() not in merchants_base]))
 
 
