@@ -383,7 +383,7 @@ class Transaction(Model):
     )  # In case the transaction is disconnected from an account.
     # We generally have 1-2 categories.
     # JSONField here allows for filtering by category
-
+    merchant = CharField(max_length=50, default="")
     # todo: Deprecate categories. Ie remove it once you have `category` in everything.
     # categories = JSONField()  # List of category enums, eg [0, 2]
     category = IntegerField(choices=TransactionCategory.choices())
@@ -448,6 +448,7 @@ class Transaction(Model):
             "pending": self.pending,
             "highlighted": self.highlighted,
             "institution_name": self.institution_name,
+            "merchant": self.merchant,
             "currency_code": self.currency_code,
         }
 

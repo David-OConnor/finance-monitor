@@ -61,6 +61,7 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
             currency_code="USD",  # todo: Allow the user to select this A/R.
             notes=row[8],
             institution_name=row[6],
+            # todo: Merchant?
         )
         try:
             transaction.save()

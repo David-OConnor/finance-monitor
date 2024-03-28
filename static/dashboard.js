@@ -146,6 +146,7 @@ function filterTransactions() {
             return t.description.toLowerCase().includes(searchText) ||
                 t.notes.toLowerCase().includes(searchText) ||
                 t.institution_name.toLowerCase().includes(searchText) ||
+                t.merchant.toLowerCase().includes(searchText) ||
                 catNameFromVal(t.category).toLowerCase().includes(searchText)
         })
     }

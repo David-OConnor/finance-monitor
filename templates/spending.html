@@ -48,9 +48,18 @@
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column;">
+            <div style="display: flex; flex-direction: column; margin-right: 80px;">
                 <h2>Changes, by category</h2>
                 <div id="change-section">
+                    {#                    {% for change in highlights.cat_changes %}#}
+                    {#                        <h4 style="margin-top: 0; margin-bottom: 0;">{{ change.0 }}: <span>{{ change.1|floatformat:"0g" }}</span></h4>#}
+                    {#                    {% endfor %}#}
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column;">
+                <h2>New merchants</h2>
+                <div id="new-merchants-section">
                     {#                    {% for change in highlights.cat_changes %}#}
                     {#                        <h4 style="margin-top: 0; margin-bottom: 0;">{{ change.0 }}: <span>{{ change.1|floatformat:"0g" }}</span></h4>#}
                     {#                    {% endfor %}#}
@@ -110,6 +119,7 @@
         let EXPENSES_TOTAL = 0
         let SPENDING_OVER_TIME = []
         let INCOME_OVER_TIME = []
+        let merchants_new = []
 
         let LOOKBACK = 30
 
@@ -216,6 +226,7 @@
                     EXPENSES_TOTAL = r.expenses_total
                     SPENDING_OVER_TIME = r.spending_over_time
                     INCOME_OVER_TIME = r.income_over_time
+                    MERCHANTS_NEW = r.merchants_new
 
                     LOOKBACK = daysBack
 
@@ -254,6 +265,13 @@
                 let s = createEl("span", {class: "tran-neutral"},  {}, amountText)
                 h4.appendChild(s)
                 sectionChanges.appendChild(h4)
+            }
+
+            let newMerchants = getEl("new-merchants-section")
+            newMerchants .replaceChildren()
+            for (let merchant of MERCHANTS_NEW) {
+                let h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0, fontWeight: "normal"}, merchant)
+                newMerchants.appendChild(h4)
             }
         }
 

@@ -41,8 +41,8 @@ class SubAccountAdmin(ModelAdmin):
 
 @admin.register(models.Transaction)
 class TransactionAdmin(ModelAdmin):
-    list_display = ("description", "account", "amount", "category", "plaid_id", "date")
-    search_fields = ("description", "notes", "plaid_id")
+    list_display = ("description", "account", "amount", "category", "plaid_id", "merchant", "date")
+    search_fields = ("description", "notes", "plaid_id", "merchant")
 
 
 @admin.register(models.RecurringTransaction)

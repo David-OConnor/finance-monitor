@@ -89,7 +89,7 @@ def load_transactions(
         print(cat_vals,  "CAT_VALS", "SEARCH TEXT: ", search_text)
         trans = trans.filter(
             Q(description__icontains=search_text) | Q(notes__icontains=search_text) | Q(institution_name__icontains=search_text)
-            | Q(category__in=cat_vals)
+            | Q(category__in=cat_vals) | Q(merchant__icontains=search_text)
         )
 
     if start is not None:
@@ -397,17 +397,17 @@ def setup_spending_data(
     # for months_back in range(0, 12):
     for months_back in range(12, 0, -1):
         now = timezone.now()
-        start = (now - relativedelta(months=months_back)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        end = (start + relativedelta(months=1) - timedelta(seconds=1))
+        start_ = (now - relativedelta(months=months_back)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_ = (start + relativedelta(months=1) - timedelta(seconds=1))
 
         # todo: DRY with above.
-        trans_in_month = load_transactions(None, None, person, "", start, end, None)
+        trans_in_month = load_transactions(None, None, person, "", start_, end_, None)
 
         expenses_in_month = 0.0
         expense_transactions = filter_trans_spending(trans_in_month)
         for t in expense_transactions:
             expenses_in_month += t.amount
-        spending_over_time.append((start.date().strftime("%b %y"), expenses_in_month))
+        spending_over_time.append((start_.date().strftime("%b %y"), expenses_in_month))
 
         income_in_month = 0.0
         income_transactions = [
@@ -415,7 +415,12 @@ def setup_spending_data(
         ]
         for t in income_transactions:
             income_in_month += t.amount
-        income_over_time.append((start.date().strftime("%b %y"), income_in_month))
+        income_over_time.append((start_.date().strftime("%b %y"), income_in_month))
+
+
+    # todo: QC this merchant check
+    start_new_merchant_check = start - timedelta(days=360)
+    merchants_new = find_new_merchants(person, (start, end), (start_new_merchant_check, start))
 
     return {
         "highlights": spending_highlights,
@@ -423,6 +428,7 @@ def setup_spending_data(
         "expenses_total": expenses_total,
         "spending_over_time": spending_over_time,
         "income_over_time": income_over_time,
+        "merchants_new": merchants_new,
     }
 
 
@@ -463,3 +469,16 @@ def send_debug_email(message: str):
         fail_silently=False,
         html_message=message,
     )
+
+
+def find_new_merchants(person: Person, range_new: (datetime, datetime), range_baseline: (datetime, datetime)) -> List[str]:
+    """Find merchants that appear in a given time period that were not present in another period."""
+
+    # todo: You could have a more optimized query by doing this more carefully; later.
+    tran_new = load_transactions(None, None, person, None, range_new[0], range_new[1], None)
+    tran_baseline = load_transactions(None, None, person, None, range_baseline[0], range_baseline[1], None)
+
+    merchants_base = list(set([t.merchant.lower() for t in tran_baseline]))
+    return list(set([t.merchant.lower() for t in tran_new if t.merchant.lower() not in merchants_base]))
+
+

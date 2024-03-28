@@ -178,6 +178,7 @@ def add_transactions(request: HttpRequest) -> HttpResponse:
             description=tran["description"],
             date=tran["date"],
             currency_code=tran["currency_code"],
+            merchant=tran.get("merchange", ""),
             pending=False,
         )
 
