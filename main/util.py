@@ -28,17 +28,6 @@ from wallet import settings
 from main.transaction_cats import TransactionCategory
 
 
-CATS_NON_SPENDING = [
-    TransactionCategory.PAYMENT,
-    TransactionCategory.INCOME,
-    TransactionCategory.TRANSFER,
-    TransactionCategory.UNCATEGORIZED,
-    TransactionCategory.DEPOSIT,
-    TransactionCategory.DEBIT,
-    TransactionCategory.CREDIT_CARD,
-    TransactionCategory.INVESTMENTS,
-]
-
 # Show an account as unhealthy if the last successful refresh was older than this.
 ACCOUNT_UNHEALTHY_REFRESH_HOURS = 18
 
@@ -277,7 +266,7 @@ def filter_trans_spending(trans) -> List[Transaction]:
 
         cat = TransactionCategory(tran.category)
 
-        if cat not in CATS_NON_SPENDING:
+        if cat not in transaction_cats.CATS_NON_SPENDING:
             result.append(tran)
 
     return result

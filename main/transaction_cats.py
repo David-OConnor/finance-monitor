@@ -19,13 +19,6 @@ def enum_choices(cls):
     return cls
 
 
-class TransactionCategoryDiscret(Enum):
-    """Our broadest grouping"""
-
-    DISCRETIONARY = 0
-    # Housing, bills etc
-    NON_DISCRETIONARY = 1
-
 
 class TransactionCategoryGeneral(Enum):
     """We group each category into one of these more general categories"""
@@ -400,6 +393,40 @@ class TransactionCategory(Enum):
         return category_override(
             descrip, category, rules
         )
+
+
+CATS_NON_SPENDING = [
+    TransactionCategory.PAYMENT,
+    TransactionCategory.INCOME,
+    TransactionCategory.TRANSFER,
+    TransactionCategory.UNCATEGORIZED,
+    TransactionCategory.DEPOSIT,
+    TransactionCategory.DEBIT,
+    TransactionCategory.CREDIT_CARD,
+    TransactionCategory.INVESTMENTS,
+]
+
+
+class TransactionCategoryDiscret(Enum):
+    """Our broadest grouping"""
+
+    DISCRETIONARY = 0
+    # Housing, bills etc
+    NON_DISCRETIONARY = 1
+    NOT_APPLICABLE = 2  # Transfers etc
+
+    @classmethod
+    def from_cat(cls, cat: TransactionCategory) -> "TransactionCategoryDiscret":
+        if cat in [
+            TransactionCategory.BILLS_AND_UTILITIES,
+            TransactionCategory.MORTGAGE_AND_RENT,
+        ]:
+            return cls.NON_DISCRETIONARY
+
+        if cat in CATS_NON_SPENDING:
+            return cls.NOT_APPLICABLE
+
+        return cls.DISCRETIONARY
 
 
 # Statically set up all cat names, for use in filtering.
