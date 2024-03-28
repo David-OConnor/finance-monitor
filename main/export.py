@@ -75,7 +75,7 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
 
 
 def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str:
-    """Export a CSV, using Mint's format."""
+    """Export a CSV, using Mint's format, augmented with extra fields as required."""
     writer = csv.writer(output)
 
     # writer = csv.writer(response, escapechar='\\')
@@ -92,6 +92,7 @@ def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str
             "Account Name",
             "Labels",
             "Notes",
+            "Merchant",
         ]
     )
 
@@ -119,6 +120,7 @@ def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str
                 transaction.institution_name,
                 "",  # Labels are skipped as per the provided code snippet
                 transaction.notes,
+                transaction.merchant,
             ]
         )
 

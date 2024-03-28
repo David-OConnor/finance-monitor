@@ -66,6 +66,7 @@ urlpatterns = [
     path("delete-transactions", views.delete_transactions),
     path("edit-rules", views.edit_rules),
     path("edit-categories", views.edit_categories),
+    path("edit-budget-items", views.edit_budget_items),
     path("delete-accounts", views.delete_accounts),
     path("post-dash-load", views.post_dash_load),
     path("toggle-highlight", views.toggle_highlight),

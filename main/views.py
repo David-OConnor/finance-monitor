@@ -38,7 +38,7 @@ from main.models import (
     SubAccountType,
     RecurringTransaction,
     CategoryRule,
-    CategoryCustom,
+    CategoryCustom, BudgetItem,
 )
 
 import plaid
@@ -531,7 +531,10 @@ def budget(request: HttpRequest) -> HttpResponse:
     """Page for setting a budget"""
     person = request.user.person
 
+    budget_items = BudgetItem.objects.filter(person=person)
+
     context = {
+        "budget_items": budget_items
     }
 
     return render(request, "budget.html", context)
@@ -962,23 +965,69 @@ def edit_categories(request: HttpRequest) -> HttpResponse:
 
     for id_ in data["deleted"]:
         # The person check here prevents abuse by the frontend.
-        c = CategoryCustom.objects.get(id=id_, person=person)
         CategoryCustom.objects.get(id=id_, person=person).delete()
 
     return JsonResponse({"success": success})
 
-# class CustomPasswordResetView(PasswordResetView):
-#     print("\nCustom PW view")
-#     template_name = 'password_reset.html'
-#     email_template_name = 'registration/custom_password_reset_email.html'
-#     subject_template_name = 'registration/custom_password_reset_subject.txt'
-#     success_url = reverse_lazy('password_reset_done')
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         # Add custom context data here
-#         context['custom_data'] = 'This is custom data'
-#         return context
+
+@login_required
+def edit_budget_items(request: HttpRequest) -> HttpResponse:
+    """We use this to edit budget items"""
+
+    # todo: DRY with `edit_rules`.
+    success = True
+
+    data = load_body(request)
+    person = request.user.person
+
+    for item in data["edited"]:
+        item_db, _ = BudgetItem.objects.update_or_create(
+            person=person,
+            id=item["id"],
+            defaults={
+                "category": item["category"],
+                "notes": item["notes"],
+                "amount": item["amount"],
+            },
+        )
+
+    for item in data["added"]:
+        # The person check here prevents abuse by the frontend.
+
+        item_db = BudgetItem(
+            person=person,
+            category=item["category"],
+            notes=item["notes"],
+            amount=item["amount"],
+        )
+
+        success = False
+
+        while not success:
+            try:
+                item_db.save()
+                success = True
+            except IntegrityError:
+                print("Error adding a budget item: ", item_db)
+                success = False
+
+
+        # # todo: Pass added IDs to the UI.
+        # try:
+        #     rule_db.save()
+        # except IntegrityError:
+        #     # Increment a number in the description, then try again.
+        #     try:
+        #         rule_db.save()
+        #     except IntegrityError:
+        #         print(f"\nIntegrity error when saving a new category rule: {rule_db}\n")
+        #         success = False
+
+    for id_ in data["deleted"]:
+        # The person check here prevents abuse by the frontend.
+        BudgetItem.objects.get(id=id_, person=person).delete()
+
+    return JsonResponse({"success": success})
 
 
 def password_reset_request(request):

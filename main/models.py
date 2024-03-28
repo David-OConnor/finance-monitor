@@ -589,6 +589,7 @@ class CategoryRule(Model):
 
 
 class BudgetItem(Model):
+    # todo: Does this need to be a snapshot for a given month?
     """A monthly budget; allocation by categories"""
     person = ForeignKey(Person, related_name="budget_items", on_delete=CASCADE)
     category = IntegerField(choices=TransactionCategory.choices())

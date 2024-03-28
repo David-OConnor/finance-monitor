@@ -7,6 +7,32 @@
 {% block contents %}
     <div class="home-body">
         <h1 style="text-align: center">Monthly budget</h1>
+
+        <h2 style="text-align: center; margin-top: 80px;">Budget items</h2>
+        <h2 id="item-success" style="color: #39a839; visibility: collapse; text-align: center;">Budget item save successful.</h2>
+        <section style="display: flex; flex-direction: column; align-items: center">
+
+            <div style="display: flex;">
+                <button class="button-general" onclick="saveItems()" style="margin-bottom: 12px;">Save</button>
+                <button class="button-general" onclick="addItem()" style="margin-bottom: 12px;">➕ Add</button>
+            </div>
+            {#        <div style="display: flex; flex-wrap: wrap;">#}
+            {% for item in budget_items %}
+                <div id="item-div-{{ item.id }}"></div>
+                <div id="item-{{ item.id }}" style="display: flex; align-items: center; margin-bottom: 8px;">
+                    <input
+                            id="item-notes-{{ item.id }}"
+                            style="width: 200px;"
+                            value="{{ item.description }}"
+                            oninput="updateItem({{ item.id }})"
+                    />
+
+                    <h4 style="margin: 0 10px;">➡</h4>
+
+                    <button class="button-general" style="height: 40px; margin-right: 40px;" onclick="deleteItem({{ item.id }})">❌</button>
+                </div>
+            {% endfor %}
+        </section>
     </div>
 
     <script src="../static/util.js"></script>
@@ -15,9 +41,90 @@
         getEl("menu-budget").classList.add("menu-highlighted")
 
         {# Load template variables into JS. #}
-        let CUSTOM_CATEGORIES = {{custom_categories|safe }};
+        {#let BUDGET_ITEMS = {{budget_items.all|safe }};#}
+        let BUDGET_ITEMS = []
 
-        let HIGHLIGHTS = {by_cat: []}
+        let ITEMS_UPDATED= {}
+        let ITEMS_ADDED = []
+        let ITEMS_DELETED = []
+
+        function updateitem(id) {
+            ITEMS_UPDATED[id] = {
+                id: id,
+                description: getEl("item-descrip-" + id.toString()).value,
+                category: parseInt(getEl("item-category-" + id.toString()).value),
+            }
+        }
+
+        function addItem() {
+            {#getEl("item-" + id.toString()).remove()#}
+            ITEMS_ADDED.push({
+                description: "New item",
+                category: -1,
+            })
+
+            // todo temp until we pass ID from backend
+            const payload = {
+                edited: [],
+                added: [{
+                    description: "New item",
+                    category: -1,
+                }],
+                deleted: [],
+            }
+            fetch("/edit-budget-items", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("item addition failed to save")
+                    } else {
+                        // todo: Pass the new ID from the UI, and add the row.
+                        window.location.reload()
+                    }
+                });
+        }
+
+        function deleteItem(id) {
+            getEl("item-" + id.toString()).remove()
+
+            const payload = {
+                edited: [],
+                added: [],
+                deleted: [id],
+            }
+            fetch("/edit-budget-items", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("item addition failed to save")
+                    } else {
+                        // todo: Pass the new ID from the UI, and add the row.
+                        window.location.reload()
+                    }
+                });
+        }
+
+        function saveItems() {
+            const payload = {
+                edited: Object.values(ITEMS_UPDATED),
+                added: [], // todo temp handled separate
+                deleted: ITEMS_DELETED,
+            }
+
+            fetch("/edit-budget-items", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    if (!r.success) {
+                        console.error("Budget items failed to save")
+                    } else {
+                        if (ITEMS_ADDED.length) {
+                            // todo: Temp until we pass new ID from the backend
+                            window.location.reload()
+                        }
+                        getEl("item-success").style.visibility = "visible"
+                    }
+                });
+        }
 
         function init() {
         }

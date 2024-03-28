@@ -280,7 +280,7 @@ def refresh_transactions(account: FinancialAccount) -> None:
             amount=-tran.amount,
             # Note: Other fields like "merchant_name" are available, but aren't used on many transactcions.
             description=tran.name,
-            merchant=tran.merchange_name,  # Not always present.
+            merchant=tran.merchant_name,  # Not always present.
             date=tran.date,
             datetime=tran.datetime,
             plaid_id=tran.transaction_id,
