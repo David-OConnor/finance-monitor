@@ -322,9 +322,9 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     if account_status is not None:
         return account_status
 
-    spending_highlights = util.setup_spending_highlights(person, 30, 0, False)
-
     context = util.load_dash_data(request.user.person)
+
+    spending_highlights = util.setup_spending_highlights(person, 30, 0, False)
 
     context["spending_highlights"] = json.dumps(spending_highlights)
     context["custom_categories"] = [c.serialize() for c in CategoryCustom.objects.filter(person=person)]
@@ -534,7 +534,8 @@ def budget(request: HttpRequest) -> HttpResponse:
     budget_items = BudgetItem.objects.filter(person=person)
 
     context = {
-        "budget_items": budget_items
+        "budget_items": budget_items,
+        "custom_categories_ser": [c.serialize() for c in CategoryCustom.objects.filter(person=request.user.person)],
     }
 
     return render(request, "budget.html", context)

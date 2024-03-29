@@ -594,7 +594,7 @@ class BudgetItem(Model):
     person = ForeignKey(Person, related_name="budget_items", on_delete=CASCADE)
     category = IntegerField(choices=TransactionCategory.choices())
     notes = TextField(default="", blank=True, null=True)
-    amount = FloatField
+    amount = FloatField()
 
     class Meta:
         pass

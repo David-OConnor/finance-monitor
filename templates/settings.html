@@ -182,9 +182,9 @@
             window.location.href = '/export'
         })
 
-        let rulesUpdated = {}
-        let rulesAdded = []
-        let rulesDeleted = []
+        let RULES_UPDATED = {}
+        let RULES_ADDED = []
+        let RULES_DELETED = []
 
         let catsUpdated = {}
         let catsAdded = []
@@ -207,7 +207,7 @@
         })
 
         function updateRule(id) {
-            rulesUpdated[id] = {
+            RULES_UPDATED[id] = {
                 id: id,
                 description: getEl("rule-descrip-" + id.toString()).value,
                 category: parseInt(getEl("rule-category-" + id.toString()).value),
@@ -216,7 +216,7 @@
 
         function addRule() {
             {#getEl("rule-" + id.toString()).remove()#}
-            rulesAdded.push({
+            RULES_ADDED.push({
                 description: "New rule",
                 category: -1,
             })
@@ -244,7 +244,7 @@
 
         function deleteRule(id) {
             getEl("rule-" + id.toString()).remove()
-            {#rulesDeleted.push(id)#}
+            {#RULES_DELETED.push(id)#}
 
             const payload = {
                 edited: [],
@@ -329,19 +329,13 @@
             return sel
         }
 
-        let div
-        {% for rule in rules %}
-            div = getEl("cat-div-{{ rule.id }}")
-            div.appendChild(createCatSel2({{ rule.id }}, {{ rule.category }}))
-        {% endfor %}
-
         function saveRules() {
             // Save transaction rules.
             const payload = {
-                edited: Object.values(rulesUpdated),
-                {#added: rulesAdded,#}
+                edited: Object.values(RULES_UPDATED),
+                {#added: RULES_ADDED,#}
                 added: [], // todo temp handled separate
-                deleted: rulesDeleted,
+                deleted: RULES_DELETED,
             }
             fetch("/edit-rules", { body: JSON.stringify(payload), ...FETCH_HEADERS_POST })
                 .then(result => result.json())
@@ -349,7 +343,7 @@
                     if (!r.success) {
                         console.error("Rule edits failed to save")
                     } else {
-                        if (rulesAdded.length) {
+                        if (RULES_ADDED.length) {
                             // todo: Temp until we pass new ID from the backend
                             window.location.reload()
                         }
@@ -363,7 +357,7 @@
             // Save custom categories
             const payload = {
                 edited: Object.values(catsUpdated),
-                {#added: rulesAdded,#}
+                {#added: RULES_ADDED,#}
                 added: [], // todo temp handled separate
                 deleted: catsDeleted,
             }
@@ -400,6 +394,16 @@
                 });
 
         }
+
+        function init() {
+            let div
+            {% for rule in rules %}
+                div = getEl("cat-div-{{ rule.id }}")
+                div.appendChild(createCatSel2({{ rule.id }}, {{ rule.category }}))
+            {% endfor %}
+        }
+
+        init()
 
     </script>
 

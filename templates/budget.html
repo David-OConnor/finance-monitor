@@ -7,8 +7,10 @@
 {% block contents %}
     <div class="home-body">
         <h1 style="text-align: center">Monthly budget</h1>
+        <h3>Our budget system is a work in progress! Please send us any feedback and
+        feature requests and email to <a href="mailto:contact@finance-monitor.com">contact@finance-monitor.com</a> </h3>
 
-        <h2 style="text-align: center; margin-top: 80px;">Budget items</h2>
+{#        <h2 style="text-align: center;">Budget items</h2>#}
         <h2 id="item-success" style="color: #39a839; visibility: collapse; text-align: center;">Budget item save successful.</h2>
         <section style="display: flex; flex-direction: column; align-items: center">
 
@@ -16,18 +18,25 @@
                 <button class="button-general" onclick="saveItems()" style="margin-bottom: 12px;">Save</button>
                 <button class="button-general" onclick="addItem()" style="margin-bottom: 12px;">➕ Add</button>
             </div>
-            {#        <div style="display: flex; flex-wrap: wrap;">#}
             {% for item in budget_items %}
-                <div id="item-div-{{ item.id }}"></div>
-                <div id="item-{{ item.id }}" style="display: flex; align-items: center; margin-bottom: 8px;">
+                <div id="item-div-{{ item.id }}" style="display: flex; align-items: center; margin-bottom: 8px;">
                     <input
-                            id="item-notes-{{ item.id }}"
-                            style="width: 200px;"
-                            value="{{ item.description }}"
-                            oninput="updateItem({{ item.id }})"
+                            id="item-amount-{{ item.id }}"
+                            type="number"
+                            style="width: 100px; margin-left: 20px; margin-right: 20px;"
+                            {#  todo: format no decimals #}
+                            value={{ item.amount }}
+                                    oninput="updateItem({{ item.id }})"
                     />
 
-                    <h4 style="margin: 0 10px;">➡</h4>
+                    <div id="cat-div-{{ item.id }}"></div>
+
+                    <input
+                            id="item-notes-{{ item.id }}"
+                            style="width: 160px;"
+                            value="{{ item.notes }}"
+                            oninput="updateItem({{ item.id }})"
+                    />
 
                     <button class="button-general" style="height: 40px; margin-right: 40px;" onclick="deleteItem({{ item.id }})">❌</button>
                 </div>
@@ -48,27 +57,32 @@
         let ITEMS_ADDED = []
         let ITEMS_DELETED = []
 
-        function updateitem(id) {
-            ITEMS_UPDATED[id] = {
-                id: id,
-                description: getEl("item-descrip-" + id.toString()).value,
-                category: parseInt(getEl("item-category-" + id.toString()).value),
+        let CUSTOM_CATEGORIES = {{ custom_categories_ser|safe }}
+
+            function updateItem(id) {
+                ITEMS_UPDATED[id] = {
+                    id: id,
+                    category: parseInt(getEl("item-category-" + id.toString()).value),
+                    notes: getEl("item-notes-" + id.toString()).value,
+                    amount: getEl("item-amount-" + id.toString()).value,
+                }
             }
-        }
 
         function addItem() {
             {#getEl("item-" + id.toString()).remove()#}
             ITEMS_ADDED.push({
-                description: "New item",
-                category: -1,
+                category: 0,
+                notes: "",
+                amount: 0.,
             })
 
             // todo temp until we pass ID from backend
             const payload = {
                 edited: [],
                 added: [{
-                    description: "New item",
-                    category: -1,
+                    category: 0,
+                    notes: "",
+                    amount: 0.,
                 }],
                 deleted: [],
             }
@@ -85,7 +99,7 @@
         }
 
         function deleteItem(id) {
-            getEl("item-" + id.toString()).remove()
+            getEl("item-div-" + id.toString()).remove()
 
             const payload = {
                 edited: [],
@@ -126,7 +140,23 @@
                 });
         }
 
+        function createCatSel2(id, catInit) {
+            let sel = createCatSel(catInit, "", false)
+            sel.id = "item-category-" + id.toString()
+
+            sel.addEventListener("input", e => {
+                updateItem(id)
+            })
+
+            return sel
+        }
+
         function init() {
+            let div
+            {% for item in budget_items %}
+                div = getEl("item-div-{{ item.id }}")
+                div.prepend(createCatSel2({{ item.id }}, {{ item.category }}))
+            {% endfor %}
         }
 
         init()

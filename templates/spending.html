@@ -31,7 +31,7 @@
                 <span style="font-weight: normal; margin-left: 6px;">(Discretionary:</span>
                 <span id="expenses-discretionary" class="tran-neg" style="font-weight: normal;"></span>
                 <span style="font-weight: normal;">Non-discretionary:</span>
-                <span id="expenses-nondiscret" class="tran-neg"style="font-weight: normal;"></span>
+                <span id="expenses-nondiscret" class="tran-neg" style="font-weight: normal;"></span>
                 <span style="font-weight: normal;">)</span>
             </h2>
         </div>
@@ -288,7 +288,7 @@
 
             for (let merchant of MERCHANTS_NEW) {
                 h4 = createEl("h4", {}, {marginTop: 0, marginBottom: 0, fontWeight: "normal", marginLeft: "6px"}, merchant[0])
-                console.log(merchant)
+
                 if (merchant[1] !== null && merchant[1].length !== 0) {
                     let d = createEl("div", {}, {display: "flex"})
                     let img = createEl("img", {"src": merchant[1], alt: "", width: "24px"})
@@ -344,7 +344,7 @@
             {#    values.push(item[1][1])#}
             //    {#}#}
 
-            getEl('plot').remove()
+           // getEl('plot').remove()
 
             let data_ = [{
                 values: values,
@@ -370,82 +370,79 @@
 
             Plotly.newPlot('plot-wrapper', data_, layout, {displaylogo: false});
 
-
-
-            return
-
-
-            let el = document.createElement("canvas")
-            el.setAttribute("id", "plot")
-
-            document.addEventListener('DOMContentLoaded', function () {
-                var ctx = document.getElementById('myPieChart').getContext('2d');
-                // Your chart initialization code here
-            });
-            getEl("plot-wrapper").appendChild(el)
-
-            let chartArea = getEl('plot').getContext('2d')
-
-            const data = {
-                labels: labels,
-                datasets: [{
+            {##}
+            {##}
+            {#let el = document.createElement("canvas")#}
+            {#el.setAttribute("id", "plot")#}
+            {##}
+            {#document.addEventListener('DOMContentLoaded', function () {#}
+            {#    var ctx = document.getElementById('myPieChart').getContext('2d');#}
+            {#    // Your chart initialization code here#}
+      //
+            {#getEl("plot-wrapper").appendChild(el)#}
+            {##}
+            {#let chartArea = getEl('plot').getContext('2d')#}
+            {##}
+            {#const data = {#}
+            {#    labels: labels,#}
+            {#    datasets: [{#}
                     {#label: "Spending, by category",#}
-                    data: values,
-                    backgroundColor: PLOT_COLORS,
+            {#        data: values,#}
+            {#        backgroundColor: PLOT_COLORS,#}
                     {#hoverOffset: 4#}
-                    //ackgroundColor: Utils.colors({
-                    //   color: Utils.color(0),
-                    //  count: 5
-                    //}),
-                    //data: Utils.numbers({
-                    //   count: 5,
-                    //  min: 0,
-                    // max: 100
-                    //}),
-                }],
-            };
-
-            const chartSpendingPie = new Chart(chartArea, {
+            {#        //ackgroundColor: Utils.colors({#}
+            {#        //   color: Utils.color(0),#}
+            {#        //  count: 5#}
+            {#        //}),#}
+            {#        //data: Utils.numbers({#}
+            {#        //   count: 5,#}
+            {#        //  min: 0,#}
+            {#        // max: 100#}
+            {#        //}),#}
+            {#    }],#}
+           //
+            {##}
+            {#const chartSpendingPie = new Chart(chartArea, {#}
                 {#type: "pie",#}
-                type: 'doughnut',
-                data: data,
-                options: {
-                    animation: false,
+            {#    type: 'doughnut',#}
+            {#    data: data,#}
+            {#    options: {#}
+            {#        animation: false,#}
                     {#plugins: [ChartDataLabels],#}
-                    plugins: {
-                        legend: {
-                            display: false // This will hide the legend
-                        },
-                        // Configuration options for the datalabels plugin
-                        datalabels: {
-                            backgroundColor: function (context) {
-                                return context.dataset.backgroundColor;
-                            },
-                            borderColor: 'white',
-                            borderRadius: 25,
-                            borderWidth: 2,
-                            color: 'white',
-                            display: function (context) {
-                                let dataset = context.dataset;
-                                let count = dataset.data.length;
-                                let value = dataset.data[context.dataIndex];
-                                return value > count * 1.5;
-                            },
-                            font: {
-                                weight: 'bold'
-                            },
-                            padding: 6,
-                            formatter: Math.round,
-
-                            anchor: 'end',
-                            align: 'end',
-                            labels: {
-                                color: 'blue'
-                            }
-                        }
-                    }
-                }
-            })
+            {#        plugins: {#}
+            {#            legend: {#}
+            {#                display: false // This will hide the legend#}
+            {#            },#}
+            {#            // Configuration options for the datalabels plugin#}
+            {#            datalabels: {#}
+            {#                backgroundColor: function (context) {#}
+            {#                    return context.dataset.backgroundColor;#}
+            {#                },#}
+            {#                borderColor: 'white',#}
+            {#                borderRadius: 25,#}
+            {#                borderWidth: 2,#}
+            {#                color: 'white',#}
+            {#                display: function (context) {#}
+            {#                    let dataset = context.dataset;#}
+            {#                    let count = dataset.data.length;#}
+            {#                    let value = dataset.data[context.dataIndex];#}
+            {#                    return value > count * 1.5;#}
+            {#                },#}
+            {#                font: {#}
+            {#                    weight: 'bold'#}
+            {#                },#}
+            {#                padding: 6,#}
+            {#                formatter: Math.round,#}
+            {##}
+            {#                anchor: 'end',#}
+            {#                align: 'end',#}
+            {#                labels: {#}
+            {#                    color: 'blue'#}
+            {#                }#}
+            {#            }#}
+            {#        }#}
+            {#    }#}
+       //
 
 
             {#    radius: 0, // Don't show circles on the points.#}

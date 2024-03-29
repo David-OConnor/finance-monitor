@@ -105,26 +105,21 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         Q(account__person=person) | Q(person=person)
     )
 
-    net_worth = 0.0
-    for acc in sub_accounts:
-        net_worth = unw_helper(net_worth, acc)
-
     totals = {
-        "cash": 0,
-        "investment": 0,
-        "crypto": 0,
-        "credit_debit": 0,
-        "loans": 0,
-        "assets": 0,
-        # net_worth: f"{net_worth:,.0f}"
-        "net_worth": net_worth,
+        "cash": 0.,
+        "investment": 0.,
+        "crypto": 0.,
+        "credit_debit": 0.,
+        "loans": 0.,
+        "assets": 0.,
+        "net_worth": 0.,
     }
 
-    for sub_acc in SubAccount.objects.filter(
-            Q(account__person=person) | Q(person=person)
-    ):
+    for sub_acc in sub_accounts:
         if sub_acc.ignored:
             continue
+
+        totals["net_worth"] = unw_helper(totals["net_worth"], sub_acc)
 
         t = SubAccountType(sub_acc.sub_type)
 
@@ -168,13 +163,6 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
 
     count = 60  # todo: Set this elsewhere
     transactions = load_transactions(0, count, person, None, None, None, None)
-    #
-    # print("Returning: ",{
-    #     "totals": totals_display,
-    #     # "sub_accs": json.dumps([s.serialize() for s in sub_accounts]),
-    #     "sub_accs": [s.serialize() for s in sub_accounts],
-    #     "transactions": transactions,
-    # })
 
     # We're getting different results in template vs JSON responses.
     # Preserialize for the template; don't preserialize for JSON responses.
@@ -203,7 +191,7 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
             month_end.date().isoformat()
         ))
 
-    # return health status by
+    # return health status, by (institution-level) account.
     acc_health = []
     now = timezone.now()
     for acc in person.accounts.all():

@@ -58,7 +58,21 @@ function getPublicToken() {
     // an access token. This is then stored in the database, associated with the user's account at
     // the linked institution.
 
-    console.log("Getting public token. Link token: ", LINK_TOKEN)
+    // Load the plaid script dynamically, so it doesn't load every time, or at page load.
+    try {
+        Plaid
+    } catch (e) {
+        console.log(e, "E")
+        let scriptEl = createEl("script", {src: "https://cdn.plaid.com/link/v2/stable/link-initialize.js"})
+
+        scriptEl.onload = () => {
+            console.log("Plaid loaded :)")
+            getPublicToken() // Recursion; hopefully passing next time around
+        }
+        document.body.appendChild(scriptEl)
+        return
+    }
+
     let handler = Plaid.create({
         // Create a new link_token to initialize Link
         // token: await fetch("/create_link_token", {...FETCH_HEADERS_POST }).link_token,
