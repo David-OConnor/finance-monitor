@@ -9,18 +9,15 @@
         <div style="display: flex; align-items: center; flex-wrap: wrap;">
 
             <h2 style="margin-right: 20px;">Past <span id="days-back">30</span> days</h2>
-            {#            <form method="post" style="display: flex; align-items: center;">#}
-            {#                {% csrf_token %}#}
             <button id="range-30" class="button-general" onclick="setRange(30)">Past 30 days</button>
             <button id="range-60" class="button-general" onclick="setRange(60)">Past 60 days</button>
             <button id="range-90" class="button-general" onclick="setRange(90)">Past 90 days</button>
             <button id="range-custom" class="button-general" onclick="setRange(-1)">Custom:</button>
 
             <h3 style="margin-right: 6px;">Start:</h3>
-            <input id="start" type="date" />
+            <input id="start" type="date" oninput="setRange(-1)" />
             <h3 style="margin-left: 12px; margin-right: 6px;">End:</h3>
-            <input id="end" type="date" />
-            {#            </form>#}
+            <input id="end" type="date" oninput="setRange(-1)" />
         </div>
 
 

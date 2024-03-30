@@ -66,7 +66,6 @@ function getPublicToken() {
         let scriptEl = createEl("script", {src: "https://cdn.plaid.com/link/v2/stable/link-initialize.js"})
 
         scriptEl.onload = () => {
-            console.log("Plaid loaded :)")
             getPublicToken() // Recursion; hopefully passing next time around
         }
         document.body.appendChild(scriptEl)
