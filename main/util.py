@@ -479,3 +479,16 @@ def find_new_merchants(person: Person, range_new: (datetime, datetime), range_ba
     return list(set([(t.merchant.lower(), t.logo_url) for t in tran_new if t.merchant.lower() not in merchants_base]))
 
 
+def spending_this_month(cat: TransactionCategory, person: Person) -> float:
+    """For use in Budget: Find the spending amount in the current calendar month, in this transaction category"""
+    now = timezone.now()
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    month_end = (month_start + relativedelta(months=1) - timedelta(seconds=1))
+
+    trans = load_transactions(None, None, person, None, month_start, month_end, cat)
+
+    total = 0.
+    for t in trans:
+        total += t.amount
+
+    return total

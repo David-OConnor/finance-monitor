@@ -533,11 +533,22 @@ def budget(request: HttpRequest) -> HttpResponse:
     """Page for setting a budget"""
     person = request.user.person
 
-    budget_items = BudgetItem.objects.filter(person=person)
+    budget_items_ = BudgetItem.objects.filter(person=person)
 
+    custom_cats = CategoryCustom.objects.filter(person=request.user.person)
+
+    budget_items = []
+    for b in budget_items_:
+        amount = util.spending_this_month(TransactionCategory(TransactionCategory(b.category)), person)
+        budget_items.append((
+            b,
+            str(amount).replace("-", "")
+        ))
+
+    # todo: Make sure custom categories here work.
     context = {
         "budget_items": budget_items,
-        "custom_categories_ser": [c.serialize() for c in CategoryCustom.objects.filter(person=request.user.person)],
+        "custom_categories_ser": [c.serialize() for c in custom_cats],
     }
 
     return render(request, "budget.html", context)

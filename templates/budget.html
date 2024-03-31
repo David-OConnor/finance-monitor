@@ -14,31 +14,33 @@
         <h2 id="item-success" style="color: #39a839; visibility: collapse; text-align: center;">Budget item save successful.</h2>
         <section style="display: flex; flex-direction: column; align-items: center">
 
-            <div style="display: flex;">
+            <div style="display: flex; margin-bottom: 20px;">
                 <button class="button-general" onclick="saveItems()" style="margin-bottom: 12px;">Save</button>
                 <button class="button-general" onclick="addItem()" style="margin-bottom: 12px;">➕ Add</button>
             </div>
             {% for item in budget_items %}
-                <div id="item-div-{{ item.id }}" style="display: flex; align-items: center; margin-bottom: 8px;">
+                <div id="item-div-{{ item.0.id }}" style="display: flex; margin-bottom: 8px;">
                     <input
-                            id="item-amount-{{ item.id }}"
+                            id="item-amount-{{ item.0.id }}"
                             type="number"
                             style="width: 100px; margin-left: 20px; margin-right: 20px;"
                             {#  todo: format no decimals #}
-                            value={{ item.amount }}
-                                    oninput="updateItem({{ item.id }})"
+                            value={{ item.0.amount }}
+                                    oninput="updateItem({{ item.0.id }})"
                     />
 
-                    <div id="cat-div-{{ item.id }}"></div>
+                    <h3 class="tran-neutral" style="margin-right: 20px;">{{ item.1 }}</h3>
+
+                    <div id="cat-div-{{ item.0.id }}"></div>
 
                     <input
-                            id="item-notes-{{ item.id }}"
+                            id="item-notes-{{ item.0.id }}"
                             style="width: 160px;"
-                            value="{{ item.notes }}"
-                            oninput="updateItem({{ item.id }})"
+                            value="{{ item.0.notes }}"
+                            oninput="updateItem({{ item.0.id }})"
                     />
 
-                    <button class="button-general" style="height: 40px; margin-right: 40px;" onclick="deleteItem({{ item.id }})">❌</button>
+                    <button class="button-general" style="height: 40px; margin-right: 40px;" onclick="deleteItem({{ item.0.id }})">❌</button>
                 </div>
             {% endfor %}
         </section>
@@ -154,8 +156,8 @@
         function init() {
             let div
             {% for item in budget_items %}
-                div = getEl("item-div-{{ item.id }}")
-                div.prepend(createCatSel2({{ item.id }}, {{ item.category }}))
+                div = getEl("item-div-{{ item.0.id }}")
+                div.prepend(createCatSel2({{ item.0.id }}, {{ item.0.category }}))
             {% endfor %}
         }
 

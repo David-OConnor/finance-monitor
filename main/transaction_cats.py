@@ -672,7 +672,7 @@ def category_override(
             category = cat
 
     for rule in rules:
-        if descrip.strip() == rule.description.strip():
+        if descrip.strip() == rule.description.lower().strip():
             return TransactionCategory(rule.category)
 
     return category
