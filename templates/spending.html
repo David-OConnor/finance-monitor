@@ -6,19 +6,39 @@
 
 {% block contents %}
     <div class="home-body">
-        <div style="display: flex; align-items: center; flex-wrap: wrap;">
+        <section style="display: flex; align-items: center; flex-wrap: wrap;">
 
-            <h2 style="margin-right: 20px;">Past <span id="days-back">30</span> days</h2>
-            <button id="range-30" class="button-general" onclick="setRange(30)">Past 30 days</button>
-            <button id="range-60" class="button-general" onclick="setRange(60)">Past 60 days</button>
-            <button id="range-90" class="button-general" onclick="setRange(90)">Past 90 days</button>
-            <button id="range-custom" class="button-general" onclick="setRange(-1)">Custom:</button>
+            <h2 id="days-back" style="margin-right: 20px;">Past  30 days</h2>
+            <button id="range-30" class="button-general" onclick="setRangeFromDaysback(30)">Past 30 days</button>
+            <button id="range-60" class="button-general" onclick="setRangeFromDaysback(60)">Past 60 days</button>
+            <button id="range-90" class="button-general" onclick="setRangeFromDaysback(90)">Past 90 days</button>
+            <button id="range-custom" class="button-general" onclick="setRangeFromDaysback(-1)">Custom:</button>
 
             <h3 style="margin-right: 6px;">Start:</h3>
-            <input id="start" type="date" oninput="setRange(-1)" />
+            <input id="start" type="date" oninput="setRangeFromDaysback(-1)" />
             <h3 style="margin-left: 12px; margin-right: 6px;">End:</h3>
-            <input id="end" type="date" oninput="setRange(-1)" />
-        </div>
+            <input id="end" type="date" oninput="setRangeFromDaysback(-1)" />
+        </section>
+
+        {# Date range pickers, by month. #}
+        {# todo: DRY with Dashboard #}
+        <section style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
+            {% for item in month_picker_items %}
+                <button
+                        class="button-general"
+                        style="margin-left: 8px; margin-right: 8px;"
+                        onclick="setRangeWrapper('{{ item.0 }}', '{{ item.1 }}', '{{ item.2 }}')"
+                >{{ item.0 }}</button>
+            {% endfor %}
+
+            {# All months #}
+            <button
+                    class="button-general"
+                    style="margin-left: 8px; margin-right: 8px;"
+                    {#                        onclick="changeDates('1980-01-01', '2030-01-01')"#}
+                    onclick="setRangeWrapper(null, null)"
+            >All</button>
+        </section>
 
 
         <div style="display: flex; justify-content: center;">
@@ -148,9 +168,7 @@
 
         ]
 
-        function setRange(daysBack) {
-            // Set the date range.
-
+        function setRangeFromDaysback(daysBack) {
             let activeColor = "#349614"
             let activeWeight = "bold"
 
@@ -195,14 +213,14 @@
                 btn.style.borderColor = null
                 btn.style.fontWeight = null
             }
+            // todo: By-month buttons: Active indicator.
 
             LOOKBACK = daysBack
             if (daysBack === -1) {
-                getEl("days-back").textContent = "(Custom)"
+                getEl("days-back").textContent = "(Custom range)"
             } else {
-                getEl("days-back").textContent = daysBack.toString()
+                getEl("days-back").textContent = "Past " + daysBack.toString() + " days"
             }
-
 
             let start, end
             if (daysBack === -1) {
@@ -215,6 +233,14 @@
                 end = 0
                 start = daysBack
             }
+
+            LOOKBACK = daysBack
+
+            setRange(start, end)
+        }
+
+        function setRange(start, end) {
+            // Set the date range.
 
             const payload = {
                 start: start,
@@ -232,8 +258,6 @@
                     SPENDING_OVER_TIME = r.spending_over_time
                     INCOME_OVER_TIME = r.income_over_time
                     MERCHANTS_NEW = r.merchants_new
-
-                    LOOKBACK = daysBack
 
                     getEl("income-total").textContent = formatAmount(INCOME_TOTAL, 0)
                     getEl("expenses-total").textContent = formatAmount(-EXPENSES_TOTAL, 0)
@@ -341,7 +365,7 @@
             {#    values.push(item[1][1])#}
             //    {#}#}
 
-           // getEl('plot').remove()
+            // getEl('plot').remove()
 
             let data_ = [{
                 values: values,
@@ -375,7 +399,7 @@
             {#document.addEventListener('DOMContentLoaded', function () {#}
             {#    var ctx = document.getElementById('myPieChart').getContext('2d');#}
             {#    // Your chart initialization code here#}
-      //
+            //
             {#getEl("plot-wrapper").appendChild(el)#}
             {##}
             {#let chartArea = getEl('plot').getContext('2d')#}
@@ -383,10 +407,10 @@
             {#const data = {#}
             {#    labels: labels,#}
             {#    datasets: [{#}
-                    {#label: "Spending, by category",#}
+            {#label: "Spending, by category",#}
             {#        data: values,#}
             {#        backgroundColor: PLOT_COLORS,#}
-                    {#hoverOffset: 4#}
+            {#hoverOffset: 4#}
             {#        //ackgroundColor: Utils.colors({#}
             {#        //   color: Utils.color(0),#}
             {#        //  count: 5#}
@@ -397,15 +421,15 @@
             {#        // max: 100#}
             {#        //}),#}
             {#    }],#}
-           //
+            //
             {##}
             {#const chartSpendingPie = new Chart(chartArea, {#}
-                {#type: "pie",#}
+            {#type: "pie",#}
             {#    type: 'doughnut',#}
             {#    data: data,#}
             {#    options: {#}
             {#        animation: false,#}
-                    {#plugins: [ChartDataLabels],#}
+            {#plugins: [ChartDataLabels],#}
             {#        plugins: {#}
             {#            legend: {#}
             {#                display: false // This will hide the legend#}
@@ -439,7 +463,7 @@
             {#            }#}
             {#        }#}
             {#    }#}
-       //
+            //
 
 
             {#    radius: 0, // Don't show circles on the points.#}
@@ -578,9 +602,36 @@
             getEl("end").value = (new Date()).toISOString().split('T')[0]
         }
 
+        function setRangeWrapper(monthName, start, end) {
+            // Converts dates to days back.
+            // todo: These APIs are confusing; sort it out.
+            start = parseInt((new Date() - new Date(start)) / (3600 * 1000*24))
+            end = parseInt((new Date() - new Date(end)) / (3600 * 1000*24))
+
+            // todo: DRY
+            let inactiveBtns = [
+                getEl("range-30"),
+                getEl("range-60"),
+                getEl("range-90"),
+                getEl("range-custom"),
+                // todo: Other single-months.
+            ]
+
+            for (let btn of inactiveBtns) {
+                btn.style.color = null
+                btn.style.borderColor = null
+                btn.style.fontWeight = null
+            }
+
+            getEl("days-back").textContent = monthName
+            // todo: Make the btn you clicked active.
+
+            setRange(start, end)
+        }
+
         function init() {
             setDatePickerDefaults()
-            setRange(30)
+            setRangeFromDaysback(30)
         }
 
         init()

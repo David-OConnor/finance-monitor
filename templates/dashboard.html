@@ -160,7 +160,7 @@
             {# Required to show borders?#}
 
             {#  A section with clickable months #}
-            <div class="hide-on-mobile" style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
+            <section class="hide-on-mobile" style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
                 {% for item in month_picker_items %}
                     <button
                             class="button-general"
@@ -176,7 +176,7 @@
                         {#                        onclick="changeDates('1980-01-01', '2030-01-01')"#}
                         onclick="changeDates(null, null)"
                 >All</button>
-            </div>
+            </section>
 
             <form style="display: flex; flex-wrap: wrap; align-items: center;">
                 <div style="display: flex; align-items: center; margin-right: 32px;">

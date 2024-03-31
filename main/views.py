@@ -520,7 +520,8 @@ def spending(request: HttpRequest) -> HttpResponse:
         return account_status
 
     context = {
-        "custom_categories": [c.serialize() for c in CategoryCustom.objects.filter(person=request.user.person)]
+        "custom_categories": [c.serialize() for c in CategoryCustom.objects.filter(person=request.user.person)],
+        "month_picker_items": util.setup_month_picker(),
     }
 
     return render(request, "spending.html", context)
