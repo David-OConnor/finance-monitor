@@ -1315,8 +1315,10 @@ function init() {
 
     setupEditTranButton()
 
-    let refreshIndicator = getEl("refreshing-indicator")
-    refreshIndicator.style.visibility = "visible"
+    // Put this back; currently removed due due to layout shifts.
+    // let refreshIndicator = getEl("refreshing-indicator")
+    // refreshIndicator.style.visibility = "visible"
+
     // Tell the backend to start updating account data values etc, and receive updates based on that here.
     fetch("/post-dash-load", FETCH_HEADERS_GET)
         // Parse JSON if able.
