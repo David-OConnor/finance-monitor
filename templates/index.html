@@ -6,16 +6,13 @@
 {% endblock %}
 
 {% block contents %}
-
-    {#     Check other applications for examples. Wilbur, Rocket money, Monarch etc.#}
-
     <div class="home-body">
         <h1>Finance Monitor</h1>
 
         <h2 class="home-h">The fastest way to view your finances</h2>
 
         <p class="home-p">
-            View account balances, net worth, and transactions. <a href="register">Register here</a>; it takes about a minute.
+            View account balances, net worth, and transactions. <a href="/register">Register here</a>; it takes about a minute.
         </p>
 
         <h2 class="home-h">Privacy focused</h2>
@@ -28,7 +25,7 @@
             and spending by category. View recurring transactions. Split and recategorize.</p>
 
         <div style="display: flex; justify-content: center; margin-top: 40px; margin-bottom: 40px;">
-            <img src="{% static 'images/fm-dash-1.png' %}" alt="Dashboard example" />
+            <img src="{% static 'images/fm-dash-1.png' %}" height="540" alt="Dashboard example" />
         </div>
 
         <h2 class="home-h">Secure authentication</h2>
@@ -48,7 +45,7 @@
             mobile connections. </p>
 
         <div style="display: flex; justify-content: center; margin-top: 40px; margin-bottom: 40px;">
-            <img src="{% static 'images/fm-dash-2.png' %}" alt="Transactions example" />
+            <img src="{% static 'images/fm-spending-1.png' %}" height="479" alt="Spending example" />
         </div>
 
         <p class="home-p">
@@ -68,7 +65,7 @@
         </p>
 
         <div style="display: flex; justify-content: center; margin-top: 40px; margin-bottom: 40px;">
-            <img src="{% static 'images/fm-spending-1.png' %}" alt="Spending example" />
+            <img src="{% static 'images/fm-dash-2.png' %}" height="434" alt="Transactions example" />
         </div>
 
         <p>The fastest transaction search available.</p>
@@ -80,17 +77,13 @@
 
         <p class="home-p">We are continuously adding features and improving user experience.</p>
 
-        <h2>A great Mint alternative</h2>
+        <h2 class="home-h">A great Mint alternative</h2>
+        <p class="home-p">Import and export transactions in Mint's format.</p>
 
         {#    <h2>Finance Monitor shows you all </h2>#}
 
     </div>
 
-
-
     {#    <h3>Join our 500,000 members.</h3>#}
     {#    (4.4 stars (5000 Ratings).#}
-
-
-
 {% endblock %}

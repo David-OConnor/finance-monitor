@@ -1,7 +1,4 @@
-/*todo: Remove unused.*/
-
 body {
-    /*background-color: #ffffff;*/
     background-color: #F8F8F8;
     background-position: top center;
     background-size: auto;
@@ -26,14 +23,6 @@ img {
     max-width: 100%;
 }
 
-/*h2 {*/
-/*    margin-top: 60px;*/
-/*}*/
-
-/*span {*/
-/*    font-family: 'Karla', sans-serif;*/
-/*}*/
-
 #top-bar {
     display: flex;
     background-color: #a2c8a9;
@@ -55,22 +44,17 @@ img {
     display: flex;
     flex-direction: column;
 
-    /*text-align: center;*/
-    /*background-color: white;*/
     background-color: #F8F8F8;
 }
 
 @media (min-width : 800px) {
     .home-body {
         padding: 40px;
-        /*margin-left: 5%;*/
-        /*margin-right: 5%;*/
     }
 }
 
 @media (max-width : 800px) {
     .home-body {
-        /*padding: 10px;*/
         padding: 0;
     }
 
@@ -79,23 +63,6 @@ img {
         justify-content: center;
         flex-wrap: wrap;
     }
-}
-
-@media (min-width : 800px) {
-    .express-checkout {
-        flex-direction: row;
-    }
-}
-
-@media (max-width : 800px) {
-    .express-checkout {
-        flex-direction: column;
-        align-items: center;
-    }
-}
-
-.section-header {
-    margin-top: 60px;
 }
 
 .menu-item {
@@ -132,7 +99,6 @@ img {
     padding: 14px;
     margin-left: 8px;
     margin-right: 8px;
-    /*margin-bottom: 4px;  !* Useful when flex-wrapped, eg on mobile. *!*/
     color: #3d3d3d;
     cursor: pointer;
     height: 28px;
@@ -140,127 +106,10 @@ img {
 
 @media (min-width: 800px) {
     .button-general {
-        /*height: 50px;*/
     }
 }
-
-.cart {
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    border: 1px solid black;
-    align-items: center;
-    justify-content: center;
-}
-
 .button-general:hover {
-    /*background-color: #a1afe1;*/
     border-color: #58af55;
-}
-
-@media (min-width : 800px) {
-    .top3 {
-        display: flex;
-        justify-content: center;
-        font-size: 1.2em;
-        margin-bottom: 60px;
-        margin-top: 30px;
-    }
-}
-
-@media (max-width : 800px) {
-    .top3 {
-        display: none;
-        /*display: flex;*/
-        /*flex-direction: column;*/
-        /*flex-direction: row;*/
-        /*flex-wrap: wrap;*/
-        /*font-size: 0.9em;*/
-        /*justify-content: center;*/
-        /*align-items: center;*/
-        /*tex-align: center;*/
-    }
-}
-
-@media (min-width : 900px) {
-    .top6 {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        grid-template-rows: 1fr 1fr;
-        text-align: center;
-        margin-top: 40px;
-        margin-bottom: 40px;
-    }
-}
-
-@media (max-width : 900px) {
-    .top6 {
-        display: flex;
-        flex-direction: column;
-    }
-}
-
-.code-block {
-    background: #ffffff;
-    overflow:auto;
-    width:auto;
-    border:solid gray;
-    border-width:.1em .1em .1em .8em;
-    padding:.2em .6em;
-}
-
-#order-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /*background-color: #e2f1f8*/
-    border: 1px solid #bbbbbb;
-}
-
-.form-entry {
-    display: flex;
-    flex-direction: column;
-    /*width: 300px;*/
-}
-
-/*.order-input {*/
-/*    width: 300px;*/
-/*    height: 34px;*/
-/*    border: 1px solid #333333;*/
-/*}*/
-
-@media (min-width : 800px) {
-    #contact-info-form {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-}
-
-@media (max-width : 800px) {
-    #contact-info-form {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-    .card-wrapper {
-        width: 360px;
-    }
-}
-
-@media (min-width : 800px) {
-    .left-side {
-        margin-right: 20px
-    }
-
-    .right-side {
-        margin-left: 20px
-    }
-
-    .card-wrapper {
-    }
 }
 
 .fineprint {
@@ -285,21 +134,15 @@ img {
     }
 }
 
-
 .about-item {
     margin-top: 40px;
     margin-bottom: 0;
 }
 
 .transaction {
-    /*display: flex;*/
     border: 1px solid #888888;
-    /*margin-bottom: 20px;*/
     border-radius: 8px;
     padding-left: 10px;
-    /*justify-content: flex-start;*/
-    /*gap: 40px;*/
-    /*height: 12px;*/
 }
 
 .transaction-cell {
@@ -315,7 +158,6 @@ img {
     padding-bottom: 0;
     padding-top: 0;
 }
-
 
 .tran-pos {
     color: #2ba929;
@@ -366,12 +208,9 @@ img {
 #accounts {
     display: flex;
     flex-wrap: wrap;
-    /*border: 1px solid #888888;*/
     background-color: white;
     border-radius: 12px;
-    /*margin-bottom: 20px;*/
     justify-content: center;
-    /*background-color: #eeeeee;*/
 }
 
 .acct-hdg {
@@ -382,8 +221,6 @@ img {
 .tran-table {
     background-color: white;
     border-radius: 12px;
-    /*padding: 18px; */
-    /* Hmm. To get both borders and padding, we need some combo of this...*/
     border-collapse: collapse;
     width: 100%;
     margin-top: 12px;
@@ -408,7 +245,7 @@ img {
 
         .spending-highlight-title {
             margin-bottom: 0;
-            margin-top: 32x;
+            margin-top: 32px;
     }
 }
 
@@ -420,6 +257,7 @@ img {
   src: url(/static/fonts/karla_latin_ext.woff2) format('woff2');
   unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
+
 /* latin */
 @font-face {
   font-family: 'Karla';

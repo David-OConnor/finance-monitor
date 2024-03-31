@@ -7,6 +7,9 @@
 {% block contents %}
     <div class="home-body">
 
+        {% if no_accs %}
+            <h2>Add an account to get started.</h2>
+        {% endif %}
         <section style="display: flex; align-items: center;">
             <h2 style="margin-right: 32px">Net worth: <span class="{{ totals.net_worth_class }}">{{ totals.net_worth }}</span></h2>
 
@@ -15,7 +18,6 @@
                 <button id="link-button" class="button-general">➕ Syncing account</button>
                 <button id="add-manual-button" class="button-general" onclick="toggleAddManual()">➕ Manual account</button>
             {% else %}
-                <h2>Add an account to get started.</h2>
                 <button id="link-button" class="button-general" style="font-weight: bold; border-color: #ff00ff">➕ Syncing account</button>
                 <button id="add-manual-button" class="button-general" style="font-weight: bold; border-color: #ff00ff" onclick="toggleAddManual()">➕ Manual account</button>
             {% endif %}
