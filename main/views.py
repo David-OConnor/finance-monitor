@@ -514,8 +514,6 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
 @login_required
 def spending(request: HttpRequest) -> HttpResponse:
     """Page for details on spending, and related trends"""
-    person = request.user.person
-
     account_status = util.check_account_status(request)
     if account_status is not None:
         return account_status
@@ -531,6 +529,10 @@ def spending(request: HttpRequest) -> HttpResponse:
 @login_required
 def budget(request: HttpRequest) -> HttpResponse:
     """Page for setting a budget"""
+    account_status = util.check_account_status(request)
+    if account_status is not None:
+        return account_status
+
     person = request.user.person
 
     budget_items_ = BudgetItem.objects.filter(person=person)
@@ -686,11 +688,14 @@ def register(request):
             login(request, user)  # Log the user in
             messages.success(request, "Registration successful.")
             return redirect("/dashboard")  # Redirect to a desired URL
+        else:
+            # print("\n\nForm error!: ", form.errors, form.error_messages)
+            return render(request, "register.html", {"error": True})
     else:
         print("Error: Non-post data passed to the register view.")
         # form = UserCreationForm()
 
-    return render(request, "register.html", {})
+    return render(request, "register.html", {"error": False})
 
 
 # def password_reset(request):
@@ -1115,7 +1120,7 @@ def password_reset_confirm(request, uidb64=None, token=None):
 
 
 def verify_email(request: HttpRequest, uidb64=None, token=None):
-    print(f"In verify email. UId: {uidb64}, token: {token}")
+    print(f"In verify email. UID: {uidb64}, token: {token}")
 
     try:
         uid = urlsafe_base64_decode(uidb64).decode()

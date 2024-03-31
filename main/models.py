@@ -198,7 +198,7 @@ class Person(Model):
         email_body = f"""
            <h2>Welcome to Finance Monitor</h2>
 
-           <p>Before using your account, please open <a href="{verification_url} clicktracking=off">this verification link</a>.</p>
+           <p>Before using your account, please open <a href="{verification_url}" clicktracking=off>this verification link</a>.</p>
            
            <a href="https://www.finance-monitor.com">Finance Monitor home</a>
 

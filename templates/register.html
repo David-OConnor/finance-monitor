@@ -13,6 +13,11 @@
         <div class="form-block" style="display: flex; justify-content: center;">
             <form method="post" style="display: flex; flex-direction: column; align-items: center;">
                 {% csrf_token %}
+
+                {% if error %}
+                    <h2>Problem registering. Please try again. 🙁</h2>
+                {% endif %}
+
                 <label for="id_username">Email:</label>
                 <input type="email" autocomplete="email" name="username" maxlength="150" autocapitalize="none"
                        autocomplete="username" autofocus required aria-describedby="id_username_helptext"
