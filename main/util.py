@@ -140,6 +140,8 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         "net_worth": 0.,
     }
 
+    no_accs = sub_accounts.count() == 0
+
     for sub_acc in sub_accounts:
         if sub_acc.ignored:
             continue
@@ -218,6 +220,7 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         "transactions": tran,
         "month_picker_items": setup_month_picker(),
         "acc_health": acc_health,
+        "no_accs": no_accs,
     }
 
 

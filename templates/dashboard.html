@@ -10,8 +10,16 @@
         <section style="display: flex; align-items: center;">
             <h2 style="margin-right: 32px">Net worth: <span class="{{ totals.net_worth_class }}">{{ totals.net_worth }}</span></h2>
 
-            <button id="link-button" class="button-general">➕ Syncing account</button>
-            <button id="add-manual-button" class="button-general" onclick="toggleAddManual()">➕ Manual account</button>
+            {#  todo: Unnecessary repetition for a style change #}
+            {% if not no_accs %}
+                <button id="link-button" class="button-general">➕ Syncing account</button>
+                <button id="add-manual-button" class="button-general" onclick="toggleAddManual()">➕ Manual account</button>
+            {% else %}
+                <button id="link-button" class="button-general" style="font-weight: bold; border-color: #ff00ff">➕ Syncing account</button>
+                <button id="add-manual-button" class="button-general" style="font-weight: bold; border-color: #ff00ff" onclick="toggleAddManual()">➕ Manual account</button>
+            {% endif %}
+
+
             <p class="hide-on-mobile">Click an account to edit it</p>
             <h2 id="refreshing-indicator" style="margin-left: 20px; color: #ce935c; visibility: collapse;">Refreshing...</h2>
         </section>
