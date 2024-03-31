@@ -252,6 +252,9 @@ def filter_trans_spending(trans) -> List[Transaction]:
     result = []
 
     for tran in trans:
+        if tran.ignored:
+            continue
+
         # For now, assume all custom categories are considered to be spending.
         if tran.category > 1_000:
             result.append(tran)
@@ -359,7 +362,7 @@ def setup_spending_data(
 
     # todo: Other cats?
     income_transactions = [
-        t for t in trans if TransactionCategory.INCOME.value == t.category
+        t for t in trans if TransactionCategory.INCOME.value == t.category and not t.ignored
     ]
 
     income_total = 0.0

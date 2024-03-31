@@ -146,6 +146,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
         tran_db.notes = tran["notes"]
         tran_db.amount = tran["amount"]
         tran_db.date = tran["date"]
+        tran_db.ignored = tran.get("ignored", False)
         tran_db.save()
 
         if data.get("create_rule", False):
@@ -1147,6 +1148,22 @@ def toggle_highlight(request: HttpRequest) -> HttpResponse:
     ).first()  # Prevent exploits
 
     tran.highlighted = not tran.highlighted
+    tran.save()
+
+    return JsonResponse({"success": True})
+
+
+def toggle_ignore(request: HttpRequest) -> HttpResponse:
+    # todo: DRY with toggle_highlight. Combine.
+    """Toggle a transactions ignore status."""
+    data = load_body(request)
+
+    tran = Transaction.objects.filter(id=data["id"])
+    tran = tran.filter(
+        Q(account__person=request.user.person) | Q(person=request.user.person)
+    ).first()  # Prevent exploits
+
+    tran.ignored = not tran.ignored
     tran.save()
 
     return JsonResponse({"success": True})

@@ -70,5 +70,6 @@ urlpatterns = [
     path("delete-accounts", views.delete_accounts),
     path("post-dash-load", views.post_dash_load),
     path("toggle-highlight", views.toggle_highlight),
+    path("toggle-ignore", views.toggle_ignore),
     path("delete-user-account", views.delete_user_account),
 ]

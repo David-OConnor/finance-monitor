@@ -19,6 +19,7 @@ const PAGE_SIZE = 60
 
 const HIGHLIGHT_COLOR = "#fffbdb"
 const FEE_COLOR = "#fff0ff"
+const IGNORED_COLOR = "#bbbbbb"
 
 // Show this many items in the highlights category, per section.
 const HIGHLIGHTS_SIZE = 5
@@ -419,6 +420,8 @@ function createTranRow(tran) {
     // Return a single transaction row.
     const row = createEl("tr", {id: "tran-row-" + tran.id.toString()},{borderBottom: "1px solid #cccccc"} )
 
+    const fontColor = tran.ignored ? IGNORED_COLOR : "black"
+
     // todo: Don't hard-code 28
     if (tran.highlighted) {
         row.style.backgroundColor = HIGHLIGHT_COLOR
@@ -445,7 +448,7 @@ function createTranRow(tran) {
         dCatFilter.appendChild(createCatEdit(tran, QUICK_CAT_SEARCH)) // Auto-save.
         d.appendChild(dCatFilter)
 
-        let h = createEl("h4", {}, {}, "🔎")
+        let h = createEl("h4", {}, {color: fontColor}, "🔎")
         d.appendChild(h)
 
         // todo: Put this back.
@@ -540,7 +543,7 @@ function createTranRow(tran) {
         let h = createEl(
             "h4",
             {class: "tran-heading"},
-            {fontWeight: "normal", marginLeft: "0px"},
+            {fontWeight: "normal", marginLeft: "0px", color: fontColor},
             tran.description
         )
 
@@ -591,7 +594,7 @@ function createTranRow(tran) {
             let h = createEl(
                 "h4",
                 {class: "tran-heading"},
-                {fontWeight: "normal", marginLeft: "0px"},
+                {fontWeight: "normal", marginLeft: "0px", color: fontColor},
                 tran.institution_name,
             )
             col.appendChild(h)
@@ -672,7 +675,7 @@ function createTranRow(tran) {
         h = createEl("h4",
             // {class: "tran-heading " +  tran.amount_class},
             {class: "tran-heading " + tranClass},
-            {textAlign: "right", marginRight: "40px"}, amtText
+            {textAlign: "right", marginRight: "40px", color: fontColor}, amtText
         )
     }
 
@@ -715,11 +718,41 @@ function createTranRow(tran) {
             TRANSACTIONS = TRANSACTIONS.filter(t => t.id !== tran.id)
         })
 
+        let ignoreBtn = createEl("button", {class: "button-small"}, {cursor: "pointer"}, "Ignore")
+        ignoreBtn.addEventListener("click", _ => {
+            fetch("/toggle-ignore", {body: JSON.stringify({id: tran.id}), ...FETCH_HEADERS_POST})
+                .then(result => result.json())
+                .then(r => {
+                });
+            TRANSACTIONS = [
+                ...TRANSACTIONS.filter(t => t.id !== tran.id),
+                {
+                    ...tran,
+                    ignored: !tran.ignored
+                }
+            ]
+
+            if (!tran.ignored) {
+                ignoreBtn.style.borderColor = "#41c541"
+                ignoreBtn.style.fontWeight = "bold"
+            } else {
+                ignoreBtn.style.borderColor = null
+                ignoreBtn.style.fontWeight = null
+            }
+
+            // todo: Refresh spending highlights; it will hav echanged.
+        })
+        if (tran.ignored) {
+            ignoreBtn.style.borderColor = "#41c541"
+            ignoreBtn.style.fontWeight = "bold"
+        }
+
         d.appendChild(h)
+        d.appendChild(ignoreBtn)
         d.appendChild(delBtn)
         col.appendChild(d)
     } else {
-        let h = createEl("h4", {class: "tran-heading"}, {}, tran.date_display)
+        let h = createEl("h4", {class: "tran-heading"}, {color: fontColor}, tran.date_display)
         col.appendChild(h)
     }
 
@@ -734,8 +767,7 @@ function createTranRow(tran) {
         let s = createEl("span", {}, {marginLeft: "6px", marginRight: 0, cursor: "pointer"}, "🖍️")
 
         s.addEventListener("click", _ => {
-            let data = {id: tran.id}
-            fetch("/toggle-highlight", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
+            fetch("/toggle-highlight", {body: JSON.stringify({id: tran.id}), ...FETCH_HEADERS_POST})
                 .then(result => result.json())
                 .then(r => {
                 });

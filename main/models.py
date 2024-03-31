@@ -404,6 +404,8 @@ class Transaction(Model):
     )
     # We allow the user to highlight transactions.
     highlighted = BooleanField(default=False)
+    # Hidden from stats, but shown in the table.
+    ignored = BooleanField(default=False)
 
     def serialize(self) -> Dict[str, str]:
         """For use in the web page."""
@@ -450,6 +452,7 @@ class Transaction(Model):
             "institution_name": self.institution_name,
             "merchant": self.merchant,
             "currency_code": self.currency_code,
+            "ignored": self.ignored,
         }
 
     def __str__(self):
