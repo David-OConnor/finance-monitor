@@ -434,7 +434,7 @@ def check_account_status(request: HttpRequest) -> Optional[HttpResponse]:
     person = request.user.person
 
     if not person.email_verified:
-        return render(request, "not_verified.html", {})
+        return render(request, "not_verified.html", {"email": person.user.email})
 
     if person.account_locked:
         # todo

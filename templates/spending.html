@@ -25,6 +25,7 @@
         <section style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
             {% for item in month_picker_items %}
                 <button
+                        id="range-month-{{ item.0 }}"
                         class="button-general"
                         style="margin-left: 8px; margin-right: 8px;"
                         onclick="setRangeWrapper('{{ item.0 }}', '{{ item.1 }}', '{{ item.2 }}')"
@@ -146,6 +147,9 @@
 
         let LOOKBACK = 30
 
+        let ACTIVE_COLOR = "#349614"
+        let ACTIVE_WEIGHT = "bold"
+
         // If we overrun this color list, it loops back to the top.
         const PLOT_COLORS = [
             'rgb(255, 99, 132)',
@@ -169,9 +173,6 @@
         ]
 
         function setRangeFromDaysback(daysBack) {
-            let activeColor = "#349614"
-            let activeWeight = "bold"
-
             let activeBtn
             let inactiveBtns = []
             if (daysBack === 30) {
@@ -204,9 +205,9 @@
                 ]
             }
 
-            activeBtn.style.color = activeColor
-            activeBtn.style.borderColor = activeColor
-            activeBtn.style.fontWeight = activeWeight
+            activeBtn.style.color = ACTIVE_COLOR
+            activeBtn.style.borderColor = ACTIVE_COLOR
+            activeBtn.style.fontWeight = ACTIVE_WEIGHT
 
             for (let btn of inactiveBtns) {
                 btn.style.color = null
@@ -624,7 +625,13 @@
             }
 
             getEl("days-back").textContent = monthName
-            // todo: Make the btn you clicked active.
+
+            // Mark the button using the active style
+            // todo: DRY
+            {#let activeBtn = getEl("range-month-{{ item.0 }}").style#}
+            {#activeBtn.style.color = ACTIVE_COLOR#}
+            {#activeBtn.style.borderColor = ACTIVE_COLOR#}
+            {#activeBtn.style.fontWeight = ACTIVE_WEIGHT#}
 
             setRange(start, end)
         }
