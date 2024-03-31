@@ -12,8 +12,11 @@
             <h1 style="text-align: center;">Thank you for registering!</h1>
         </div>
 
+        {% if verification_resent %}
+            <h2 style="text-align: center; color: #36a136;">Verification email sent</h2>
+        {% endif %}
+
         <div style="display: flex; align-items: center; justify-content: center">
-            <h2 id="notice" style="color: #36a136; visibility: collapse">Verification email sent</h2>
             <h2>For security, please verify your email address. ({{ email }}) To re-send
                 the verification email, <a href="/send-verification">click here.</a></h2>
         </div>

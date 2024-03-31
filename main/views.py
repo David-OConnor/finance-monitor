@@ -730,9 +730,7 @@ def user_login(request):
             "in a row, your account may have been temporarily locked. Click here to unlock it."
         )
 
-        print("A", request.POST)
         user = authenticate(request, username=username.lower(), password=password)
-        print("B", user)
 
         # Try authenticating using the email address; ie if email changed.
         # if user is None:
@@ -1151,7 +1149,8 @@ def send_verification(request: HttpRequest) -> HttpResponse:
     person.send_verification_email(request)
 
     print("\nRe-sending verification email")
-    return HttpResponseRedirect("/dashboard")
+    return render(request, "not_verified.html", {"email": person.user.email, "verification_resent": True})
+    # return HttpResponseRedirect("/dashboard")
 
 
 def toggle_highlight(request: HttpRequest) -> HttpResponse:
