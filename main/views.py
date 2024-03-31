@@ -260,18 +260,25 @@ def delete_accounts(request: HttpRequest) -> HttpResponse:
     for id_ in data.get("ids", []):
         try:
             # person and account checks prevent abuse.
-            acc = SubAccount.objects.filter(
-                Q(id=id_, person=person) | Q(id=id_, account__person=person)
-            ).account
+            sub_acc = SubAccount.objects.get(
+                Q(id=id_) & (Q(person=person) | Q(account__person=person))
+            )
         except SubAccount.DoesNotExist:
             result["success"] = False
-        else:
+            print("\nProblem finding the sub-account")
+            return JsonResponse(result)
+
+        # Delete the parent Account, if it's a linked account.
+        if sub_acc.account is not None:
+            acc = sub_acc.account
             # Associate the transactions with the person, so it will still be loaded.
             for tran in acc.transactions.all():
                 tran.person = person
                 tran.save()
-
             acc.delete()
+        # If it's a manual account, just delete the sub-account.
+        else:
+            sub_acc.delete()
 
     return JsonResponse(result)
 

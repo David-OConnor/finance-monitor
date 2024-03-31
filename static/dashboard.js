@@ -1044,10 +1044,10 @@ function setupAccEditForm(id) {
     }
 
     d = createEl("div", {}, {display: "flex", justifyContent: "center", marginTop: "18px"})
-    let btnSave = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "💾Save")
+    let btnSave = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "💾 Save")
     let btnCancel = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "Cancel")
 
-    let btnDelete = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "❌Delete")
+    let btnDelete = createEl("button", {type: "button", class: "button-general"}, {width: "140px"}, "❌ Delete")
     if (!acc.manual) {
         btnDelete.textContent = "🔗Unlink"
     }
@@ -1090,7 +1090,7 @@ function setupAccEditForm(id) {
             .then(result => result.json())
             .then(r => {
                 if (!r.success) {
-                    console.error("Account edits save failed")
+                    console.error("Account edits delete failed")
                 }
             });
         ACCOUNTS = ACCOUNTS.filter(a => a.id !== acc.id)
