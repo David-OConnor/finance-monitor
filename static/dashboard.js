@@ -281,7 +281,7 @@ function refreshAccounts() {
 
     const acc_cash = ACCOUNTS.filter(acc => [ACC_TYPE_CHECKING, ACC_TYPE_SAVINGS].includes(acc.sub_type))
     const acc_investment = ACCOUNTS.filter(acc => [ACC_TYPE_MUTUAL_FUND, ACC_TYPE_401K, ACC_TYPE_CD, ACC_TYPE_MONEY_MARKET,
-        ACC_TYPE_BROKERAGE, ACC_TYPE_ROTH].includes(acc.sub_type))
+        ACC_TYPE_BROKERAGE, ACC_TYPE_ROTH, ACC_TYPE_IRA].includes(acc.sub_type))
 
     const acc_credit = ACCOUNTS.filter(acc => [ACC_TYPE_CREDIT, ACC_TYPE_DEBIT].includes(acc.sub_type))
     const acc_loan = ACCOUNTS.filter(acc => [ACC_TYPE_STUDENT, ACC_TYPE_MORTGAGE].includes(acc.sub_type))
@@ -399,7 +399,8 @@ function createSplitter(id) {
     SPLIT_TRAN_ID = id
 
     const tran = TRANSACTIONS.find(t => t.id === id)
-    getEl("split-tran").style.visibility = "visible"
+    // getEl("split-tran").style.visibility = "visible"
+    getEl("split-tran").style.display = "flex"
 
     let h = getEl("split-tran-title")
     h.textContent = tran.description + ": " + tran.institution_name + ", " + tran.date_display + ", "
@@ -921,7 +922,8 @@ function setupAccEditForm(id) {
 
     // Setup the form for adding and editing accounts.
     let outerDiv = getEl("account-div")
-    outerDiv.style.visibility = "visible"
+    // outerDiv.style.visibility = "visible"
+    outerDiv.style.display = "flex"
     let form = getEl("account-form")
     form.replaceChildren()
 
@@ -1076,12 +1078,14 @@ function setupAccEditForm(id) {
         // Update our accoutns list, and refresh.
 
 
-        outerDiv.style.visibility = "collapse"
+        // outerDiv.style.visibility = "collapse"
+        outerDiv.style.display = "flex"
     })
 
     btnCancel.addEventListener("click", _ => {
         ACCOUNTS_UPDATED = {}
-        outerDiv.style.visibility = "collapse"
+        // outerDiv.style.visibility = "collapse"
+        outerDiv.style.display = "none"
     })
 
     // todo: Confirmation.
@@ -1096,7 +1100,8 @@ function setupAccEditForm(id) {
             });
         ACCOUNTS = ACCOUNTS.filter(a => a.id !== acc.id)
         refreshAccounts()
-        outerDiv.style.visibility = "collapse"
+        // outerDiv.style.visibility = "collapse"
+        outerDiv.style.display = "none"
     })
 
     d.appendChild(btnSave)
@@ -1435,13 +1440,18 @@ function toggleAddManual() {
     let form = getEl("add-manual-form")
     let btnToggle = getEl("add-manual-button")
 
-    if (form.style.visibility === "visible") {
-        form.style.visibility = "collapse"
+    // if (form.style.visibility === "visible") {
+    if (form.style.display === "flex") {
+        // form.style.visibility = "collapse"
+        form.style.display = "none"
         // btnToggle.textContent = "➕ Manual account"
-        btnToggle.style.visibility = "visible"
+        // btnToggle.style.visibility = "visible"
+        btnToggle.style.display = "flex"
     } else {
-        form.style.visibility = "visible"
-        btnToggle.style.visibility = "hidden"
+        // form.style.visibility = "visible"
+        form.style.display = "flex"
+        // btnToggle.style.visibility = "hidden"
+        btnToggle.style.display = "none"
     }
 }
 
@@ -1512,14 +1522,16 @@ function saveSplit() {
             }
         });
 
-    getEl("split-tran").style.visibility = "collapse"
+    // getEl("split-tran").style.visibility = "collapse"
+    getEl("split-tran").style.display = "none"
     SPLIT_TRAN_ID = null
     NUM_NEW_SPLITS = 0
 }
 
 function hideSplit() {
     // Hide teh split section.
-    getEl("split-tran").style.visibility = "collapse"
+    // getEl("split-tran").style.visibility = "collapse"
+    getEl("split-tran").style.display = "none"
     SPLIT_TRAN_ID = null
     NUM_NEW_SPLITS = 0
 }

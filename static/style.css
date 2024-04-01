@@ -130,7 +130,8 @@ img {
 
 @media (max-width : 800px) {
     .hide-on-mobile {
-        visibility: collapse;
+        /*visibility: collapse;*/
+        display: none;
     }
 }
 
@@ -297,5 +298,11 @@ img {
         flex-direction: column;
         padding-left: 40px;
         padding-right: 40px;
+    }
+}
+
+@media (max-width : 800px) {
+    .recur-item {
+        font-size: 0.8em;
     }
 }

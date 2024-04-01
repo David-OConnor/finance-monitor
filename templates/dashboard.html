@@ -28,7 +28,8 @@
         </section>
 
         {#        We hide and show this based on the "add a manual account" button.#}
-        <div id="account-div" style="display: flex; justify-content: center; visibility: collapse;">
+{#        <div id="account-div" style="display: flex; justify-content: center; visibility: collapse;">#}
+        <div id="account-div" style="justify-content: center; display: none;">
             <form
                     id="account-form"
                     style="display: flex;
@@ -43,7 +44,7 @@
             </form>
         </div>
 
-        <section id="add-manual-form" style="display: flex; justify-content: center; visibility: collapse;">
+        <section id="add-manual-form" style="display: none; justify-content: center;">
             <form
                     id="add-account-form"
                     style="display: flex;
@@ -244,8 +245,9 @@
 
             {# The form used to split a transaction in two or more parts #}
             <section id="split-tran" style="
-                visibility: collapse;
-                display: flex;
+                {#visibility: collapse;#}
+                display: none;
+                {#display: flex;#}
                 flex-direction: column;
                 justify-content: center;
                 border: 1px solid #888888;

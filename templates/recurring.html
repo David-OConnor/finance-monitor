@@ -36,12 +36,12 @@
                 <div style="display: grid; grid-template-columns: 1fr 3fr 2fr 1fr 1fr; grid-template-rows: auto">
                     {#         Merchant name appears generally missing#}
                     {#            <div style="grid-column: 1/2"><h4>{{ recur.merchant_name }}</h4></div>#}
-                    <div style="grid-column: 1/2; text-align: center; border-bottom: 1px solid #cccccc;"><h4>{{ recur.cat_display}}</h4></div>
-                    <div style="grid-column: 2/3; text-align: center; border-bottom: 1px solid #cccccc;"><h4>{{ recur.merchant_name }}</h4></div>
-                    <div style="grid-column: 3/4; text-align: center; border-bottom: 1px solid #cccccc;"><h4>{{ recur.account.account.institution.name }}</h4></div>
+                    <div style="grid-column: 1/2; text-align: center; border-bottom: 1px solid #cccccc;"><h4 class="recur-item">{{ recur.cat_display}}</h4></div>
+                    <div style="grid-column: 2/3; text-align: center; border-bottom: 1px solid #cccccc;"><h4 class="recur-item">{{ recur.merchant_name }}</h4></div>
+                    <div style="grid-column: 3/4; text-align: center; border-bottom: 1px solid #cccccc;"><h4 class="recur-item">{{ recur.account.account.institution.name }}</h4></div>
 {#                    <div style="grid-column: 4/5; text-align: center;"><h4>{{ recur.average_amount|floatformat:2 }}</h4></div>#}
-                    <div style="grid-column: 4/5; text-align: center; border-bottom: 1px solid #cccccc;"><h4 class="tran-neutral">{{ recur.last_amount|floatformat:2 }}</h4></div>
-                    <div style="grid-column: 5/6; text-align: center; border-bottom: 1px solid #cccccc;"><h4>{{ recur.last_date|date:"m/d" }}</h4></div>
+                    <div style="grid-column: 4/5; text-align: center; border-bottom: 1px solid #cccccc;"><h4 class="recur-item tran-neutral">{{ recur.last_amount|floatformat:2 }}</h4></div>
+                    <div style="grid-column: 5/6; text-align: center; border-bottom: 1px solid #cccccc;"><h4 class="recur-item">{{ recur.last_date|date:"m/d" }}</h4></div>
 
                 </div>
                 {#            account = ForeignKey(SubAccount, related_name="recurring", on_delete=CASCADE)#}

@@ -10,7 +10,8 @@
 
         {# Category rules #}
         <h2 style="text-align: center">Categorization rules</h2>
-        <h2 id="rule-success" style="color: #39a839; visibility: collapse; text-align: center;">Rule save successful.</h2>
+{#        <h2 id="rule-success" style="color: #39a839; visibility: collapse; text-align: center;">Rule save successful.</h2>#}
+        <h2 id="rule-success" style="color: #39a839; display: none; text-align: center;">Rule save successful.</h2>
         <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
 
             <div style="display: flex;">
@@ -40,7 +41,8 @@
 
         {# Custom categories #}
         <h2 style="text-align: center; margin-top: 80px;">Custom categories</h2>
-        <h2 id="cat-success" style="color: #39a839; visibility: collapse; text-align: center;">Category save successful.</h2>
+{#        <h2 id="cat-success" style="color: #39a839; visibility: collapse; text-align: center;">Category save successful.</h2>#}
+        <h2 id="cat-success" style="color: #39a839; display: none; text-align: center;">Category save successful.</h2>
         <section style="display: flex; flex-direction: column; align-items: center">
 
             <div style="display: flex;">
@@ -64,7 +66,8 @@
 
         {# Import and export transactions #}
         <h2 style="text-align: center; margin-top: 80px;">Import and export transactions</h2>
-        <h2 id="import-loading" style="color: #ce935c; text-align: center; visibility: collapse;">Importing...</h2>
+{#        <h2 id="import-loading" style="color: #ce935c; text-align: center; visibility: collapse;">Importing...</h2>#}
+        <h2 id="import-loading" style="color: #ce935c; text-align: center; display: none;">Importing...</h2>
 
         <section style="display: flex; justify-content: center;">
             {#            Import / export form #}
@@ -73,7 +76,8 @@
                     method="post"
                     enctype="multipart/form-data"
                     {#                    collapse vis a/r#}
-                    style="display: flex; align-items: center; visibility: visible;"
+{#                    style="display: flex; align-items: center; visibility: visible;"#}
+                    style="display: flex; align-items: center;"
             >
                 {% csrf_token %}
 
@@ -167,7 +171,8 @@
                 <button
                         id="confirm-account-delete"
                         class="button-general"
-                        style="visibility: collapse;"
+{#                        style="visibility: collapse;"#}
+                        style="display: none;"
                         onclick="deleteAccount()"
                 >❌ Click here to confirm account deletion. This action is final.</button>
             </div>
@@ -347,7 +352,8 @@
                             // todo: Temp until we pass new ID from the backend
                             window.location.reload()
                         }
-                        getEl("rule-success").style.visibility = "visible"
+                        {#getEl("rule-success").style.visibility = "visible"#}
+                        getEl("rule-success").style.display = "flex"
                     }
                 });
         }
@@ -372,17 +378,20 @@
                             // todo: Temp until we pass new ID from the backend
                             window.location.reload()
                         }
-                        getEl("cat-success").style.visibility = "visible"
+                        {#getEl("cat-success").style.visibility = "visible"#}
+                        getEl("cat-success").style.display = "flex"
                     }
                 });
         }
 
         function setImportLoading() {
-            getEl("import-loading").style.visibility = "visible"
+            {#getEl("import-loading").style.visibility = "visible"#}
+            getEl("import-loading").style.display = "flex"
         }
 
         function preDeleteAccount() {
-            getEl("confirm-account-delete").style.visibility = "visible"
+            {#getEl("confirm-account-delete").style.visibility = "visible"#}
+            getEl("confirm-account-delete").style.display = "flex"
         }
 
         function deleteAccount() {

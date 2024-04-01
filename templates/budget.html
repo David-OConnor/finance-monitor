@@ -11,7 +11,8 @@
         feature requests and email to <a href="mailto:contact@finance-monitor.com">contact@finance-monitor.com</a> </h3>
 
 {#        <h2 style="text-align: center;">Budget items</h2>#}
-        <h2 id="item-success" style="color: #39a839; visibility: collapse; text-align: center;">Budget item save successful.</h2>
+{#        <h2 id="item-success" style="color: #39a839; visibility: collapse; text-align: center;">Budget item save successful.</h2>#}
+        <h2 id="item-success" style="color: #39a839; display: none; text-align: center;">Budget item save successful.</h2>
         <section style="display: flex; flex-direction: column; align-items: center">
 
             <div style="display: flex; margin-bottom: 20px;">
@@ -137,7 +138,8 @@
                             // todo: Temp until we pass new ID from the backend
                             window.location.reload()
                         }
-                        getEl("item-success").style.visibility = "visible"
+                        {#getEl("item-success").style.visibility = "visible"#}
+                        getEl("item-success").style.display = "flex"
                     }
                 });
         }
