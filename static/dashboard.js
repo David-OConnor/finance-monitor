@@ -673,10 +673,12 @@ function createTranRow(tran) {
         }
 
         h = createEl("h4",
-            // {class: "tran-heading " +  tran.amount_class},
             {class: "tran-heading " + tranClass},
-            {textAlign: "right", marginRight: "40px", color: fontColor}, amtText
+            {textAlign: "right", marginRight: "40px"}, amtText
         )
+        if  (tran.ignored) {
+            h.style.color = IGNORED_COLOR
+        }
     }
 
     col.appendChild(h)
@@ -769,8 +771,7 @@ function createTranRow(tran) {
         s.addEventListener("click", _ => {
             fetch("/toggle-highlight", {body: JSON.stringify({id: tran.id}), ...FETCH_HEADERS_POST})
                 .then(result => result.json())
-                .then(r => {
-                });
+                .then(r => {});
 
             tran.highlighted = !tran.highlighted
             let bgColor = tran.highlighted ? HIGHLIGHT_COLOR : "white"
@@ -1324,7 +1325,7 @@ function init() {
         // Parse JSON if able.
         .then(result => result.json())
         .then(r => {
-            refreshIndicator.style.visibility = "collapse"
+            // refreshIndicator.style.visibility = "collapse" // todo A/R
             // todo: Loading/spinning indicator on screen until the update is complete.
             for (let acc_new of r.sub_accs) {
                 ACCOUNTS = [

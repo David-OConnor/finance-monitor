@@ -33,12 +33,12 @@
             {% endfor %}
 
             {# All months #}
-{#            <button#}
-{#                    class="button-general"#}
-{#                    style="margin-left: 8px; margin-right: 8px;"#}
-                    {#                        onclick="changeDates('1980-01-01', '2030-01-01')"#}
-{#                    onclick="setRangeWrapper(null, null)"#}
-{#            >All</button>#}
+            {#            <button#}
+            {#                    class="button-general"#}
+            {#                    style="margin-left: 8px; margin-right: 8px;"#}
+            {#                        onclick="changeDates('1980-01-01', '2030-01-01')"#}
+            {#                    onclick="setRangeWrapper(null, null)"#}
+            {#            >All</button>#}
         </section>
 
 
@@ -54,42 +54,33 @@
             </h2>
         </div>
 
-        <div style="display: flex; justify-content: center; flex-wrap: wrap;">
+        <div style="display: flex; justify-content: center; flex-wrap: wrap; margin-right: 80px;">
             <div id="plot-wrapper" style="width: 460px; margin-bottom: 40px;">
                 <canvas id="plot"></canvas>
             </div>
 
-
-            {#        <div style="display: flex; justify-content: space-evenly">#}
-
-            <div style="display: flex; flex-direction: column; margin-left: 80px; margin-right: 80px;">
+            {# Lists of spending, by category, changes etc #}
+            {#            <section id="spending-table">#}
+            <div class="spending-table">
                 <h2>Spending</h2>
                 <div id="spending-section">
-                    {#                    {% for highlight in highlights.by_cat %}#}
-                    {#                        <h4 style="margin-top: 0; margin-bottom: 0;">{{ highlight.0 }}: <span>{{ highlight.1.1|floatformat:"0g" }}</span></h4>#}
-                    {#                    {% endfor %}#}
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; margin-right: 80px;">
+            <div class="spending-table">
                 <h2>Changes</h2>
                 <div id="change-section">
-                    {#                    {% for change in highlights.cat_changes %}#}
-                    {#                        <h4 style="margin-top: 0; margin-bottom: 0;">{{ change.0 }}: <span>{{ change.1|floatformat:"0g" }}</span></h4>#}
-                    {#                    {% endfor %}#}
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column;">
+            <div class="spending-table">
                 <h2>New merchants</h2>
                 <div id="new-merchants-section">
-                    {#                    {% for change in highlights.cat_changes %}#}
-                    {#                        <h4 style="margin-top: 0; margin-bottom: 0;">{{ change.0 }}: <span>{{ change.1|floatformat:"0g" }}</span></h4>#}
-                    {#                    {% endfor %}#}
                 </div>
             </div>
-        </div>
+            {#            </section>#}
 
+        </div>
 
         <div style="display: flex; flex-wrap: wrap; justify-content: center; margin-top: 60px;">
             <div style="display: flex; margin-top: 20px; margin-right: 60px; align-items:  center; flex-direction: column">

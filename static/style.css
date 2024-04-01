@@ -282,3 +282,20 @@ img {
 .menu-highlighted {
     color: #F6F7EB;
 }
+
+@media (min-width : 800px) {
+    .spending-table {
+        display: flex;
+        flex-direction: column;
+        margin-right: 80px;
+    }
+}
+
+@media (max-width : 800px) {
+    .spending-table {
+        display: flex;
+        flex-direction: column;
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+}
