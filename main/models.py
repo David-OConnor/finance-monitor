@@ -237,7 +237,7 @@ class Person(Model):
 class Institution(Model):
     # Both of these fields are provided by Plaid
     name = CharField(max_length=50)
-    plaid_id = CharField(max_length=30, unique=True)
+    plaid_id = CharField(max_length=60, unique=True)
 
     def __str__(self):
         return f"Institution. Name: {self.name} Plaid ID: {self.plaid_id}"
@@ -312,7 +312,7 @@ class SubAccount(Model):
     plaid_id_persistent = CharField(max_length=100, blank=True, null=True)
     name = CharField(max_length=50)
     name_official = CharField(max_length=100, default="", null=True, blank=True)
-    nickname = CharField(max_length=30, default="", null=True, blank=True)
+    nickname = CharField(max_length=60, default="", null=True, blank=True)
     type = IntegerField(choices=AccountType.choices())
     sub_type = IntegerField(choices=SubAccountType.choices())
     iso_currency_code = CharField(max_length=5)
@@ -492,7 +492,7 @@ class SnapshotAccount(Model):
         SubAccount, related_name="snapshots", on_delete=SET_NULL, blank=True, null=True
     )
     # Used if the account gets deleted etc.
-    account_name = CharField(max_length=30)
+    account_name = CharField(max_length=60)
     dt = DateTimeField()
     value = FloatField()
 
@@ -511,7 +511,7 @@ class SnapshotPerson(Model):
 
 class CategoryCustom(Model):
     person = ForeignKey(Person, related_name="custom_cats", on_delete=CASCADE)
-    name = CharField(max_length=30)
+    name = CharField(max_length=60)
 
     def __str__(self):
         return f"Custom cat. {self.person}, {self.name}"
