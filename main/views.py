@@ -8,6 +8,7 @@ import re
 from django.db.models import Q
 from django import forms
 
+from wallet.settings import DEPLOYED
 from . import export
 
 from django.contrib.auth import login, authenticate, logout, user_login_failed
@@ -157,7 +158,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
             msg = f"\n\n Integrity error when editing a transaction!: \n{tran_db}"
             print(msg)
 
-            if not settings.DEPLOYED:
+            if not DEPLOYED:
                 send_mail(
                     "Transaction edit integrity error",
                     "",

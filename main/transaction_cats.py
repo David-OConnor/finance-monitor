@@ -181,7 +181,7 @@ class TransactionCategory(Enum):
             return cls.EDUCATION
         if "alcohol" in s or "bar" in s:
             return cls.ALCOHOL
-        if "health" in s or "personal care" in s:
+        if "health" in s or "personal care" in s or "pharmacies" in s:
             return cls.HEALTH_AND_PERSONAL_CARE
         if "interest" in s:
             return cls.FEES
