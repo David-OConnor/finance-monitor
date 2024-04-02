@@ -147,7 +147,22 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
         tran_db.amount = tran["amount"]
         tran_db.date = tran["date"]
         tran_db.ignored = tran.get("ignored", False)
-        tran_db.save()
+
+        try:
+            tran_db.save()
+        except IntegrityError:
+            msg = f"\n\n Integrity error when editing a transaction!: \n{tran_db}"
+            print(msg)
+
+            if not settings.DEPLOYED:
+                send_mail(
+                    "Transaction edit integrity error",
+                    "",
+                    "contact@finance-monitor.com",
+                    ["contact@finance-monitor.com"],
+                    fail_silently=False,
+                    html_message=msg,
+                )
 
         if data.get("create_rule", False):
             rule_db, _ = CategoryRule.objects.update_or_create(
