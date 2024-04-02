@@ -127,7 +127,7 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
             return None
 
         print("\n\nAPI exception; unable to access this account: ", e)
-        if not settings.DEPLOYED:
+        if settings.DEPLOYED:
             send_mail(
                 "Account refresh error",
                 "",

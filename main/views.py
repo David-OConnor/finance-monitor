@@ -60,6 +60,7 @@ from main.plaid_ import (
     ACCOUNT_REFRESH_INTERVAL_RECURRING,
 )
 from .transaction_cats import TransactionCategory
+from .util import send_debug_email
 
 MAX_LOGIN_ATTEMPTS = 5
 
@@ -138,9 +139,15 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
     person = request.user.person
 
     for tran in data.get("transactions", []):
-        tran_db = Transaction.objects.get(
-            (Q(account__person=request.user.person) | Q(person=request.user.person)) & Q(id=tran["id"])
-        )  # Prevent exploits
+        try:
+            tran_db = Transaction.objects.get(
+                (Q(account__person=request.user.person) | Q(person=request.user.person)) & Q(id=tran["id"])
+            )  # Prevent exploits
+        except Transaction.DoesNotExist:
+            msg = f"\nCan't find this transaction to edit: {tran}, {request.user}"
+            print(msg)
+            send_debug_email(msg)
+            result["succes"] = False
 
         # todo: Don't override the original description for a linked transaction; use a separate field.
 
@@ -157,16 +164,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
         except IntegrityError:
             msg = f"\n\n Integrity error when editing a transaction!: \n{tran_db}"
             print(msg)
-
-            if not DEPLOYED:
-                send_mail(
-                    "Transaction edit integrity error",
-                    "",
-                    "contact@finance-monitor.com",
-                    ["contact@finance-monitor.com"],
-                    fail_silently=False,
-                    html_message=msg,
-                )
+            send_debug_email(msg)
 
         if data.get("create_rule", False):
             rule_db, _ = CategoryRule.objects.update_or_create(
@@ -312,12 +310,16 @@ def delete_transactions(request: HttpRequest) -> HttpResponse:
         try:
             # The person check prevents abuse
 
-            tran = Transaction.objects.filter(id=id_)
-            tran = tran.filter(
-                Q(account__person=request.user.person) | Q(person=request.user.person)
-            ).first()  # Prevent exploits
+            tran = Transaction.objects.get(
+                Q(id=id_) & (Q(account__person=request.user.person) | Q(person=request.user.person))
+            )
             tran.delete()
         except Transaction.DoesNotExist:
+            if not DEPLOYED:
+                msg = f"\nCan't find this transaction to delete: {id_}, {request.user}"
+                print(msg)
+                if DEPLOYED:
+                    send_debug_email(msg)
             result["success"] = False
 
     return JsonResponse(result)
@@ -1095,7 +1097,6 @@ def password_reset_request(request):
 
             # email = render_to_string(email_template_name, c)
             try:
-
                 send_mail(
                     "Password reset: Finance Monitor",
                     "",

@@ -13,6 +13,7 @@ from django.http import HttpResponse
 from . import transaction_cats
 from .models import Transaction, Person
 from .transaction_cats import TransactionCategory
+from .util import send_debug_email
 
 
 def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
@@ -22,7 +23,21 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
     # reader = csv.reader(csv_file, escapechar='\\')
 
     # Skip the header
-    next(reader)
+    try:
+        next(reader)
+    except UnicodeDecodeError:
+        msg = f"UTF-8 import failed; trying ISO."
+        print(msg)
+        send_debug_email(msg)
+
+        reader = csv.reader(csv_data, encoding="ISO-8859-1")
+        try:
+            next(reader)
+        except UnicodeDecodeError:
+            msg = f"Error decoding CSV; both UTF-8 and ISO. \n{csv_data}"
+            print(msg)
+            send_debug_email(msg)
+            return None
 
     # categories = JSONField()  # List of category enums, eg [0, 2]
     # amount = FloatField()

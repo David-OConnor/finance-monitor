@@ -530,8 +530,8 @@ class RecurringTransaction(Model):
     last_amount = FloatField()
     first_date = DateField()
     last_date = DateField()
-    description = CharField(max_length=50)
-    merchant_name = CharField(max_length=50)
+    description = CharField(max_length=100)
+    merchant_name = CharField(max_length=100)
     is_active = BooleanField(default=True)
     status = CharField(max_length=15)  # Plaid string. Use an enum or remove A/R
     # todo: JSONField A/R, like Transaction.
