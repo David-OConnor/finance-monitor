@@ -40,6 +40,7 @@ PLAID_MODE = PlaidMode.DEV
 if DEPLOYED:
     PLAID_MODE = PlaidMode.PRODUCTION
     DEBUG = False
+    DEBUG = True  # todo temp!!
 
     # SECURITY WARNING: keep the secret key used in production secret!
     SECRET_KEY = os.environ["SECRET_KEY"]
@@ -50,8 +51,6 @@ if DEPLOYED:
 else:
     DEBUG = True
     SECRET_KEY = "django-insecure-kt#8(6pid*k1u6b9!yh(70^7s41ydqu=_!#%l79n8nm-os*$b)"
-
-DEBUG = True  # todo temp!!
 
     try:
         from main import private
