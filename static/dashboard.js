@@ -1077,14 +1077,11 @@ function setupAccEditForm(id) {
         ACCOUNTS_UPDATED = {}
         // Update our accoutns list, and refresh.
 
-
-        // outerDiv.style.visibility = "collapse"
-        outerDiv.style.display = "flex"
+        outerDiv.style.display = "none"
     })
 
     btnCancel.addEventListener("click", _ => {
         ACCOUNTS_UPDATED = {}
-        // outerDiv.style.visibility = "collapse"
         outerDiv.style.display = "none"
     })
 
