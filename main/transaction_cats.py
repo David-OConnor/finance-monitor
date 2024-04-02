@@ -464,6 +464,7 @@ replacements = [
     ("meijer", TransactionCategory.GROCERIES),  # Can also be shops
     ("wholesale", TransactionCategory.GROCERIES),  # Can also be shops
     ("publix", TransactionCategory.GROCERIES),  # Can also be shops
+    ("produce", TransactionCategory.GROCERIES),  # Can also be shops
     #
     ("panda express", TransactionCategory.FAST_FOOD),
     ("jersey mike", TransactionCategory.FAST_FOOD),
@@ -473,7 +474,7 @@ replacements = [
     ("hard rock cafe", TransactionCategory.RESTAURANTS),
     ("buffalo wild wings", TransactionCategory.RESTAURANTS),
     ("chipotle", TransactionCategory.FAST_FOOD),
-    ("nathan's famous", TransactionCategory.FAST_FOOD),
+    ("nathans famous", TransactionCategory.FAST_FOOD),
     ("little caesar", TransactionCategory.FAST_FOOD),
     ("tgi friday", TransactionCategory.RESTAURANTS),
     ("papa john", TransactionCategory.FAST_FOOD),
@@ -496,7 +497,6 @@ replacements = [
     ("popeyes", TransactionCategory.FAST_FOOD),
     ("taco bell", TransactionCategory.FAST_FOOD),
     ("texas roadhouse", TransactionCategory.RESTAURANTS),
-    ("kfc", TransactionCategory.FAST_FOOD),
     ("olive garden", TransactionCategory.RESTAURANTS),
     ("applebee", TransactionCategory.RESTAURANTS),
     ("burger king", TransactionCategory.FAST_FOOD),
@@ -514,6 +514,8 @@ replacements = [
     ("wendys", TransactionCategory.FAST_FOOD),
     ("dairy queen", TransactionCategory.FAST_FOOD),
     ("baskin-robbins", TransactionCategory.FAST_FOOD),
+    ("kfc", TransactionCategory.FAST_FOOD),
+    ("in-n-out", TransactionCategory.FAST_FOOD),
     #
     ("at&t", TransactionCategory.BILLS_AND_UTILITIES),
     ("cox cable", TransactionCategory.BILLS_AND_UTILITIES),
@@ -533,6 +535,16 @@ replacements = [
     # ("dte energy", TransactionCategory.BILLS_AND_UTILITIES),
     # ("consumers energy", TransactionCategory.BILLS_AND_UTILITIES),
     #
+    ("geico", TransactionCategory.BILLS_AND_UTILITIES),
+    ("liberty mutual", TransactionCategory.BILLS_AND_UTILITIES),
+    ("clearcover", TransactionCategory.BILLS_AND_UTILITIES),
+    ("american national", TransactionCategory.BILLS_AND_UTILITIES),
+    ("insurance", TransactionCategory.BILLS_AND_UTILITIES),
+    ("allstate", TransactionCategory.BILLS_AND_UTILITIES),
+    ("state farm", TransactionCategory.BILLS_AND_UTILITIES),
+    ("progressive", TransactionCategory.BILLS_AND_UTILITIES),
+    ("nationwide", TransactionCategory.BILLS_AND_UTILITIES),
+    #
     ("bumble", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     ("hinge", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     # todo: Could be a restaurant too
@@ -548,9 +560,6 @@ replacements = [
     ("digikey", TransactionCategory.ELECTRONICS),
     ("mouser", TransactionCategory.ELECTRONICS),
     #
-    ("mcdonald's", TransactionCategory.FAST_FOOD),
-    ("kfc", TransactionCategory.FAST_FOOD),
-    #
     ("bar", TransactionCategory.ALCOHOL),
     ("beer garden", TransactionCategory.ALCOHOL),
     ("total wine", TransactionCategory.ALCOHOL),
@@ -558,7 +567,6 @@ replacements = [
     ("bp products", TransactionCategory.CAR),
     ("exxon", TransactionCategory.CAR),
     ("shell", TransactionCategory.CAR),
-    ("o'reilly", TransactionCategory.CAR),
     ("oreilly", TransactionCategory.CAR),
     ("autozone", TransactionCategory.CAR),
     ("advance auto", TransactionCategory.CAR),
@@ -589,18 +597,19 @@ replacements = [
     # ("ibm", TransactionCategory.ELECTRONICS),
     ("microsoft", TransactionCategory.ELECTRONICS),
     #
+    ("costco gas", TransactionCategory.CAR),
     ("costco", TransactionCategory.SHOPS),
     ("kroger", TransactionCategory.SHOPS),
     ("home depot", TransactionCategory.SHOPS),
     ("target", TransactionCategory.SHOPS),
     ("lowes", TransactionCategory.SHOPS),
-    ("lowe's", TransactionCategory.SHOPS),
+    ("lowes", TransactionCategory.SHOPS),
     ("dollar tree", TransactionCategory.SHOPS),
     ("dollar general", TransactionCategory.SHOPS),
     ("macys", TransactionCategory.SHOPS),
-    ("macy's", TransactionCategory.SHOPS),
+    ("macys", TransactionCategory.SHOPS),
     ("kohls", TransactionCategory.SHOPS),
-    ("kohl's", TransactionCategory.SHOPS),
+    ("kohls", TransactionCategory.SHOPS),
     ("nordstrom", TransactionCategory.SHOPS),
     ("wayfair", TransactionCategory.SHOPS),
     ("jc penney", TransactionCategory.SHOPS),
@@ -636,8 +645,8 @@ replacements = [
     ("tom ford", TransactionCategory.CLOTHING),
     ("north face", TransactionCategory.CLOTHING),
     ("macys", TransactionCategory.CLOTHING),
-    ("victoria's secret", TransactionCategory.CLOTHING),
-    ("levi's", TransactionCategory.CLOTHING),
+    ("victorias secret", TransactionCategory.CLOTHING),
+    ("levis", TransactionCategory.CLOTHING),
     ("sketchers", TransactionCategory.CLOTHING),
     ("michael kors", TransactionCategory.CLOTHING),
     ("rolex", TransactionCategory.CLOTHING),
@@ -654,6 +663,7 @@ replacements = [
     ("jimmy choo", TransactionCategory.CLOTHING),
     ("oakley", TransactionCategory.CLOTHING),
     ("old navy", TransactionCategory.CLOTHING),
+    ("marshalls", TransactionCategory.CLOTHING),
 ]
 
 
@@ -664,7 +674,8 @@ def category_override(
     rules: Iterable["CategoryRule"],
 ) -> TransactionCategory:
     """Manual category overrides, based on observation. Note: This is currently handled prior to adding to the DB."""
-    descrip = descrip.lower()
+    # Remove apostrophes, as in "McDonald's".
+    descrip = descrip.lower().strip().replace("'", "")
     # Some category overrides. Separate function A/R
 
     for keyword, cat in replacements:

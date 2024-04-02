@@ -51,6 +51,8 @@ else:
     DEBUG = True
     SECRET_KEY = "django-insecure-kt#8(6pid*k1u6b9!yh(70^7s41ydqu=_!#%l79n8nm-os*$b)"
 
+DEBUG = True  # todo temp!!
+
     try:
         from main import private
     # Allow an escape hatch so the problem runs and can be tested with a quick
