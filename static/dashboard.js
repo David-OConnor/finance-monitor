@@ -63,7 +63,6 @@ function getPublicToken() {
     try {
         Plaid
     } catch (e) {
-        console.log(e, "E")
         let scriptEl = createEl("script", {src: "https://cdn.plaid.com/link/v2/stable/link-initialize.js"})
 
         scriptEl.onload = () => {

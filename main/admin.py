@@ -9,6 +9,7 @@ from . import models
 @admin.register(models.Person)
 class PersonAdmin(ModelAdmin):
     list_display = ("user",)
+    search_fields = ("user__email",)
 
 
 @admin.register(models.Institution)
@@ -19,7 +20,7 @@ class InstitionAdmin(ModelAdmin):
 @admin.register(models.FinancialAccount)
 class FinancialAccountAdmin(ModelAdmin):
     list_display = ("person", "institution", "item_id", "name", "access_token")
-    search_fields = ("item_id", "name")
+    search_fields = ("person__user__email", "item_id", "name")
 
 
 @admin.register(models.SubAccount)
@@ -36,13 +37,13 @@ class SubAccountAdmin(ModelAdmin):
         "limit",
         "ignored",
     )
-    search_fields = ("name", "plaid_id", "name_official")
+    search_fields = ("account__person__user__email", "person__user__email", "name", "plaid_id", "name_official")
 
 
 @admin.register(models.Transaction)
 class TransactionAdmin(ModelAdmin):
     list_display = ("description", "account", "amount", "category", "plaid_id", "merchant", "date")
-    search_fields = ("description", "notes", "plaid_id", "merchant")
+    search_fields = ("account__person__user__email", "person__user__email", "description", "notes", "plaid_id", "merchant")
 
 
 @admin.register(models.RecurringTransaction)
@@ -53,7 +54,7 @@ class RecurringAdmin(ModelAdmin):
 @admin.register(models.CategoryRule)
 class CategoryRuleAdmin(ModelAdmin):
     list_display = ("description", "category")
-    search_fields = ("description", "category")
+    search_fields = ("person__user__email", "description", "category")
 
 
 @admin.register(models.CategoryCustom)
