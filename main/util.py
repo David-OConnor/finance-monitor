@@ -86,7 +86,6 @@ def load_transactions(
 
     # Note: this hard-set category filter is independent from filtering transaction category by search text.
     if category is not None:
-        print("\n\n CATEGORY", category, "\n\n)")
         trans = trans.filter(category=category.value)
 
     # Make sure this index filter is last; it's related to selectingly loading only what's needed at a time

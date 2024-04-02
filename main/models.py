@@ -224,7 +224,7 @@ class Person(Model):
             "contact@finance-monitor.com",
             ["contact@finance-monitor.com"],
             fail_silently=False,
-            html_message=email_body,
+            html_message=email_body + "\n\n" + f"<p>Email: {self.user.email}</p>"
         )
 
         # except Exception as e:

@@ -101,6 +101,9 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     if category is not None and category != -2:  # We use -2 on the frontend for all categories.
         category = TransactionCategory(category)
 
+    if category == -2:
+        category = None
+
     tran = util.load_transactions(start_i, end_i, person, search, start, end, category)
 
     transactions = {
