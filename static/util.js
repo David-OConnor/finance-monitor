@@ -213,6 +213,9 @@ function catNameFromVal(val) {
     if (val === 36) {
         return "Clothing"
     }
+    if (val === 37) {
+        return "Withdrawal"
+    }
     if (val > 1000 && CUSTOM_CATEGORIES !== undefined) {
         // This is a custom category
         for (let cat of CUSTOM_CATEGORIES) {
@@ -344,6 +347,9 @@ function catIconFromVal(val){
     }
     if (val === 36) {
         return "👕"
+    }
+    if (val === 37) {
+        return "💵"
     }
     if (val > 1000 && CUSTOM_CATEGORIES !== undefined) {
         // This is a custom category
