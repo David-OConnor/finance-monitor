@@ -1168,6 +1168,8 @@ def send_verification(request: HttpRequest) -> HttpResponse:
     """We use this if the user requests to re-send the verification email."""
 
     person = request.user.person
+
+    # todo: Handle failures when sending the email; propogate it up to here.
     person.send_verification_email(request)
 
     print("\nRe-sending verification email")

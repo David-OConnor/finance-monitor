@@ -207,17 +207,28 @@ class Person(Model):
            """
 
         # todo: TS a strange error
-        try:
-            send_mail(
-                "Finance Monitor verification",
-                "",
-                "contact@finance-monitor.com",
-                [self.user.email],
-                fail_silently=False,
-                html_message=email_body,
-            )
-        except Exception as e:
-            print("Error with STMP!!: \n\n", e)
+        # try:
+        send_mail(
+            "Finance Monitor verification",
+            "",
+            "contact@finance-monitor.com",
+            [self.user.email],
+            fail_silently=False,
+            html_message=email_body,
+        )
+
+        # Send a copy to me as well.
+        send_mail(
+            "(New user verification sent)",
+            "",
+            "contact@finance-monitor.com",
+            ["contact@finance-monitor.com"],
+            fail_silently=False,
+            html_message=email_body,
+        )
+
+        # except Exception as e:
+        #     print("Error with STMP!!: \n\n", e)
 
         self.email_verification_token = token
         self.save()
