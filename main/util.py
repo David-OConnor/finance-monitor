@@ -448,6 +448,9 @@ def check_account_status(request: HttpRequest) -> Optional[HttpResponse]:
 def change_tran_cats_from_rule(rule: CategoryRule, person: Person):
     """This is a bit of a forward decision, but retroactively re-categorize transactions matching
     a given description, based on a new or updated rule."""
+
+    # todo: Make this mor egeneral, like when you recategorize new transactions based on rules. stripping whitespace,
+    # todo, chars like ', & etc.
     for tran in Transaction.objects.filter(
             Q(person=person) | Q(account__person=person),
             description__iexact=rule.description,

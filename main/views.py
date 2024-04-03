@@ -167,6 +167,7 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
             send_debug_email(msg)
 
         if data.get("create_rule", False):
+            print("\n\nCreating rule!")
             rule_db, _ = CategoryRule.objects.update_or_create(
                 person=person,
                 description=tran_db.description,
@@ -889,12 +890,15 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
         # todo: Once working, re-use this, as a fn, for custom cats.
         success = False
         attempt = 0
+        print("\n\n Always; saving...")
         while not success:
+            print("LOOP")
             try:
                 rule_db.save()
                 util.change_tran_cats_from_rule(rule_db, person)
                 success = True
             except IntegrityError:
+                print("\nFAIL")
                 attempt += 1
                 # Find the current highest number for this base description
                 latest_rule = CategoryRule.objects.filter(

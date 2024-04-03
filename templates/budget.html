@@ -145,8 +145,7 @@
         }
 
         function createCatSel2(id, catInit) {
-            let sel = createCatSel(catInit, "", false)
-            sel.id = "item-category-" + id.toString()
+            let sel = createCatSel(catInit, "", false, "item-category-" + id.toString())
 
             sel.addEventListener("input", e => {
                 updateItem(id)

@@ -433,10 +433,27 @@ function formatAmount(number, decimals) {
     return new Intl.NumberFormat('en-US', options).format(number);
 }
 
+function catSelHelper(value, text, filter, initVal) {
+    // Reduces DRY between custom and default categories.
+    let opt = createEl("option", {value: value}, {}, text)
 
-function createCatSel(initVal, filter, includeAll) {
+    if (filter && !catNameFromVal(value).toLowerCase().includes(filter)) {
+        return null
+    }
+
+    if (value === initVal) {
+        opt.setAttribute("selected", "")
+    }
+    return opt
+
+}
+
+function createCatSel(initVal, filter, includeAll, id) {
     // Create a category selector. Must add a listener later; relatively generic.
-    let sel = createEl("select", {id: "tran-filter-sel"}, {height: "40px"})
+    let sel = createEl("select", {}, {height: "40px"})
+    if (id !== null) {
+        sel.id = id
+    }
 
     if (includeAll) {
         let opt = createEl("option", {value: -2}, {}, "All categories")
@@ -448,33 +465,57 @@ function createCatSel(initVal, filter, includeAll) {
         for (let cat of CUSTOM_CATEGORIES) {
             // For custom categories, we add 1000 to the ID as the unique cat identifier in the DB and local state.
             let effectiveId = 1000 + cat.id
-
-            // todo: DRY with below
-            let opt = createEl("option", {value: effectiveId}, {}, cat.name)
-
-            if (filter && !cat.name.toLowerCase().includes(filter)) {
-                continue
+            let opt = catSelHelper(effectiveId, cat.name, filter, initVal)
+            if (opt !== null) {
+                sel.appendChild(opt)
             }
-
-            if (effectiveId === initVal) {
-                opt.setAttribute("selected", "")
-            }
-            sel.appendChild(opt)
         }
     }
 
     for (let cat of catNames) {
-        let opt = createEl("option", {value: cat[0]}, {}, catDisp(cat[0]))
-
-        if (filter && !catNameFromVal(cat[0]).toLowerCase().includes(filter)) {
-            continue
+        let opt = catSelHelper(cat[0], catDisp(cat[0]), filter, initVal)
+        if (opt !== null) {
+            sel.appendChild(opt)
         }
-
-        if (cat[0] === initVal) {
-            opt.setAttribute("selected", "")
-        }
-        sel.appendChild(opt)
     }
+    //
+    // console.log("Filter, tran: ", filter, tran)
+    //
+    // // The filter can cause an auto-selection that is not handled by the event handler; it changes the selected
+    // // option by potentially eliminating it.
+    // if (filter && tran) {
+    //       // todo: DRY: C+P from dash!
+    //         console.log("Updating trans from filter!!!")
+    //         let updated = {
+    //             ...tran,
+    //             category: parseInt(e.target.value)
+    //         }
+    //         // todo: DRY!
+    //         TRANSACTIONS_UPDATED[String(tran.id)] = updated
+    //
+    //         TRANSACTIONS = [
+    //             ...TRANSACTIONS.filter(t => t.id !== tran.id),
+    //             updated
+    //         ]
+
+        //
+        // let selectedExists = false
+        // for (let opt of sel.children) {
+        //     if (opt.selected) {
+        //         console.log("SELECTED!!", opt);
+        //         selectedExists = true
+        //         break
+        //     }
+        // }
+        //
+        // if (!selectedExists && sel.children.length !== 0) {
+        //     sel.children[0].selected = true
+        //
+        //
+        // }
+        //
+        //
+    // }
 
     return sel
 }

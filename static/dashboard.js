@@ -333,13 +333,14 @@ function refreshAccounts() {
     }
 }
 
-function createCatEdit(tran, searchText) {
+function createCatEdit(tran, searchText, id) {
     // Create a select element for categories.
     // todo: Allow creating custom elements here, and search.
 
-    let sel = createCatSel(tran.category, searchText, false)
+    let sel = createCatSel(tran.category, searchText, false, id)
 
     sel.addEventListener("input", e => {
+        console.log("Updating trans!!!")
         let updated = {
             ...tran,
             category: parseInt(e.target.value)
@@ -356,10 +357,70 @@ function createCatEdit(tran, searchText) {
     return sel
 }
 
+function createCatQuickEdit(tran) {
+    let d = createEl("div", {}, {display: "flex", alignItems: "center"})
+
+    let dCatFilter = createEl("div", {id: "div-cat-filter"})
+
+    const selId = "cat-quickedit-search-" + tran.id.toString()
+    let catEdit = createCatEdit(tran, QUICK_CAT_SEARCH, selId)
+    dCatFilter.appendChild(catEdit) // Auto-save.
+    d.appendChild(dCatFilter)
+
+    let h = createEl("h4", {}, {}, "🔎")
+    d.appendChild(h)
+
+    let search = createEl("input", {id: "quick-cat-search"}, {width: "70px"},)
+
+    search.addEventListener("input", e => {
+        QUICK_CAT_SEARCH = e.target.value
+        dCatFilter.replaceChildren() // todo: If not working, getElById.
+        dCatFilter.appendChild(createCatEdit(tran, QUICK_CAT_SEARCH, selId)) // Auto-save.
+        // refreshTransactions()
+
+        // todo: DRY, with createCatEdit. This is because the `input` field of it, which normally handles this,
+        // todo doesn't catch the options changing due to search text.
+        let updated = {
+            ...tran,
+            category: parseInt(getEl(selId).value)
+        }
+        TRANSACTIONS_UPDATED[String(tran.id)] = updated
+        TRANSACTIONS = [
+            ...TRANSACTIONS.filter(t => t.id !== tran.id),
+            updated
+        ]
+    })
+    d.appendChild(search)
+
+    let btn = createEl("button", {id: "always-btn", class: "button-small"}, {}, "Always")
+
+    if (CAT_ALWAYS) {
+        btn.style.border = "2px solid #3cd542"
+        btn.style.fontWeight = "bold"
+        // btn.style.backroundColor = "#4f6b4d"
+    }
+
+    btn.addEventListener("click", _ => {
+        CAT_ALWAYS = !CAT_ALWAYS
+        refreshTransactions()
+    })
+    d.appendChild(btn)
+
+    btn =  createEl("button", {class: "button-small"}, {}, "✓")
+    btn.addEventListener("click", _ => {
+        CAT_QUICKEDIT = false
+        saveTransactions()
+        refreshTransactions()
+    })
+    d.appendChild(btn)
+
+    return d
+}
+
 function createSplitFormRow(cat, amount, description) {
     let row = createEl("div", {}, {display: "flex"})
     console.log(description, "D")
-    let catSel = createCatSel(cat, "", false)
+    let catSel = createCatSel(cat, "", false, "cat-sel-split")
     catSel.id = "split-cat-" + NUM_NEW_SPLITS.toString()
 
     if (NUM_NEW_SPLITS > 0) {
@@ -440,50 +501,11 @@ function createTranRow(tran) {
     let d = createEl("div", {}, {display: "flex", alignItems: "center"})
 
     if (EDIT_MODE_TRAN) {
-        d.appendChild(createCatEdit(tran))
+        d.appendChild(createCatEdit(tran, null))
         col.appendChild(d)
 
     } else if (tran.id === CAT_QUICKEDIT) {
-        let dCatFilter = createEl("div", {id: "div-cat-filter"})
-        dCatFilter.appendChild(createCatEdit(tran, QUICK_CAT_SEARCH)) // Auto-save.
-        d.appendChild(dCatFilter)
-
-        let h = createEl("h4", {}, {color: fontColor}, "🔎")
-        d.appendChild(h)
-
-        // todo: Put this back.
-        let search = createEl("input", {id: "quick-cat-search"}, {width: "70px"},)
-        search.addEventListener("input", e => {
-            QUICK_CAT_SEARCH = e.target.value
-            dCatFilter.replaceChildren() // todo: If not working, getElById.
-            dCatFilter.appendChild(createCatEdit(tran, QUICK_CAT_SEARCH)) // Auto-save.
-            // refreshTransactions()
-        })
-        d.appendChild(search)
-        col.appendChild(d)
-
-        let btn = createEl("button", {id: "always-btn", class: "button-small"}, {}, "Always")
-
-        if (CAT_ALWAYS) {
-            btn.style.border = "2px solid #3cd542"
-            btn.style.fontWeight = "bold"
-            // btn.style.backroundColor = "#4f6b4d"
-        }
-
-        btn.addEventListener("click", _ => {
-            CAT_ALWAYS = !CAT_ALWAYS
-            refreshTransactions()
-
-        })
-        d.appendChild(btn)
-
-        btn =  createEl("button", {class: "button-small"}, {}, "✓")
-        btn.addEventListener("click", _ => {
-            CAT_QUICKEDIT = false
-            saveTransactions()
-            refreshTransactions()
-        })
-        d.appendChild(btn)
+        col.appendChild(createCatQuickEdit(tran))
     } else {
         // Allow clicking to enter quick edit.
         d.style.cursor = "pointer"
@@ -1257,7 +1279,7 @@ function setupSpendingHighlights() {
 function setupCatFilter(searchText) {
     // Set up the main transaction category filter. Done in JS for consistency with other CAT filters.
     let div = getEl("tran-cat-filter")
-    let sel = createCatSel(-2, "", true)
+    let sel = createCatSel(-2, "", true, "tran-filter-sel")
 
     sel.addEventListener("input", e => {
         FILTER_CAT = parseInt(e.target.value)

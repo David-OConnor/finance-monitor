@@ -8,7 +8,7 @@ from . import models
 
 @admin.register(models.Person)
 class PersonAdmin(ModelAdmin):
-    list_display = ("user",)
+    list_display = ("user", "email_verified", "account_locked", "subscribed")
     search_fields = ("user__email",)
 
 

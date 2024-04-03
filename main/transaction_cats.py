@@ -683,7 +683,7 @@ def category_override(
 ) -> TransactionCategory:
     """Manual category overrides, based on observation. Note: This is currently handled prior to adding to the DB."""
     # Remove apostrophes, as in "McDonald's".
-    descrip = descrip.lower().strip().replace("'", "")
+    descrip = descrip.lower().strip().replace("'", "").replace("&", "").replace(" ", "")
     # Some category overrides. Separate function A/R
 
     for keyword, cat in replacements:
@@ -691,7 +691,7 @@ def category_override(
             category = cat
 
     for rule in rules:
-        if descrip.strip() == rule.description.lower().strip():
+        if descrip.strip() == rule.description.lower().replace("&", "").replace(" ", ""):
             return TransactionCategory(rule.category)
 
     return category

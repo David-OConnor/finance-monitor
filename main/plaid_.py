@@ -120,22 +120,40 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
     try:
         response = CLIENT.accounts_balance_get(request)
     except ApiException as e:
-        if json.loads(e.body)["error_code"].lower() == "INSTITUTION_NOT_RESPONDING":
-            print(f"\nInstitution not responding on balance update. Token: {access_token}. Error message: {json.loads(e.body)}")
+        # todo: DRY with handling refresh_transactions errors
+        error_code = json.loads(e.body)['error_code'].lower()
+
+        if error_code == "item_login_required":
+            msg = f"\nItem login required when refreshing accounts; re-auth may be required: {e}\n"
+            print(msg)
+            util.send_debug_email(msg)
+
+            # todo: Handle this
+
+            return None
+
+        elif error_code == "institution_not_responding":
+            # This seems to be periodic; waiting fixes it.
+
+            msg = f"\nInstitution not responding on balance update. Token: {access_token}. Error message: {json.loads(e.body)}"
+            print(msg)
+            util.send_debug_email(msg)
+
             # Note that returning None here prevents the `last_refreshed_successfully` DB field from being updated,
             # so we can diagnose an unhealthy account by this being expired, should we keep getting this message.
             return None
 
-        print("\n\nAPI exception; unable to access this account: ", e)
-        if settings.DEPLOYED:
-            send_mail(
-                "Account refresh error",
-                "",
-                "contact@finance-monitor.com",
-                ["contact@finance-monitor.com"],
-                fail_silently=False,
-                html_message=f"Problem refreshing accounts. Error: {e}",
-            )
+        else:
+            msg = f"\nOther problem refreshing transactions for account {e}:\n"
+            print(msg)
+            util.send_debug_email(msg)
+
+            return None
+
+        msg = f"\nProblem refreshing accounts. Error: {e}"
+        print(msg)
+        util.send_debug_email(msg)
+
         return None
 
     return response["accounts"]
@@ -148,25 +166,17 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     new_data = False
     now = timezone.now()
 
-    for acc in accounts:
-        print(f"\nAcc timing: {acc.last_refreshed}, {acc.last_refreshed_recurring}")
-        print(
-            "Time delta seconds, interval",
-            (now - acc.last_refreshed).total_seconds(),
-            ACCOUNT_REFRESH_INTERVAL,
-        )
-        print(
-            "Time delta seconds, recurring",
-            (now - acc.last_refreshed_recurring).total_seconds(),
-            ACCOUNT_REFRESH_INTERVAL_RECURRING,
-        )
+    # todo: More elegant and consistent success/fail/last timings!
 
+    for acc in accounts:
         if (now - acc.last_refreshed).total_seconds() > ACCOUNT_REFRESH_INTERVAL:
             print("Refreshing account data...")
 
             refresh_account_balances(acc)
-            refresh_transactions(acc)
-            acc.last_refreshed = now
+            tran_success = refresh_transactions(acc)
+
+            if tran_success:
+                acc.last_refreshed = now
             acc.save()
 
             new_data = True
@@ -221,10 +231,12 @@ def refresh_account_balances(account: FinancialAccount):
     account.save()
 
 
-def refresh_transactions(account: FinancialAccount) -> None:
+def refresh_transactions(account: FinancialAccount) -> bool:
     """
     Updates the database with transactions for a single account.
     https://plaid.com/docs/api/products/transactions/#transactionssync
+
+    Returns success status
     """
     # Provide a cursor from your database if you've previously
     # received one for the Item. Leave null if this is your first sync call for this Item. The first request will
@@ -243,7 +255,24 @@ def refresh_transactions(account: FinancialAccount) -> None:
             access_token=account.access_token,
             cursor=cursor,
         )
-        response = CLIENT.transactions_sync(request)
+
+        try:
+            response = CLIENT.transactions_sync(request)
+        except ApiException as e:
+            error_code = json.loads(e.body)['error_code'].lower()
+            if error_code == "item_login_required":
+                msg = f"\nItem login required when refreshing transactions; re-auth may be required: {account}"
+                print(msg)
+                util.send_debug_email(msg)
+
+                # todo: Handle this
+
+            else:
+                msg = f"\nProblem refreshing transactions for account {account}: \n{e}\n\n"
+                print(msg)
+                util.send_debug_email(msg)
+
+            return False
 
         print("Transaction resp: ", response)
 
@@ -337,6 +366,8 @@ def refresh_transactions(account: FinancialAccount) -> None:
 
     account.plaid_cursor = cursor
     account.save()
+
+    return True
 
 
 def refresh_recurring(account: FinancialAccount):
