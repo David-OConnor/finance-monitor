@@ -123,7 +123,8 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
         # todo: DRY with handling refresh_transactions errors
         error_code = json.loads(e.body)['error_code'].lower()
 
-        if error_code == "item_login_required":
+        # https://plaid.com/docs/link/update-mode/
+        if error_code == "item_login_required" or error_code == "pending_expiration":
             msg = f"\nItem login required when refreshing accounts; re-auth may be required: {e}\n"
             print(msg)
             util.send_debug_email(msg)
@@ -137,7 +138,7 @@ def get_balance_data(access_token: str) -> Optional[AccountBase]:
 
             msg = f"\nInstitution not responding on balance update. Token: {access_token}. Error message: {json.loads(e.body)}"
             print(msg)
-            util.send_debug_email(msg)
+            # util.send_debug_email(msg)
 
             # Note that returning None here prevents the `last_refreshed_successfully` DB field from being updated,
             # so we can diagnose an unhealthy account by this being expired, should we keep getting this message.
@@ -260,7 +261,9 @@ def refresh_transactions(account: FinancialAccount) -> bool:
             response = CLIENT.transactions_sync(request)
         except ApiException as e:
             error_code = json.loads(e.body)['error_code'].lower()
-            if error_code == "item_login_required":
+
+            # https://plaid.com/docs/link/update-mode/
+            if error_code == "item_login_required" or error_code == "pending_expiration":
                 msg = f"\nItem login required when refreshing transactions; re-auth may be required: {account}"
                 print(msg)
                 util.send_debug_email(msg)
