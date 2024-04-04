@@ -174,6 +174,7 @@ class Person(Model):
     previous_emails = TextField(default="", blank=True, null=True)  # JSON list
     # We use this token to verify the user's email address. We set it to null once the email is verified.
     email_verification_token = CharField(max_length=60, blank=True, null=True)
+    date_registered = DateTimeField()
 
     def __str__(self):
         return f"Person. id: {self.id} User: {self.user.username}"
@@ -269,10 +270,12 @@ class FinancialAccount(Model):
     item_id = CharField(max_length=100)
     # todo: Account types associated with this institution/account. Checking, 401k etc.
     # todo: Check the metadata for this A/R.
-    last_refreshed = DateTimeField()
+    last_balance_refresh_attempt = DateTimeField()
+    last_balance_refresh_success = DateTimeField()
+    last_tran_refresh_attempt = DateTimeField()
+    last_tran_refresh_success = DateTimeField()
     # Recurring can be refreshed at a lower rate.
     last_refreshed_recurring = DateTimeField()
-    last_refreshed_successfully = DateTimeField()
     # The cursor is used with the `/transactions/sync` endpoint, to know the latest data loaded.
     # Generally initialized to null, but has a value after. It is encoded in base64, and has a max length of 256 characters.
     # It appears that None fails for the Python Plaid API, eg at init, but an empty string works.

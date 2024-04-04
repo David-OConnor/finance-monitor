@@ -490,7 +490,6 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         defaults={"name": metadata["institution"]["name"]},
     )
 
-    # long_ago = datetime(1999, 9, 9, 0, 0, 0, tzinfo=zoneinfo("UTC"))
     long_ago = datetime(1999, 9, 9, 0, 0, 0, tzinfo=ZoneInfo("UTC"))
 
     account_added = FinancialAccount(
@@ -499,9 +498,11 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         name="",
         access_token=access_token,
         item_id=item_id,
-        last_refreshed=long_ago,
+        last_balance_refresh_attempt=long_ago,
+        last_balance_refresh_success=long_ago,
+        last_tran_refresh_attempt=long_ago,
+        last_tran_refresh_success=long_ago,
         last_refreshed_recurring=long_ago,
-        last_refreshed_successfully=long_ago,
     )
     # todo: We can add subaccounts here if we wish, using metadata["accounts"].
     # todo: Sub-keys
@@ -710,6 +711,7 @@ def register(request):
 
             person = Person()
             person.user = user
+            person.date_registered = timezone.now()
             person.save()
 
             person.send_verification_email(request)

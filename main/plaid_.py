@@ -48,7 +48,8 @@ HOUR = 60 * 60
 
 # todo: Settings.py?
 # todo: Increase to 12 or so hours.
-ACCOUNT_REFRESH_INTERVAL = 4 * HOUR  # seconds.
+BALANCE_REFRESH_INTERVAL = 4 * HOUR  # seconds.
+TRAN_REFRESH_INTERVAL = 4 * HOUR  # seconds.
 
 # We can use a slow update for recurring transactions.
 ACCOUNT_REFRESH_INTERVAL_RECURRING = 48 * HOUR  # seconds.
@@ -170,31 +171,35 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     # todo: More elegant and consistent success/fail/last timings!
 
     for acc in accounts:
-        if (now - acc.last_refreshed).total_seconds() > ACCOUNT_REFRESH_INTERVAL:
-            print("Refreshing account data...")
+        if (now - acc.last_balance_refresh_attempt).total_seconds() > BALANCE_REFRESH_INTERVAL:
+            print("Refreshing balances...")
+            success = refresh_account_balances(acc)
 
-            refresh_account_balances(acc)
-            tran_success = refresh_transactions(acc)
+            if success:
+                acc.last_balance_refresh_success = now
+                new_data = True
 
-            if tran_success:
-                acc.last_refreshed = now
+            acc.last_balance_refresh_attempt = now
             acc.save()
 
-            new_data = True
+        if (now - acc.last_tran_refresh_attempt).total_seconds() > TRAN_REFRESH_INTERVAL:
+            print("Refreshing Transactions...")
+            success = refresh_transactions(acc)
 
-        else:
-            print("Not refreshing account data")
+            if success:
+                acc.last_tran_refresh_success = now
+                new_data = True
+
+            acc.last_tran_refresh_attempt = now
+            acc.save()
 
         if (
             now - acc.last_refreshed_recurring
         ).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
-            print("Refreshing recurring data...")
+            print("Refreshing recurring...")
             refresh_recurring(acc)
             acc.last_refreshed_recurring = now
             acc.save()
-
-        else:
-            print("Not refreshing recurring data")
 
     return new_data
 
@@ -205,7 +210,7 @@ def refresh_account_balances(account: FinancialAccount):
     if balance_data is None:
         return
 
-    account.last_refreshed_successfully = timezone.now()
+    account.last_balance_refresh_success = timezone.now()
 
     # todo:  Handle  sub-acct entries in DB that have missing data.
     for sub in balance_data:
