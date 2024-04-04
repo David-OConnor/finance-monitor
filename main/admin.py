@@ -19,8 +19,8 @@ class InstitionAdmin(ModelAdmin):
 
 @admin.register(models.FinancialAccount)
 class FinancialAccountAdmin(ModelAdmin):
-    list_display = ("person", "institution", "item_id", "name", "access_token")
-    search_fields = ("person__user__email", "item_id", "name")
+    list_display = ("person", "institution", "name", "last_balance_refresh_success", "last_tran_refresh_success")
+    search_fields = ("person__user__email", "item_id", "access_token", "name")
 
 
 @admin.register(models.SubAccount)

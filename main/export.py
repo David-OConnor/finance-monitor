@@ -49,7 +49,12 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
     rules = person.category_rules.all()
 
     for row in reader:
-        amount = float(row[3])
+        try:
+            amount = float(row[3])
+        except ValueError:
+            print("Error: Invalid amount. Probably wrong spreadsheet format.")
+            amount = 0.
+
         # transaction type. Mint always reports positive values, then deliniates as "credit" or "debit".
         if row[4] == "debit":
             amount *= -1

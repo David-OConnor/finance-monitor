@@ -1175,6 +1175,7 @@ def verify_email(request: HttpRequest, uidb64=None, token=None):
         return HttpResponse("Problem verifying your email address. :(")
 
 
+@login_required
 def send_verification(request: HttpRequest) -> HttpResponse:
     """We use this if the user requests to re-send the verification email."""
 
@@ -1188,6 +1189,7 @@ def send_verification(request: HttpRequest) -> HttpResponse:
     # return HttpResponseRedirect("/dashboard")
 
 
+@login_required
 def toggle_highlight(request: HttpRequest) -> HttpResponse:
     """Toggle a transactions highlight status."""
     data = load_body(request)
@@ -1203,6 +1205,7 @@ def toggle_highlight(request: HttpRequest) -> HttpResponse:
     return JsonResponse({"success": True})
 
 
+@login_required
 def toggle_ignore(request: HttpRequest) -> HttpResponse:
     # todo: DRY with toggle_highlight. Combine.
     """Toggle a transactions ignore status."""

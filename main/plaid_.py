@@ -166,11 +166,9 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     new_data = False
     now = timezone.now()
 
-    # todo: More elegant and consistent success/fail/last timings!
-
     for acc in accounts:
         if (now - acc.last_balance_refresh_attempt).total_seconds() > BALANCE_REFRESH_INTERVAL:
-            print("Refreshing balances...")
+            print(f"Refreshing balances on acc{acc}...")
             success = refresh_account_balances(acc)
 
             if success:
@@ -181,7 +179,7 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
             acc.save()
 
         if (now - acc.last_tran_refresh_attempt).total_seconds() > TRAN_REFRESH_INTERVAL:
-            print("Refreshing Transactions...")
+            print(f"Refreshing transactions on acc{acc}...")
             success = refresh_transactions(acc)
 
             if success:
@@ -194,7 +192,7 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
         if (
             now - acc.last_refreshed_recurring
         ).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
-            print("Refreshing recurring...")
+            print(f"Refreshing recurring on acc{acc}...")
             refresh_recurring(acc)
             acc.last_refreshed_recurring = now
             acc.save()
@@ -265,7 +263,6 @@ def refresh_transactions(account: FinancialAccount) -> bool:
             response = CLIENT.transactions_sync(request)
         except ApiException as e:
             handle_api_exception(e)
-
             return False
 
         print("Transaction resp: ", response)
