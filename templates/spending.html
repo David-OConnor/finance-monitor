@@ -106,14 +106,16 @@
 
 
 
-    <script src="../static/js_libs/chart.min.js"></script>
+    {#    <script src="../static/js_libs/chart.min.js"></script>#}
 
     {# todo: Plotly basic min is still 1Mb!#}
-    <script src="../static/js_libs/plotly-basic-2.30.1.min.js"></script>
+    {#    todo: At least, load it after populating the rest of the page.#}
+    {#    <script src="../static/js_libs/plotly-basic-2.30.1.min.js"></script>#}
     {#    <script src="../static/js_libs/chartjs-plugin-datalabels-220.min.js"></script>#}
     {#    <script src=" https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js "></script>#}
     {#    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>#}
     {#    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>#}
+
 
 
     <script>
@@ -380,6 +382,11 @@
                 paper_bgcolor: "#F8F8F8",
             };
 
+            if (typeof(Plotly) == "undefined") {
+                loadPlotLibs()
+                return
+            }
+
             Plotly.newPlot('plot-wrapper', data_, layout, {displaylogo: false});
 
             {##}
@@ -491,6 +498,24 @@
 
         }
 
+        function loadPlotLibs() {
+            // Not in a script tag, because it's huge.
+
+            let script = document.createElement('script');
+            script.src = "../static/js_libs/plotly-basic-2.30.1.min.js";
+            script.onload = function () {
+                setupPieCharts()
+            };
+            document.head.appendChild(script);
+
+            script = document.createElement('script');
+            script.src = "../static/js_libs/chart.min.js";
+            script.onload = function () {
+                setupTrendCharts()
+            };
+            document.head.appendChild(script);
+        }
+
         function setupTrendCharts() {
             // https://www.chartjs.org/docs/latest/charts/doughnut.html#doughnut
 
@@ -523,6 +548,10 @@
                     hoverOffset: 4
                 }]
             };
+
+            if (typeof(Chart) == "undefined") {
+                return  // We handle loading these scripts together, from when Plotly is missing.
+            }
 
             let chartSpending = new Chart(chartArea, {
                 type: 'line',
