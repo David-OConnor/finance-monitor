@@ -225,7 +225,7 @@ class Person(Model):
             "contact@finance-monitor.com",
             ["contact@finance-monitor.com"],
             fail_silently=False,
-            html_message=email_body + "\n\n" + f"<p>Email: {self.user.email}</p>"
+            html_message=email_body + "\n\n" + f"<p>Email: {self.user.email}</p>",
         )
 
         # except Exception as e:
@@ -373,7 +373,10 @@ class SubAccount(Model):
 
     class Meta:
         ordering = ["name"]
-        unique_together = [["account", "plaid_id"], ["account", "name", "name_official"]]
+        unique_together = [
+            ["account", "plaid_id"],
+            ["account", "name", "name_official"],
+        ]
 
 
 class Transaction(Model):
@@ -474,9 +477,7 @@ class Transaction(Model):
         }
 
     def __str__(self):
-        return (
-            f"Transaction. Id: {self.id}, {self.description}, {self.institution_name}, Amount: {self.amount}, date: {self.date}"
-        )
+        return f"Transaction. Id: {self.id}, {self.description}, {self.institution_name}, Amount: {self.amount}, date: {self.date}"
 
     class Meta:
         ordering = ["-date"]

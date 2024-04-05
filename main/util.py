@@ -55,13 +55,13 @@ def update_net_worth(net_worth: float, account: FinancialAccount) -> float:
 
 
 def load_transactions(
-        start_i: Optional[int],
-        end_i: Optional[int],
-        person: Person,
-        search_text: Optional[str],
-        start: Optional[date],
-        end: Optional[date],
-        category: Optional[TransactionCategory],
+    start_i: Optional[int],
+    end_i: Optional[int],
+    person: Person,
+    search_text: Optional[str],
+    start: Optional[date],
+    end: Optional[date],
+    category: Optional[TransactionCategory],
 ) -> List[Transaction]:
     """Create a set of transactions, serialized for use with the frontend. These
     are combined from all sub-accounts."""
@@ -73,10 +73,13 @@ def load_transactions(
         search_text = search_text.lower()
 
         cat_vals = [c[0] for c in transaction_cats.CAT_NAMES if search_text in c[1]]
-        print(cat_vals,  "CAT_VALS", "SEARCH TEXT: ", search_text)
+        print(cat_vals, "CAT_VALS", "SEARCH TEXT: ", search_text)
         trans = trans.filter(
-            Q(description__icontains=search_text) | Q(notes__icontains=search_text) | Q(institution_name__icontains=search_text)
-            | Q(category__in=cat_vals) | Q(merchant__icontains=search_text)
+            Q(description__icontains=search_text)
+            | Q(notes__icontains=search_text)
+            | Q(institution_name__icontains=search_text)
+            | Q(category__in=cat_vals)
+            | Q(merchant__icontains=search_text)
         )
 
     if start is not None:
@@ -102,20 +105,19 @@ def setup_month_picker() -> List[Tuple[str, str, str]]:
     # todo: This month setup  DRY from setup_spending_data.
     for months_back in range(12, -1, -1):
         now = timezone.now()
-        month_start = (now - relativedelta(months=months_back)).replace(day=1, hour=0, minute=0, second=0,
-                                                                        microsecond=0)
-        month_end = (month_start + relativedelta(months=1) - timedelta(seconds=1))
+        month_start = (now - relativedelta(months=months_back)).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        month_end = month_start + relativedelta(months=1) - timedelta(seconds=1)
 
         if month_start.year == now.year:
             month_name = month_start.strftime("%b")
         else:
             month_name = month_start.strftime("%b %y")
 
-        result.append((
-            month_name,
-            month_start.date().isoformat(),
-            month_end.date().isoformat()
-        ))
+        result.append(
+            (month_name, month_start.date().isoformat(), month_end.date().isoformat())
+        )
 
     return result
 
@@ -130,13 +132,13 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
     )
 
     totals = {
-        "cash": 0.,
-        "investment": 0.,
-        "crypto": 0.,
-        "credit_debit": 0.,
-        "loans": 0.,
-        "assets": 0.,
-        "net_worth": 0.,
+        "cash": 0.0,
+        "investment": 0.0,
+        "crypto": 0.0,
+        "credit_debit": 0.0,
+        "loans": 0.0,
+        "assets": 0.0,
+        "net_worth": 0.0,
     }
 
     no_accs = sub_accounts.count() == 0
@@ -203,7 +205,9 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
     acc_health = []
     now = timezone.now()
     for acc in person.accounts.all():
-        if (now - acc.last_balance_refresh_success).total_seconds() > ACCOUNT_UNHEALTHY_REFRESH_HOURS * 3600:
+        if (
+            now - acc.last_balance_refresh_success
+        ).total_seconds() > ACCOUNT_UNHEALTHY_REFRESH_HOURS * 3600:
             for sub_acc in acc.sub_accounts.all():
                 acc_health.append([sub_acc.id, False])
         else:
@@ -272,7 +276,7 @@ def filter_trans_spending(trans) -> List[Transaction]:
 
 # def setup_spending_highlights(accounts: Iterable[FinancialAccount], person: Person, num_days: int) -> List[Tuple[TransactionCategory, List[int, float, Dict[str, str]]]]:
 def setup_spending_highlights(
-        person: Person, start_days_back: int, end_days_back: int, is_lookback: bool
+    person: Person, start_days_back: int, end_days_back: int, is_lookback: bool
 ):
     """Find the biggest recent spending highlights."""
     now = timezone.now()
@@ -351,7 +355,7 @@ def setup_spending_highlights(
 
 
 def setup_spending_data(
-        person: Person, start_days_back: int, end_days_back: int
+    person: Person, start_days_back: int, end_days_back: int
 ) -> dict:
     # todo: DRY/C+P! This is bad because it repeats the same transaction query. Fix it for performance reasons.
     now = timezone.now()
@@ -364,7 +368,9 @@ def setup_spending_data(
 
     # todo: Other cats?
     income_transactions = [
-        t for t in trans if TransactionCategory.INCOME.value == t.category and not t.ignored
+        t
+        for t in trans
+        if TransactionCategory.INCOME.value == t.category and not t.ignored
     ]
 
     income_total = 0.0
@@ -388,14 +394,18 @@ def setup_spending_data(
         # The third option here is a non-spending expense (transfer, fee etc)
 
     # TODO. no! Doubles the query.
-    spending_highlights = setup_spending_highlights(person, start_days_back, end_days_back, False)
+    spending_highlights = setup_spending_highlights(
+        person, start_days_back, end_days_back, False
+    )
 
     spending_over_time = []
     income_over_time = []
     # for months_back in range(0, 12):
     for months_back in range(12, 0, -1):
-        start_ = (now - relativedelta(months=months_back)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        end_ = (start_ + relativedelta(months=1) - timedelta(seconds=1))
+        start_ = (now - relativedelta(months=months_back)).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        end_ = start_ + relativedelta(months=1) - timedelta(seconds=1)
 
         # todo: DRY with above.
         trans_in_month = load_transactions(None, None, person, "", start_, end_, None)
@@ -414,10 +424,11 @@ def setup_spending_data(
             income_in_month += t.amount
         income_over_time.append((start_.date().strftime("%b %y"), income_in_month))
 
-
     # todo: QC this merchant check
     start_new_merchant_check = start - timedelta(days=360)
-    merchants_new = find_new_merchants(person, (start, end), (start_new_merchant_check, start))
+    merchants_new = find_new_merchants(
+        person, (start, end), (start_new_merchant_check, start)
+    )
 
     return {
         "highlights": spending_highlights,
@@ -452,8 +463,8 @@ def change_tran_cats_from_rule(rule: CategoryRule, person: Person):
     # todo: Make this mor egeneral, like when you recategorize new transactions based on rules. stripping whitespace,
     # todo, chars like ', & etc.
     for tran in Transaction.objects.filter(
-            Q(person=person) | Q(account__person=person),
-            description__iexact=rule.description,
+        Q(person=person) | Q(account__person=person),
+        description__iexact=rule.description,
     ):
         tran.category = rule.category
         tran.save()
@@ -473,26 +484,42 @@ def send_debug_email(message: str):
     )
 
 
-def find_new_merchants(person: Person, range_new: (datetime, datetime), range_baseline: (datetime, datetime)) -> List[Tuple[str, str]]:
+def find_new_merchants(
+    person: Person,
+    range_new: (datetime, datetime),
+    range_baseline: (datetime, datetime),
+) -> List[Tuple[str, str]]:
     """Find merchants that appear in a given time period that were not present in another period."""
 
     # todo: You could have a more optimized query by doing this more carefully; later.
-    tran_new = load_transactions(None, None, person, None, range_new[0], range_new[1], None)
-    tran_baseline = load_transactions(None, None, person, None, range_baseline[0], range_baseline[1], None)
+    tran_new = load_transactions(
+        None, None, person, None, range_new[0], range_new[1], None
+    )
+    tran_baseline = load_transactions(
+        None, None, person, None, range_baseline[0], range_baseline[1], None
+    )
 
     merchants_base = list(set([t.merchant.lower() for t in tran_baseline]))
-    return list(set([(t.merchant.lower(), t.logo_url) for t in tran_new if t.merchant.lower() not in merchants_base]))
+    return list(
+        set(
+            [
+                (t.merchant.lower(), t.logo_url)
+                for t in tran_new
+                if t.merchant.lower() not in merchants_base
+            ]
+        )
+    )
 
 
 def spending_this_month(cat: TransactionCategory, person: Person) -> float:
     """For use in Budget: Find the spending amount in the current calendar month, in this transaction category"""
     now = timezone.now()
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    month_end = (month_start + relativedelta(months=1) - timedelta(seconds=1))
+    month_end = month_start + relativedelta(months=1) - timedelta(seconds=1)
 
     trans = load_transactions(None, None, person, None, month_start, month_end, cat)
 
-    total = 0.
+    total = 0.0
     for t in trans:
         total += t.amount
 

@@ -53,7 +53,7 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
             amount = float(row[3])
         except ValueError:
             print("Error: Invalid amount. Probably wrong spreadsheet format.")
-            amount = 0.
+            amount = 0.0
 
         # transaction type. Mint always reports positive values, then deliniates as "credit" or "debit".
         if row[4] == "debit":
@@ -86,7 +86,9 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
         try:
             transaction.save()
         except OperationalError as e:
-            print("Unable to save this transaction (Operational error): ", e, transaction)
+            print(
+                "Unable to save this transaction (Operational error): ", e, transaction
+            )
         except DataError as e:
             print("Unable to save this transaction (Data error): ", e, transaction)
         except IntegrityError:

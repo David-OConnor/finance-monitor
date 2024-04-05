@@ -306,3 +306,20 @@ img {
         font-size: 0.8em;
     }
 }
+
+.testimonial {
+    display: flex;
+    background-color: white;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid #444444;
+    border-radius: 6px;
+    padding: 8px;
+    margin-right: 20px;
+    max-width: 200px;
+    margin-bottom: 20px;
+}
+
+.test-sig {
+    color: #777777
+}

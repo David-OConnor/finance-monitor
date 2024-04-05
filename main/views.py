@@ -39,25 +39,20 @@ from main.models import (
     SubAccountType,
     RecurringTransaction,
     CategoryRule,
-    CategoryCustom, BudgetItem,
+    CategoryCustom,
+    BudgetItem,
 )
 
 import plaid
-from plaid.model.country_code import CountryCode
 
 from plaid.model.item_public_token_exchange_request import (
     ItemPublicTokenExchangeRequest,
 )
-from plaid.model.link_token_create_request import LinkTokenCreateRequest
-from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 
 
 from main import plaid_, util
 from main.plaid_ import (
     CLIENT,
-    PLAID_COUNTRY_CODES,
-    PLAID_REDIRECT_URI,
-    ACCOUNT_REFRESH_INTERVAL_RECURRING,
 )
 from .transaction_cats import TransactionCategory
 from .util import send_debug_email
@@ -100,7 +95,9 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     else:
         end = None
 
-    if category is not None and category != -2:  # We use -2 on the frontend for all categories.
+    if (
+        category is not None and category != -2
+    ):  # We use -2 on the frontend for all categories.
         category = TransactionCategory(category)
 
     if category == -2:
@@ -141,7 +138,8 @@ def edit_transactions(request: HttpRequest) -> HttpResponse:
     for tran in data.get("transactions", []):
         try:
             tran_db = Transaction.objects.get(
-                (Q(account__person=request.user.person) | Q(person=request.user.person)) & Q(id=tran["id"])
+                (Q(account__person=request.user.person) | Q(person=request.user.person))
+                & Q(id=tran["id"])
             )  # Prevent exploits
         except Transaction.DoesNotExist:
             msg = f"\nCan't find this transaction to edit: {tran}, {request.user}"
@@ -294,6 +292,7 @@ def delete_accounts(request: HttpRequest) -> HttpResponse:
                 tran.person = person
                 tran.save()
             acc.delete()
+
         # If it's a manual account, just delete the sub-account.
         else:
             sub_acc.delete()
@@ -312,7 +311,11 @@ def delete_transactions(request: HttpRequest) -> HttpResponse:
             # The person check prevents abuse
 
             tran = Transaction.objects.get(
-                Q(id=id_) & (Q(account__person=request.user.person) | Q(person=request.user.person))
+                Q(id=id_)
+                & (
+                    Q(account__person=request.user.person)
+                    | Q(person=request.user.person)
+                )
             )
             tran.delete()
         except Transaction.DoesNotExist:
@@ -357,7 +360,9 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     spending_highlights = util.setup_spending_highlights(person, 30, 0, False)
 
     context["spending_highlights"] = json.dumps(spending_highlights)
-    context["custom_categories"] = [c.serialize() for c in CategoryCustom.objects.filter(person=person)]
+    context["custom_categories"] = [
+        c.serialize() for c in CategoryCustom.objects.filter(person=person)
+    ]
 
     return render(request, "dashboard.html", context)
 
@@ -393,17 +398,33 @@ def create_link_token(request: HttpRequest) -> HttpResponse:
     """The first stage of the Plaid workflow. GET request. Passes the client a link token,
     provided by Plaid's API."""
     try:
-        request = LinkTokenCreateRequest(
-            # `products`: Which products to show.
-            products=plaid_.PRODUCTS,
-            required_if_supported_products=plaid_.PRODUCTS_REQUIRED_IF_SUPPORTED,
-            optional_products=plaid_.PRODUCTS_OPTIONAL,
-            additional_consented_products=plaid_.PRODUCTS_ADDITIONAL_CONSENTED,
-            client_name="Finance Monitor",
-            country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
-            redirect_uri=PLAID_REDIRECT_URI,
-            language="en",
-            user=LinkTokenCreateRequestUser(client_user_id=str(request.user.id)),
+        request = plaid_.link_token_helper(request.user.id, False)
+
+        # create link token
+        response = CLIENT.link_token_create(request)
+
+    except plaid.ApiException as e:
+        print(e, "Plaid error")
+        return HttpResponse(json.loads(e.body))
+
+    print(f"Link token response: {response}")
+
+    # note: expiration available.
+    link_token = response["link_token"]
+
+    return JsonResponse({"link_token": link_token})
+
+
+@login_required
+def create_link_token_update(request: HttpRequest) -> HttpResponse:
+    """When an account needs to re-enter authenticate details."""
+
+    data = load_body(request)
+    account = FinancialAccount.objects.get(person=request.user.person, id=data["id"])
+
+    try:
+        request = plaid_.link_token_helper(
+            request.user.id, True, access_token=account.access_token
         )
 
         # create link token
@@ -511,8 +532,11 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
 
     try:
         account_added.save()
-    except OperationalError as e:
-        print("\nError saving the account: ", e)
+    except IntegrityError as e:
+        msg = f"\nError saving the account: {e}. \nPerson: {person}, \nAccount: {account_added}"
+        print(msg)
+        send_debug_email(msg)
+
         success = False
     else:
         # Add sub-accounts. Note that these are also added when refreshing A/R.
@@ -549,7 +573,10 @@ def spending(request: HttpRequest) -> HttpResponse:
         return account_status
 
     context = {
-        "custom_categories": [c.serialize() for c in CategoryCustom.objects.filter(person=request.user.person)],
+        "custom_categories": [
+            c.serialize()
+            for c in CategoryCustom.objects.filter(person=request.user.person)
+        ],
         "month_picker_items": util.setup_month_picker(),
     }
 
@@ -571,11 +598,10 @@ def budget(request: HttpRequest) -> HttpResponse:
 
     budget_items = []
     for b in budget_items_:
-        amount = util.spending_this_month(TransactionCategory(TransactionCategory(b.category)), person)
-        budget_items.append((
-            b,
-            str(amount).replace("-", "")
-        ))
+        amount = util.spending_this_month(
+            TransactionCategory(TransactionCategory(b.category)), person
+        )
+        budget_items.append((b, str(amount).replace("-", "")))
 
     # todo: Make sure custom categories here work.
     context = {
@@ -653,7 +679,10 @@ def settings(request: HttpRequest) -> HttpResponse:
     context = {
         "rules": CategoryRule.objects.filter(person=request.user.person),
         "custom_categories": CategoryCustom.objects.filter(person=request.user.person),
-        "custom_categories_ser": [c.serialize() for c in CategoryCustom.objects.filter(person=request.user.person)],
+        "custom_categories_ser": [
+            c.serialize()
+            for c in CategoryCustom.objects.filter(person=request.user.person)
+        ],
         "password_change": False,
     }
 
@@ -904,12 +933,14 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
                 attempt += 1
                 # Find the current highest number for this base description
                 latest_rule = CategoryRule.objects.filter(
-                    description__iregex=r'^' + re.escape(normalized_description_base) + r' \d+$'
-                ).aggregate(max_number=Max('description'))
-                max_number = latest_rule['max_number']
+                    description__iregex=r"^"
+                    + re.escape(normalized_description_base)
+                    + r" \d+$"
+                ).aggregate(max_number=Max("description"))
+                max_number = latest_rule["max_number"]
                 if max_number:
                     # Extract the number and increment it for the new description
-                    last_number = int(re.search(r'\d+$', max_number).group())
+                    last_number = int(re.search(r"\d+$", max_number).group())
                     new_number = last_number + 1
                 else:
                     # This is the first duplicate, so start with 1
@@ -918,17 +949,16 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
                 # Update the description with the new number
                 rule_db.description = f"{description_base} {new_number}"
 
-
-        # # todo: Pass added IDs to the UI.
-        # try:
-        #     rule_db.save()
-        # except IntegrityError:
-        #     # Increment a number in the description, then try again.
-        #     try:
-        #         rule_db.save()
-        #     except IntegrityError:
-        #         print(f"\nIntegrity error when saving a new category rule: {rule_db}\n")
-        #         success = False
+            # # todo: Pass added IDs to the UI.
+            # try:
+            #     rule_db.save()
+            # except IntegrityError:
+            #     # Increment a number in the description, then try again.
+            #     try:
+            #         rule_db.save()
+            #     except IntegrityError:
+            #         print(f"\nIntegrity error when saving a new category rule: {rule_db}\n")
+            #         success = False
             else:
                 util.change_tran_cats_from_rule(rule_db, person)
 
@@ -1002,7 +1032,6 @@ def edit_categories(request: HttpRequest) -> HttpResponse:
                 # # Update the description with the new number
                 # cat_db.name = f"{name_base} {new_number}"
 
-
         # # todo: Pass added IDs to the UI.
         # try:
         #     rule_db.save()
@@ -1061,7 +1090,6 @@ def edit_budget_items(request: HttpRequest) -> HttpResponse:
             except IntegrityError:
                 print("Error adding a budget item: ", item_db)
                 success = False
-
 
         # # todo: Pass added IDs to the UI.
         # try:
@@ -1185,7 +1213,11 @@ def send_verification(request: HttpRequest) -> HttpResponse:
     person.send_verification_email(request)
 
     print("\nRe-sending verification email")
-    return render(request, "not_verified.html", {"email": person.user.email, "verification_resent": True})
+    return render(
+        request,
+        "not_verified.html",
+        {"email": person.user.email, "verification_resent": True},
+    )
     # return HttpResponseRedirect("/dashboard")
 
 

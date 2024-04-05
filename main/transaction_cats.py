@@ -19,7 +19,6 @@ def enum_choices(cls):
     return cls
 
 
-
 class TransactionCategoryGeneral(Enum):
     """We group each category into one of these more general categories"""
 
@@ -116,7 +115,7 @@ class TransactionCategory(Enum):
             return cls.RECREATION
         if "gym" in s or "fitness" in s or "health" in s:
             return cls.GYMS_AND_FITNESS_CENTERS
-        if "transfer" in s :
+        if "transfer" in s:
             return cls.TRANSFER
         if "deposit" in s:
             return cls.DEPOSIT
@@ -130,12 +129,7 @@ class TransactionCategory(Enum):
             return cls.FAST_FOOD
         if "debit" in s:
             return cls.DEBIT
-        if (
-                "shop" in s
-                or "bookstore" in s
-                or "hardware" in s
-                or "merchandise" in s
-        ):
+        if "shop" in s or "bookstore" in s or "hardware" in s or "merchandise" in s:
             return cls.SHOPS
         if "payment" == s:
             return cls.PAYMENT
@@ -201,7 +195,9 @@ class TransactionCategory(Enum):
             return cls.BUSINESS_SERVICES  # todo Eh...
         if "community" in s or "church" in s:
             return cls.UNCATEGORIZED  # todo...
-        if "clothing" in s or "department stores" in s:  # todo eh on dept stores. shopping?
+        if (
+            "clothing" in s or "department stores" in s
+        ):  # todo eh on dept stores. shopping?
             return cls.CLOTHING
 
         msg = f"Fallthrough in parsing transaction category: {s}"
@@ -302,7 +298,6 @@ class TransactionCategory(Enum):
         if self == TransactionCategory.CLOTHING:
             return "Clothing"
 
-
         print("Fallthrough on cat to string", self)
         return "Fallthrough"
 
@@ -391,15 +386,17 @@ class TransactionCategory(Enum):
         return "Fallthrough"
 
     @classmethod
-    def from_plaid(cls, cats_raw: List[str], descrip: str, rules: Iterable["CategoryRule"]) -> "TransactionCategory":
+    def from_plaid(
+        cls, cats_raw: List[str], descrip: str, rules: Iterable["CategoryRule"]
+    ) -> "TransactionCategory":
         if len(cats_raw):
-            category = cleanup_categories(TransactionCategory.from_str(c) for c in cats_raw)[0]
+            category = cleanup_categories(
+                TransactionCategory.from_str(c) for c in cats_raw
+            )[0]
         else:
             category = TransactionCategory.UNCATEGORIZED
 
-        return category_override(
-            descrip, category, rules
-        )
+        return category_override(descrip, category, rules)
 
 
 CATS_NON_SPENDING = [
@@ -440,9 +437,7 @@ class TransactionCategoryDiscret(Enum):
 # Statically set up all cat names, for use in filtering.
 CAT_NAMES = []
 for cat_val in range(-1, 35):
-    CAT_NAMES.append(
-        (cat_val, TransactionCategory(cat_val).to_str().lower())
-    )
+    CAT_NAMES.append((cat_val, TransactionCategory(cat_val).to_str().lower()))
 
 # A mapping of keywords to manual transactions
 replacements = [
@@ -676,10 +671,10 @@ replacements = [
 
 
 def category_override(
-        # Avoid a circular import by not importing CategoryRule
-        descrip: str,
-        category: TransactionCategory,
-        rules: Iterable["CategoryRule"],
+    # Avoid a circular import by not importing CategoryRule
+    descrip: str,
+    category: TransactionCategory,
+    rules: Iterable["CategoryRule"],
 ) -> TransactionCategory:
     """Manual category overrides, based on observation. Note: This is currently handled prior to adding to the DB."""
     # Remove apostrophes, as in "McDonald's".
@@ -691,7 +686,9 @@ def category_override(
             category = cat
 
     for rule in rules:
-        if descrip.strip() == rule.description.lower().replace("&", "").replace(" ", ""):
+        if descrip.strip() == rule.description.lower().replace("&", "").replace(
+            " ", ""
+        ):
             return TransactionCategory(rule.category)
 
     return category
@@ -702,16 +699,18 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
     In general, we return the more specific of the categories.
     Return the result, due to Python's sloppy mutation-in-place.
 
-    Note that this is set up for """
+    Note that this is set up for"""
     cats = list(set(cats))  # Remove duplicates.
 
     if (
-            TransactionCategory.TRAVEL in cats
-            and TransactionCategory.AIRLINES_AND_AVIATION_SERVICES in cats
+        TransactionCategory.TRAVEL in cats
+        and TransactionCategory.AIRLINES_AND_AVIATION_SERVICES in cats
     ):
         cats.remove(TransactionCategory.TRAVEL)
 
-    if TransactionCategory.TRANSFER in cats and (TransactionCategory.DEPOSIT in cats or TransactionCategory.WITHDRAWAL in cats):
+    if TransactionCategory.TRANSFER in cats and (
+        TransactionCategory.DEPOSIT in cats or TransactionCategory.WITHDRAWAL in cats
+    ):
         cats.remove(TransactionCategory.TRANSFER)
 
     if TransactionCategory.TRANSFER in cats and TransactionCategory.DEBIT in cats:
@@ -721,14 +720,14 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
         cats.remove(TransactionCategory.INCOME)
 
     if (
-            TransactionCategory.RESTAURANTS in cats
-            and TransactionCategory.GROCERIES in cats
+        TransactionCategory.RESTAURANTS in cats
+        and TransactionCategory.GROCERIES in cats
     ):
         cats.remove(TransactionCategory.GROCERIES)
 
     if (
-            TransactionCategory.RESTAURANTS in cats
-            and TransactionCategory.COFFEE_SHOP in cats
+        TransactionCategory.RESTAURANTS in cats
+        and TransactionCategory.COFFEE_SHOP in cats
     ):
         cats.remove(TransactionCategory.RESTAURANTS)
 
@@ -736,21 +735,21 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
         cats.remove(TransactionCategory.GROCERIES)
 
     if (
-            TransactionCategory.RESTAURANTS in cats
-            and TransactionCategory.FAST_FOOD in cats
+        TransactionCategory.RESTAURANTS in cats
+        and TransactionCategory.FAST_FOOD in cats
     ):
         cats.remove(TransactionCategory.RESTAURANTS)
 
     if (
-            TransactionCategory.GYMS_AND_FITNESS_CENTERS in cats
-            and TransactionCategory.RECREATION in cats
+        TransactionCategory.GYMS_AND_FITNESS_CENTERS in cats
+        and TransactionCategory.RECREATION in cats
     ):
         cats.remove(TransactionCategory.RECREATION)
 
     # Lots of bogus food+drink cats inserted by Plaid.
     if (
-            TransactionCategory.GROCERIES in cats
-            and TransactionCategory.CREDIT_CARD in cats
+        TransactionCategory.GROCERIES in cats
+        and TransactionCategory.CREDIT_CARD in cats
     ):
         cats.remove(TransactionCategory.GROCERIES)
 
@@ -764,8 +763,8 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
         cats.remove(TransactionCategory.SHOPS)
 
     if (
-            TransactionCategory.SOFTWARE_SUBSCRIPTIONS in cats
-            and TransactionCategory.SHOPS in cats
+        TransactionCategory.SOFTWARE_SUBSCRIPTIONS in cats
+        and TransactionCategory.SHOPS in cats
     ):
         cats.remove(TransactionCategory.SHOPS)
 
@@ -787,7 +786,10 @@ def cleanup_categories(cats: List[TransactionCategory]) -> List[TransactionCateg
     if TransactionCategory.CAR in cats and TransactionCategory.TRAVEL in cats:
         cats.remove(TransactionCategory.TRAVEL)
 
-    if TransactionCategory.BILLS_AND_UTILITIES in cats and TransactionCategory.BUSINESS_SERVICES in cats:
+    if (
+        TransactionCategory.BILLS_AND_UTILITIES in cats
+        and TransactionCategory.BUSINESS_SERVICES in cats
+    ):
         cats.remove(TransactionCategory.BUSINESS_SERVICES)
 
     if TransactionCategory.UNCATEGORIZED in cats and len(cats) > 1:

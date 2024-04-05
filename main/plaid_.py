@@ -18,6 +18,8 @@ from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
 from plaid.model.country_code import CountryCode
 from plaid.model.institutions_get_request import InstitutionsGetRequest
 from plaid.model.investments_holdings_get_request import InvestmentsHoldingsGetRequest
+from plaid.model.link_token_create_request import LinkTokenCreateRequest
+from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 
 from plaid.model.products import Products
 from plaid.model.transactions_recurring_get_request import (
@@ -115,7 +117,7 @@ CLIENT = plaid_api.PlaidApi(API_CLIENT)
 
 def handle_api_exception(e: ApiException):
     """Handles various API exceptions from Plaid; used on all refresh types."""
-    error_code = json.loads(e.body)['error_code'].lower()
+    error_code = json.loads(e.body)["error_code"].lower()
 
     # https://plaid.com/docs/link/update-mode/
     if error_code == "item_login_required" or error_code == "pending_expiration":
@@ -167,7 +169,9 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     now = timezone.now()
 
     for acc in accounts:
-        if (now - acc.last_balance_refresh_attempt).total_seconds() > BALANCE_REFRESH_INTERVAL:
+        if (
+            now - acc.last_balance_refresh_attempt
+        ).total_seconds() > BALANCE_REFRESH_INTERVAL:
             print(f"Refreshing balances on acc{acc}...")
             success = refresh_account_balances(acc)
 
@@ -178,7 +182,9 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
             acc.last_balance_refresh_attempt = now
             acc.save()
 
-        if (now - acc.last_tran_refresh_attempt).total_seconds() > TRAN_REFRESH_INTERVAL:
+        if (
+            now - acc.last_tran_refresh_attempt
+        ).total_seconds() > TRAN_REFRESH_INTERVAL:
             print(f"Refreshing transactions on acc{acc}...")
             success = refresh_transactions(acc)
 
@@ -295,7 +301,9 @@ def refresh_transactions(account: FinancialAccount) -> bool:
         tran_db = Transaction(
             account=account,
             institution_name=account.institution.name,
-            category=TransactionCategory.from_plaid(tran.category, tran.name, rules).value,
+            category=TransactionCategory.from_plaid(
+                tran.category, tran.name, rules
+            ).value,
             # todo: Sort out what pos vs negative transactions mean, here and import
             amount=-tran.amount,
             # Note: Other fields like "merchant_name" are available, but aren't used on many transactcions.
@@ -315,7 +323,6 @@ def refresh_transactions(account: FinancialAccount) -> bool:
             # todo: Why do we get this, if using cursor?
             print("Integrity error when saving a transaction: ", account)
 
-
     # On Pending: https://plaid.com/docs/transactions/transactions-data/
     # Pending transactions will be in the remove category once completed, and the
     # final transaction wil be added; so, they are not modifications.
@@ -323,13 +330,16 @@ def refresh_transactions(account: FinancialAccount) -> bool:
         print("\n\n Modifing transaction:\n", tran, "\n\n")
         tran_db = Transaction.objects.filter(
             # account=account,
-            Q(plaid_id=tran.transaction_id) | Q(plaid_id=tran.pending_transaction_id) & Q(account=account),
+            Q(plaid_id=tran.transaction_id)
+            | Q(plaid_id=tran.pending_transaction_id) & Q(account=account),
         )
 
         try:
             tran_db = tran_db[0]
         except IndexError as e:
-            print(f"\n Error: Unable to find the transaction requested to modify: \n\n{tran}")
+            print(
+                f"\n Error: Unable to find the transaction requested to modify: \n\n{tran}"
+            )
             util.send_debug_email(f"Tran modification error: \n{tran}: \n\n: {e}")
         else:
             tran_db.amount = tran.amount
@@ -345,14 +355,17 @@ def refresh_transactions(account: FinancialAccount) -> bool:
                 tran_db.save()
             except IntegrityError as e:
                 print(f"\n\nIntegrity error saving message\n\n: {tran_db}: \n: {e}")
-                util.send_debug_email(f"Integrity error saving message\n\n: {tran_db}: \n: {e}")
+                util.send_debug_email(
+                    f"Integrity error saving message\n\n: {tran_db}: \n: {e}"
+                )
 
     for tran in removed:
         print("\n\n Deleting transaction:\n", tran, "\n\n")
         _ = Transaction.objects.filter(
             # account=account,
             # Q(plaid_id=tran.transaction_id) | Q(plaid_id=tran.pending_transaction_id) & Q(account=account),
-            plaid_id=tran.transaction_id, account=account,
+            plaid_id=tran.transaction_id,
+            account=account,
         ).delete()
 
     account.plaid_cursor = cursor
@@ -466,7 +479,9 @@ def refresh_recurring(account: FinancialAccount):
             merchant_name=recur.merchant_name,
             is_active=recur.is_active,
             status=recur.status,
-            category=TransactionCategory.from_plaid(recur.category, recur.description, rules).value,
+            category=TransactionCategory.from_plaid(
+                recur.category, recur.description, rules
+            ).value,
         )
         try:
             recur_db.save()
@@ -492,7 +507,9 @@ def refresh_recurring(account: FinancialAccount):
             merchant_name=recur.merchant_name,
             is_active=recur.is_active,
             status=recur.status,
-            category=TransactionCategory.from_plaid(recur.category, recur.description, rules).value,
+            category=TransactionCategory.from_plaid(
+                recur.category, recur.description, rules
+            ).value,
         )
         try:
             recur_db.save()
@@ -500,3 +517,31 @@ def refresh_recurring(account: FinancialAccount):
             print("Integrity error saving recuring transaction", e)
 
     # print("\nRecur resp: ", response)
+
+
+def link_token_helper(
+    user_id: int, update_mode: bool, access_token: Optional[str] = None
+) -> LinkTokenCreateRequest:
+    if update_mode:
+        return LinkTokenCreateRequest(
+            access_token=access_token,
+            client_name="Finance Monitor",
+            country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
+            redirect_uri=PLAID_REDIRECT_URI,
+            language="en",
+            user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
+        )
+
+    else:
+        return LinkTokenCreateRequest(
+            # `products`: Which products to show.
+            products=PRODUCTS,
+            required_if_supported_products=PRODUCTS_REQUIRED_IF_SUPPORTED,
+            optional_products=PRODUCTS_OPTIONAL,
+            additional_consented_products=PRODUCTS_ADDITIONAL_CONSENTED,
+            client_name="Finance Monitor",
+            country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
+            redirect_uri=PLAID_REDIRECT_URI,
+            language="en",
+            user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
+        )

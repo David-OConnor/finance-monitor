@@ -19,7 +19,13 @@ class InstitionAdmin(ModelAdmin):
 
 @admin.register(models.FinancialAccount)
 class FinancialAccountAdmin(ModelAdmin):
-    list_display = ("person", "institution", "name", "last_balance_refresh_success", "last_tran_refresh_success")
+    list_display = (
+        "person",
+        "institution",
+        "name",
+        "last_balance_refresh_success",
+        "last_tran_refresh_success",
+    )
     search_fields = ("person__user__email", "item_id", "access_token", "name")
 
 
@@ -37,13 +43,34 @@ class SubAccountAdmin(ModelAdmin):
         "limit",
         "ignored",
     )
-    search_fields = ("account__person__user__email", "person__user__email", "name", "plaid_id", "name_official")
+    search_fields = (
+        "account__person__user__email",
+        "person__user__email",
+        "name",
+        "plaid_id",
+        "name_official",
+    )
 
 
 @admin.register(models.Transaction)
 class TransactionAdmin(ModelAdmin):
-    list_display = ("description", "account", "amount", "category", "plaid_id", "merchant", "date")
-    search_fields = ("account__person__user__email", "person__user__email", "description", "notes", "plaid_id", "merchant")
+    list_display = (
+        "description",
+        "account",
+        "amount",
+        "category",
+        "plaid_id",
+        "merchant",
+        "date",
+    )
+    search_fields = (
+        "account__person__user__email",
+        "person__user__email",
+        "description",
+        "notes",
+        "plaid_id",
+        "merchant",
+    )
 
 
 @admin.register(models.RecurringTransaction)
@@ -79,4 +106,3 @@ class SnapPersonAdmin(ModelAdmin):
 class BudgetItemAdmin(ModelAdmin):
     list_display = ("person", "category", "amount", "notes")
     # search_fields = ("value",)
-
