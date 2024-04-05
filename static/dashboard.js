@@ -255,7 +255,17 @@ function createAccRow(acc, type) {
 
     for (let health of ACC_HEALTH) {
         if (health[0] === acc.id) {
-            let healthSpan = createEl("span", {}, {fontSize: "0.6em", marginRight: "4px"}, health[1] ? "🟢" : "🔴")
+            let healthIndicator = "🔴"
+            if (health[1]) {
+                healthIndicator = "🟢"
+            }
+            if (acc.needs_attention) {
+                healthIndicator = "⚠️"
+            }
+            // todo: Allow repairing broken accs.
+
+
+            let healthSpan = createEl("span", {}, {fontSize: "0.6em", marginRight: "4px"}, healthIndicator)
             h_a.prepend(healthSpan)
         }
     }
@@ -975,6 +985,25 @@ function setupAccEditForm(id) {
     d.appendChild(h)
     form.appendChild(d)
 
+    if (acc.needs_attention) {
+        let attentionBtn = createEl(
+            "button",
+            {class: "button-general", type: "button"},
+            {marginBottom: "40px", backgroundColor: "#eccfec"},
+            "⚠️ This account needs your attention. Click here to repair it."
+        )
+        attentionBtn.addEventListener("click", _ => {
+            data = { id: acc.id}
+            fetch("/create-link-token-update", { body: JSON.stringify(data), ...FETCH_HEADERS_POST })
+                .then(result => result.json())
+                .then(r => {
+                    console.log("Acc update response:", r)
+                    LINK_TOKEN = r.link_token
+                    getPublicToken()
+                });
+        })
+        form.appendChild(attentionBtn)
+    }
 
     d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
 

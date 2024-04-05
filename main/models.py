@@ -266,7 +266,7 @@ class FinancialAccount(Model):
     # todo: nullable if it expires etc.
     # access_token and `item_id` are retrieved from Plaid as part of the token exchange procedure.
     # Lengths we've seen in initial tests are around 40-50.
-    access_token = CharField(max_length=100)
+    access_token = CharField(max_length=100, unique=True)
     item_id = CharField(max_length=100)
     # todo: Account types associated with this institution/account. Checking, 401k etc.
     # todo: Check the metadata for this A/R.
@@ -281,6 +281,8 @@ class FinancialAccount(Model):
     # It appears that None fails for the Python Plaid API, eg at init, but an empty string works.
     # plaid_cursor = CharField(max_length=256, null=True, blank=True)
     plaid_cursor = CharField(max_length=256, default="", blank=True)
+    # ie, needs login info update, as reported by Plaid.
+    needs_attention = BooleanField(default=False)
 
     # todo: Unique together with person, institution, or can we allow multiples?
 
@@ -346,8 +348,10 @@ class SubAccount(Model):
 
         if self.account is not None:
             institution = self.account.institution.name
+            needs_attention = self.account.needs_attention
         else:
             institution = ""
+            needs_attention = None
 
         return {
             "id": self.id,
@@ -366,6 +370,7 @@ class SubAccount(Model):
             # Note Use current_val if handling this in JS vice template
             # "current_val": self.current,
             # "current_class": "tran-pos" if pos_val else "tran-neg",
+            "needs_attention": needs_attention
         }
 
     def __str__(self):

@@ -56,6 +56,7 @@ urlpatterns = [
     path("export", views.export_),
     # path("import", views.import_),
     path("create-link-token", views.create_link_token),
+    path("create-link-token-update", views.create_link_token_update),
     path("exchange-public-token", views.exchange_public_token),
     path("load-transactions", views.load_transactions),
     path("load-spending-data", views.load_spending_data),

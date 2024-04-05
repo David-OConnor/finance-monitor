@@ -115,22 +115,23 @@ API_CLIENT = plaid.ApiClient(configuration)
 CLIENT = plaid_api.PlaidApi(API_CLIENT)
 
 
-def handle_api_exception(e: ApiException):
+def handle_api_exception(e: ApiException, account: FinancialAccount):
     """Handles various API exceptions from Plaid; used on all refresh types."""
     error_code = json.loads(e.body)["error_code"].lower()
 
     # https://plaid.com/docs/link/update-mode/
     if error_code == "item_login_required" or error_code == "pending_expiration":
-        msg = f"\nItem login required when refreshing accounts; re-auth may be required: {e}\n"
+        msg = f"\nItem login required when refreshing accounts; re-auth may be required: {e}. \nAccount: {account}"
         print(msg)
         util.send_debug_email(msg)
 
-        # todo: Handle this
+        account.needs_attention = True
+        account.save()
 
     elif error_code == "institution_not_responding":
         # This seems to be periodic; waiting fixes it.
 
-        msg = f"\nInstitution not responding. Error message: {json.loads(e.body)}"
+        msg = f"\nInstitution not responding. Error message: {json.loads(e.body)}. \nAccount: {account}"
         print(msg)
         # util.send_debug_email(msg)
 
@@ -142,20 +143,20 @@ def handle_api_exception(e: ApiException):
         print(msg)
         util.send_debug_email(msg)
 
-    msg = f"\nProblem refreshing accounts. Error: {e}"
+    msg = f"\nProblem refreshing accounts. Error: {e}. \nAccount: {account}"
     print(msg)
     util.send_debug_email(msg)
 
 
-def get_balance_data(access_token: str) -> Optional[AccountBase]:
+def get_balance_data(account: FinancialAccount) -> Optional[AccountBase]:
     """Pull real-time balance information for each account associated
     with the access token. This returns sub-accounts, currently as a dict."""
-    request = AccountsBalanceGetRequest(access_token=access_token)
+    request = AccountsBalanceGetRequest(access_token=account.access_token)
 
     try:
         response = CLIENT.accounts_balance_get(request)
     except ApiException as e:
-        handle_api_exception(e)
+        handle_api_exception(e, account)
         return None
 
     return response["accounts"]
@@ -208,7 +209,7 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
 
 def refresh_account_balances(account: FinancialAccount) -> bool:
     """Update account information in the database. Returns True if successful."""
-    balance_data = get_balance_data(account.access_token)
+    balance_data = get_balance_data(account)
     if balance_data is None:
         return False
 
@@ -268,7 +269,7 @@ def refresh_transactions(account: FinancialAccount) -> bool:
         try:
             response = CLIENT.transactions_sync(request)
         except ApiException as e:
-            handle_api_exception(e)
+            handle_api_exception(e, account)
             return False
 
         print("Transaction resp: ", response)
@@ -393,7 +394,7 @@ def refresh_recurring(account: FinancialAccount):
     try:
         response = CLIENT.transactions_recurring_get(request)
     except ApiException as e:
-        handle_api_exception(e)
+        handle_api_exception(e, account)
         return
 
     inflow_streams = response.inflow_streams

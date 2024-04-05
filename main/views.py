@@ -418,9 +418,17 @@ def create_link_token(request: HttpRequest) -> HttpResponse:
 @login_required
 def create_link_token_update(request: HttpRequest) -> HttpResponse:
     """When an account needs to re-enter authenticate details."""
+    person = request.user.person
 
     data = load_body(request)
-    account = FinancialAccount.objects.get(person=request.user.person, id=data["id"])
+
+    # Possibly a check here that there is an account for this sub-acc, but there should
+    # always be, if we got this far in the re-link process.
+    account = SubAccount.objects.get(
+        Q(id=data["id"]) & (Q(person=person) | Q(account__person=person))
+    ).account
+
+    print(f"Acc to re-link: {account}")
 
     try:
         request = plaid_.link_token_helper(
@@ -500,11 +508,11 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     item_id = response["item_id"]
     # request_id = response["request_id"]
 
-    print("\n Response when adding acct: ", response)
+    print("\n Response when adding or updating acct: ", response)
 
     sub_accounts = metadata["accounts"]
 
-    print("\n Sub accts: ", sub_accounts)
+    print("\n Sub accs: ", sub_accounts)
 
     inst, _ = Institution.objects.get_or_create(
         plaid_id=metadata["institution"]["institution_id"],
@@ -533,6 +541,12 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     try:
         account_added.save()
     except IntegrityError as e:
+        print("\n Updating the account's access token, instead of adding a new one...")
+        # todo: Check your re-link process. Is there a way to catch this earlier? Is there another problem?
+        account_updated = FinancialAccount.objects.get(person=person, access_token=access_token, item_id=item_id)
+        account_updated.attention_needed = False
+        account_updated.save()
+
         msg = f"\nError saving the account: {e}. \nPerson: {person}, \nAccount: {account_added}"
         print(msg)
         send_debug_email(msg)
