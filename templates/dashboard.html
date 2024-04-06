@@ -24,11 +24,11 @@
 
 
             <p class="hide-on-mobile">Click an account to edit it</p>
-{#            <h2 id="refreshing-indicator" style="margin-left: 20px; color: #ce935c; visibility: collapse;">Refreshing...</h2>#}
+            {#            <h2 id="refreshing-indicator" style="margin-left: 20px; color: #ce935c; visibility: collapse;">Refreshing...</h2>#}
         </section>
 
         {#        We hide and show this based on the "add a manual account" button.#}
-{#        <div id="account-div" style="display: flex; justify-content: center; visibility: collapse;">#}
+        {#        <div id="account-div" style="display: flex; justify-content: center; visibility: collapse;">#}
         <div id="account-div" style="justify-content: center; display: none;">
             <form
                     id="account-form"
@@ -68,34 +68,60 @@
 
                 <div style="display: flex; align-items: center; justify-content: space-between;">
                     <h3>Type</h3>
-                    {#                    todo: DRY#}
-                    <select id="add-manual-type" style="border: 1px solid black; height: 32px; width: 156px;">
-                        <option value="0">Checking</option>
-                        <option value="1">Savings</option>
-                        <option value="2">Debit card</option>
-                        <option value="3">Credit card</option>
-                        <option value="4">401K</option>
-                        <option value="5">Student</option>
-                        <option value="6">Mortgage</option>
-                        <option value="7">CD</option>
-                        <option value="8">Money market</option>
-                        <option value="9">IRA</option>
-                        <option value="10">Mutual fund</option>
-                        <option value="11">Crypto</option>
+                    {# todo: DRY#}
+                    {#  todo: Manually alphabetical #}
+                    <select
+                            id="add-manual-type"
+                            style="border: 1px solid black; height: 32px; width: 156px;"
+                            onclick="handleAccountType()"
+                    >
                         <option value="12">Asset (misc)</option>
                         <option value="13">Brokerage</option>
-                        <option value="14">Roth</option>
+                        <option value="7">CD</option>
+                        <option value="0">Checking</option>
+                        <option value="3">Credit card</option>
+                        <option value="11">Crypto</option>
+                        <option value="2">Debit card</option>
+                        <option value="9">IRA</option>
+                        <option value="14">IRA (Roth)</option>
+                        <option value="8">Money market</option>
+                        <option value="6">Mortgage</option>
+                        <option value="10">Mutual fund</option>
+                        <option value="1">Savings</option>
+                        <option value="5">Student</option>
+                        <option value="4">401K</option>
                     </select>
                 </div>
 
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3>Currency code</h3>
-                    <input id="add-manual-currency-code" value="USD" maxlength="3" />
+                <div id="non-asset-form-items">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <h3>Currency code</h3>
+                        <input id="add-manual-currency-code" value="USD" maxlength="3" />
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <h3>Value (Must be updated manually)</h3>
+                        <input id="add-manual-current" type="number" value="0" />
+                    </div>
                 </div>
 
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3>Value (Must be updated manually)</h3>
-                    <input id="add-manual-current" type="number" value="0" />
+                <div id="asset-form-items" style="display: none;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <h3>Crypto asset</h3>
+{#                        todo: DRY with backend and edit form#}
+                        <select id="add-manual-asset-type" style="height: 40px;">
+                            <option value="0">Bitcoin</option>
+                            <option value="1">Ethereum</option>
+                            <option value="2">BNB</option>
+                            <option value="3">Solarium</option>
+                            <option value="4">XRP</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <h3>Quantity (number of coines)</h3>
+                        <input id="add-manual-asset-quantity" type="number" value="0" />
+                    </div>
                 </div>
 
                 <div style="display: flex; justify-content: center; margin-top: 18px;">
@@ -245,17 +271,17 @@
 
             {# The form used to split a transaction in two or more parts #}
             <section id="split-tran" style="
-                {#visibility: collapse;#}
-                display: none;
-                {#display: flex;#}
-                flex-direction: column;
-                justify-content: center;
-                border: 1px solid #888888;
-                border-radius: 12px;
-                padding: 8px;
-                margin-top: 20px;
-                margin-bottom: 20px;
-">
+                    {#visibility: collapse;#}
+                    display: none;
+                    {#display: flex;#}
+                    flex-direction: column;
+                    justify-content: center;
+                    border: 1px solid #888888;
+                    border-radius: 12px;
+                    padding: 8px;
+                    margin-top: 20px;
+                    margin-bottom: 20px;
+                    ">
                 <h3>Split this transaction: <span id="split-tran-title" style="font-weight: normal;"></span></h3>
                 <div style="display: flex">
                     <div id="split-tran-body" style="display: flex; flex-direction: column;"></div>

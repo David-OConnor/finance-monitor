@@ -175,7 +175,7 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         elif t in [SubAccountType.CRYPTO]:
             totals["crypto"] += sub_acc.get_value()
         elif t in [SubAccountType.ASSET]:
-            totals["asset"] += sub_acc.get_value()
+            totals["assets"] += sub_acc.get_value()
         else:
             print("Fallthrough in sub account type: ", t)
 

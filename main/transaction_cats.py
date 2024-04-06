@@ -558,10 +558,16 @@ replacements = [
     ("spotify", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     ("kagi inc", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     ("google stor", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("twitch", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("intuit", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("quicken", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("adobe", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     #
     ("sparkfun", TransactionCategory.ELECTRONICS),
     ("digikey", TransactionCategory.ELECTRONICS),
     ("mouser", TransactionCategory.ELECTRONICS),
+    ("games", TransactionCategory.ELECTRONICS),
+    ("adafruit", TransactionCategory.ELECTRONICS),
     #
     ("bar", TransactionCategory.ALCOHOL),
     ("beer garden", TransactionCategory.ALCOHOL),

@@ -868,6 +868,7 @@ function updateTranFilter() {
 
 function addAccountManual() {
     // We use this when submitting a new manual account
+
     // getEl("add-account-manaul").addEventListener("click", _ => {
     //                 <input id="add-manual-name" />
     //
@@ -876,11 +877,18 @@ function addAccountManual() {
     //                 <input id="add-manual-current" type="number" value="0" />
 
     // todo: Validate no blank account name
+    const subType = parseInt(getEl("add-manual-type").value)
+
     const data = {
         name: getEl("add-manual-name").value,
-        sub_type: parseInt(getEl("add-manual-type").value),
-        current: parseInt(getEl("add-manual-current").value),
+        sub_type: subType,
+        current: parseFloat(getEl("add-manual-current").value),
         iso_currency_code: getEl("add-manual-currency-code").value,
+    }
+
+    if (subType === SUB_TYPE_CRYPTO) {
+        data.current = parseFloat(getEl("add-manual-asset-quantity").value)
+        data.iso_currency_code = parseInt(getEl("add-manual-asset-type").value)
     }
 
     fetch("/add-account-manual", {body: JSON.stringify(data), ...FETCH_HEADERS_POST})
@@ -1069,7 +1077,7 @@ function setupAccEditForm(id) {
 
         if (acc.sub_type === SUB_TYPE_CRYPTO) {
             h = createEl("h3", {}, {marginBottom: 0, marginTop: "18px"}, "Crypto asset")
-            ip = createEl("select", {})
+            ip = createEl("select", {}, {height: "40px"})
 
             Bitcoin = 0
             Ethereum = 1
@@ -1670,4 +1678,19 @@ function changeDates(start, end) {
     updateTranFilter()
 
     refreshTransactions()
+}
+
+function handleAccountType() {
+    console.log("TEST")
+    console.log("A", getEl("add-manual-type").value)
+    // For updating the template-based account add, for crypto and other assets vice manual value.
+    if (parseInt(getEl("add-manual-type").value) === SUB_TYPE_CRYPTO) {
+
+        getEl("non-asset-form-items").style.display = "none"
+        getEl("asset-form-items").style.display = "block"
+    } else {
+        getEl("non-asset-form-items").style.display = "block"
+        getEl("asset-form-items").style.display = "none"
+    }
+
 }

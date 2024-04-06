@@ -262,15 +262,17 @@ def add_account_manual(request: HttpRequest) -> HttpResponse:
         name=data["name"],
         type=account_type.value,
         sub_type=sub_type.value,
-        iso_currency_code=data["iso_currency_code"].upper(),
+        iso_currency_code=data["iso_currency_code"],
         current=data["current"],
     )
 
     if sub_type == SubAccountType.CRYPTO:
         # todo: A bit of an awk hijack; fix this in the form.
         account.current = 0.
-        account.asset_type = 0 # todo: Default; use the form for this
+        account.asset_type = data["iso_currency_code"]
         account.asset_quantity = data["current"]
+    else:
+        account.iso_currency_code = account.iso_currency_code.upper()
 
     success = True
     try:
