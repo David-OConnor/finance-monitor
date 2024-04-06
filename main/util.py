@@ -32,7 +32,7 @@ ACCOUNT_UNHEALTHY_REFRESH_HOURS = 18
 
 
 def unw_helper(net_worth: float, sub_acc: SubAccount) -> float:
-    if not sub_acc.ignored and sub_acc.current is not None:
+    if not sub_acc.ignored and sub_acc.get_value() is not None:
         sign = 1
 
         if AccountType(sub_acc.type) in [
@@ -41,7 +41,7 @@ def unw_helper(net_worth: float, sub_acc: SubAccount) -> float:
         ]:
             sign *= -1
 
-        net_worth += sign * sub_acc.current
+        net_worth += sign * sub_acc.get_value()
     return net_worth
 
 
@@ -157,9 +157,9 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         # total and per-accoutn for loads, CC+Debit
 
         if t in [SubAccountType.CHECKING, SubAccountType.SAVINGS]:
-            totals["cash"] += sub_acc.current
+            totals["cash"] += sub_acc.get_value()
         elif t in [SubAccountType.DEBIT_CARD, SubAccountType.CREDIT_CARD]:
-            totals["credit_debit"] -= sub_acc.current
+            totals["credit_debit"] -= sub_acc.get_value()
         elif t in [
             SubAccountType.T401K,
             SubAccountType.CD,
@@ -169,13 +169,13 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
             SubAccountType.BROKERAGE,
             SubAccountType.ROTH,
         ]:
-            totals["investment"] += sub_acc.current
+            totals["investment"] += sub_acc.get_value()
         elif t in [SubAccountType.STUDENT, SubAccountType.MORTGAGE]:
-            totals["loans"] -= sub_acc.current
+            totals["loans"] -= sub_acc.get_value()
         elif t in [SubAccountType.CRYPTO]:
-            totals["crypto"] += sub_acc.current
+            totals["crypto"] += sub_acc.get_value()
         elif t in [SubAccountType.ASSET]:
-            totals["asset"] += sub_acc.current
+            totals["asset"] += sub_acc.get_value()
         else:
             print("Fallthrough in sub account type: ", t)
 
@@ -234,7 +234,7 @@ def take_snapshots(accounts: Iterable[FinancialAccount], person: Person):
     for account in accounts:
         for sub in account.sub_accounts.all():
             snap = SnapshotAccount(
-                account=sub, account_name=sub.name, dt=now, value=sub.current
+                account=sub, account_name=sub.name, dt=now, value=sub.get_value()
             )
             snap.save()
 
@@ -475,7 +475,7 @@ def send_debug_email(message: str):
         return
 
     send_mail(
-        "Finance Monitor error",
+        "Finance Monitor debug",
         "",
         "contact@finance-monitor.com",
         ["contact@finance-monitor.com"],

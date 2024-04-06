@@ -1,3 +1,6 @@
+// See `models.py`
+const SUB_TYPE_CRYPTO = 11
+
 function isValidNumber(str) {
     // First, try parsing the string
     const num = parseFloat(str);

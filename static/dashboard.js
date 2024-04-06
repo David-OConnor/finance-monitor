@@ -242,7 +242,7 @@ function createAccRow(acc, type) {
     // Flex and align items for the health indicator
     let h_a = createEl("h4", {class: "acct-hdg"}, {marginRight: "26px", display: "flex", alignItems: "center"}, name)
 
-    let val = acc.current
+    let val = acc.value
     if (["Credit", "Loan"].includes(type)) {
         val *= -1
     }
@@ -317,9 +317,9 @@ function refreshAccounts() {
             let total = 0.
             for (let acc of accs[0]) {
                 if (["Credit", "Loan"].includes(accs[1])) {
-                    total -= acc.current
+                    total -= acc.value
                 } else {
-                    total += acc.current
+                    total += acc.value
                 }
             }
 
@@ -1008,7 +1008,7 @@ function setupAccEditForm(id) {
     d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
 
     if (acc.manual) {
-        h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Account name")
+        h = createEl("h3", {}, {marginBottom: 0, marginTop: "18px"}, "Account name")
         ip = createEl("input", {value: acc.name})
         ip.addEventListener("input", e => {
             let updated = {
@@ -1060,13 +1060,40 @@ function setupAccEditForm(id) {
 
     if (acc.manual) {
         d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
-        h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Currency code")
-        ip = createEl("input", {value: acc.iso_currency_code, maxLength: "3"})
+
+        if (acc.sub_type === SUB_TYPE_CRYPTO) {
+            h = createEl("h3", {}, {marginBottom: 0, marginTop: "18px"}, "Crypto asset")
+            ip = createEl("select", {})
+
+            Bitcoin = 0
+            Ethereum = 1
+            Bnb = 2
+            Solana = 3
+            Xrp = 4
+            // todo: Set this up elsewhere. From `asset_prices.py`
+            for (let crypto of [
+                [0, "Bitcoin"],
+                [1, "Ethereum"],
+                [2, "BNB"],
+                [3, "Solana"],
+                [4, "XRP"],
+            ]) {
+                let opt = createEl("option", {value: crypto[0]}, {}, crypto[1])
+                if (acc.asset_type === crypto[0]) {
+                    opt.setAttribute("selected", true)
+                }
+                ip.appendChild(opt)
+            }
+        } else {
+            h = createEl("h3", {}, {marginBottom: 0, marginTop: "18px"}, "Currency code")
+            ip = createEl("input", {value: acc.iso_currency_code, maxLength: "3"})
+        }
 
         ip.addEventListener("input", e => {
+            let value = acc.sub_type === SUB_TYPE_CRYPTO ? parseInt(e.target.value) : e.target.value
             let updated = {
                 ...acc,
-                iso_currency_code: e.target.value
+                iso_currency_code: value
             }
             ACCOUNTS_UPDATED[acc.id] = updated
             refreshAccounts()
@@ -1074,13 +1101,14 @@ function setupAccEditForm(id) {
 
         d.appendChild(h)
         d.appendChild(ip)
-        form.appendChild(d)
-    }
 
-    if (acc.manual) {
+        form.appendChild(d)
+
         d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
-        h = createEl("h3", {}, {}, "Value")
-        ip = createEl("input", {type: "number", value: acc.current})
+
+        let valueText = acc.sub_type === SUB_TYPE_CRYPTO ? "Quantity" : "Value"
+        h = createEl("h3", {}, {marginBottom: 0}, valueText)
+        ip = createEl("input", {type: "number", value: acc.value})
 
         ip.addEventListener("input", e => {
             let updated = {

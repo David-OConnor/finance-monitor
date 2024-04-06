@@ -591,6 +591,9 @@ replacements = [
     ("ulta", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
     ("fsastore", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
     ("avon", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("barber", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("salon", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
+    ("haircut", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
     #
     ("best buy", TransactionCategory.ELECTRONICS),
     ("newegg", TransactionCategory.ELECTRONICS),
@@ -667,6 +670,7 @@ replacements = [
     ("oakley", TransactionCategory.CLOTHING),
     ("old navy", TransactionCategory.CLOTHING),
     ("marshalls", TransactionCategory.CLOTHING),
+    #
 ]
 
 

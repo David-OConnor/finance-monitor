@@ -54,6 +54,7 @@ from main import plaid_, util
 from main.plaid_ import (
     CLIENT,
 )
+from .asset_prices import CryptoType
 from .transaction_cats import TransactionCategory
 from .util import send_debug_email
 
@@ -218,19 +219,29 @@ def add_transactions(request: HttpRequest) -> HttpResponse:
 @login_required
 def edit_accounts(request: HttpRequest) -> HttpResponse:
     """Edit accounts. Notably, account nicknames, and everything about manual accounts."""
+    person = request.user.person
+
     data = load_body(request)
     result = {"success": True}
 
     for acc in data.get("accounts", []):
-        _, _ = SubAccount.objects.update_or_create(
-            id=acc["id"],
-            defaults={
-                "name": acc["name"],
-                "nickname": acc["nickname"],
-                "iso_currency_code": acc["iso_currency_code"],
-                "current": acc["current"],
-            },
+        acc_db = SubAccount.objects.get(
+            Q(id=acc["id"]) & (Q(person=person) | Q(account__person=person))
         )
+
+        acc_db.name = acc["name"]
+        acc_db.nickname = acc["nickname"]
+
+        print("\n\nProblem: ", acc, "\n\n")
+
+        if acc_db.sub_type == SubAccountType.CRYPTO.value:
+            acc_db.asset_type = CryptoType(int(acc["iso_currency_code"])).value
+            acc_db.asset_quantity = acc["current"]
+        else:
+            acc_db.iso_currency_code = acc["iso_currency_code"]
+            acc_db.asset_quantity = acc["current"]
+
+        acc_db.save()
 
     return JsonResponse(result)
 
@@ -540,15 +551,17 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
 
     try:
         account_added.save()
-    except IntegrityError as e:
-        print("\n Updating the account's access token, instead of adding a new one...")
+    except IntegrityError:
+        msg = f"\nUpdating account token.: \nPerson: {person}, \nAccount: {account_added}, Response: \n{response}"
+        print(msg)
+
         # todo: Check your re-link process. Is there a way to catch this earlier? Is there another problem?
         account_updated = FinancialAccount.objects.get(person=person, access_token=access_token, item_id=item_id)
         account_updated.attention_needed = False
         account_updated.save()
 
         # todo: This is temp debugging thi son the server
-        msg = f"\nUpdating account token.: \nPerson: {person}, \nAccount: {account_added}, Response: \n{response}"
+
         send_debug_email(msg)
 
         # msg = f"\nError saving the account: {e}. \nPerson: {person}, \nAccount: {account_added}"

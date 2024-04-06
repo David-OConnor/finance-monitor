@@ -29,6 +29,7 @@ from django.db.models import (
     JSONField,
 )
 
+from main.asset_prices import CryptoType
 from main.transaction_cats import TransactionCategory
 
 
@@ -328,6 +329,16 @@ class SubAccount(Model):
     # Lets the user mark the account as ignored by the program.
     ignored = BooleanField(default=False)
     # todo: Mask?
+    # This is only applicable for crypto, stocks etc; None otherwise.
+    asset_type = IntegerField(choices=CryptoType.choices(), blank=True, null=True)
+    # This is only applicable for crypto, stocks etc; None otherwise.
+    asset_quantity = FloatField(blank=True, null=True)
+
+    def get_value(self) -> float:
+        if self.asset_type is not None:
+            return CryptoType(self.asset_type).account_value(self.asset_quantity)
+        else:
+            return self.current
 
     def serialize(self) -> Dict[str, str]:
         """For use in the web page."""
@@ -370,7 +381,10 @@ class SubAccount(Model):
             # Note Use current_val if handling this in JS vice template
             # "current_val": self.current,
             # "current_class": "tran-pos" if pos_val else "tran-neg",
-            "needs_attention": needs_attention
+            "needs_attention": needs_attention,
+            "asset_type": self.asset_type,
+            "asset_quantity": self.asset_quantity,
+            "value": self.get_value()
         }
 
     def __str__(self):
