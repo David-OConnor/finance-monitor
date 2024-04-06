@@ -6,7 +6,6 @@
 
 {% block contents %}
     <div class="home-body">
-
         {% if no_accs %}
             <h2>Add an account to get started.</h2>
         {% endif %}
@@ -119,7 +118,7 @@
                     </div>
 
                     <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <h3>Quantity (number of coines)</h3>
+                        <h3>Quantity (number of coins)</h3>
                         <input id="add-manual-asset-quantity" type="number" value="0" />
                     </div>
                 </div>
@@ -194,7 +193,7 @@
                 background-color: white;
                 border-radius: 12px;
                 ">
-            <h2 style="margin-right: 4px;">Transactions</h2>
+            <h2 style="margin-right: 4px; text-align: center; margin-top: 8px;">Transactions</h2>
             {# Required to show borders?#}
 
             {#  A section with clickable months #}
@@ -202,7 +201,7 @@
                 {% for item in month_picker_items %}
                     <button
                             class="button-general"
-                            style="margin-left: 8px; margin-right: 8px;"
+                            style="margin-left: 8px; margin-right: 8px; height: 22px;"
                             onclick="changeDates('{{ item.1 }}', '{{ item.2 }}')"
                     >{{ item.0 }}</button>
                 {% endfor %}
@@ -210,7 +209,7 @@
                 {# All months #}
                 <button
                         class="button-general"
-                        style="margin-left: 8px; margin-right: 8px;"
+                        style="margin-left: 8px; margin-right: 8px; height: 22px;"
                         {#                        onclick="changeDates('1980-01-01', '2030-01-01')"#}
                         onclick="changeDates(null, null)"
                 >All</button>
