@@ -1126,7 +1126,7 @@ function setupAccEditForm(id) {
         d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
 
         if (acc.sub_type === SUB_TYPE_CRYPTO) {
-            h = createEl("h3", {}, {marginBottom: 0}, "Quantity")
+            h = createEl("h3", {}, {marginBottom: 0}, "Quantity (number of coins)")
             ip = createEl("input", {type: "number", value: acc.asset_quantity})
 
             // todo: DRY

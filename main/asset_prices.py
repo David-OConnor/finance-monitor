@@ -1,8 +1,17 @@
 # For automatically updating assets like stocks etc.
 
+from zoneinfo import ZoneInfo
+from datetime import datetime
 from enum import Enum
 import requests
+from django.utils import timezone
 
+
+# We cache remotely-loaded prices for performance reasons; no need to make their HTTP call every time
+# we load an asset's value. Cache them in memory.
+ASSET_PRICE_CACHE = {}  # { CryptoType: (value, datetime) }
+
+ASSET_TIMEOUT = 60 * 60  # seconds
 
 # todo: DRY with models due to Python's import system
 def enum_choices(cls):
@@ -38,12 +47,21 @@ class CryptoType(Enum):
         else:
             print("\nError: fallthrough on Crypto type")
 
-    # todo: Cache these, loading every 30 mins! For performance.
     def account_value(self, quantity: float) -> float:
         """
         Get an account's value of this cryptocurrency,in USD.
         https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices
         """
-        data = requests.get(f"https://api.coinbase.com/v2/prices/{self.abbrev()}-usd/spot").json()
+        cache_details = ASSET_PRICE_CACHE.get(self, [0., timezone.make_aware(datetime.fromisoformat("1999-09-09"))])
 
-        return float(data["data"]["amount"]) * quantity
+        now = timezone.now()
+        if (now - cache_details[1]).seconds > ASSET_TIMEOUT:
+            print("Updating price on ", self)
+
+            data = requests.get(f"https://api.coinbase.com/v2/prices/{self.abbrev()}-usd/spot").json()
+            price = float(data["data"]["amount"]) * quantity
+
+            ASSET_PRICE_CACHE[self] = (price, now)
+            return price
+
+        return cache_details[0]
