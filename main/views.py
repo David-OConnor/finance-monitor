@@ -266,6 +266,12 @@ def add_account_manual(request: HttpRequest) -> HttpResponse:
         current=data["current"],
     )
 
+    if sub_type == SubAccountType.CRYPTO:
+        # todo: A bit of an awk hijack; fix this in the form.
+        account.current = 0.
+        account.asset_type = 0 # todo: Default; use the form for this
+        account.asset_quantity = data["current"]
+
     success = True
     try:
         account.save()

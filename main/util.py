@@ -179,6 +179,7 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         else:
             print("Fallthrough in sub account type: ", t)
 
+
     # Apply a class for color-coding in the template.
 
     totals_display = {}  # Avoids adding keys while iterating.
