@@ -1011,21 +1011,27 @@ function setupAccEditForm(id) {
         h = createEl("h3", {}, {marginBottom: 0, marginTop: "18px"}, "Account name")
         ip = createEl("input", {value: acc.name})
         ip.addEventListener("input", e => {
+            let acc_ = ACCOUNTS.find(t => t.id === acc.id)
             let updated = {
-                ...acc,
+                ...acc_,
                 name: e.target.value
             }
+            ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), updated]
             ACCOUNTS_UPDATED[acc.id] = updated
+            refreshAccounts()
         })
     } else {
         h = createEl("h3", {}, {marginTop: 0, marginBottom: "18px"}, "Nickname")
         ip = createEl("input", {value: acc.nickname})
         ip.addEventListener("input", e => {
+            let acc_ = ACCOUNTS.find(t => t.id === acc.id)
             let updated = {
-                ...acc,
+                ...acc_,
                 nickname: e.target.value
             }
+            ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), updated]
             ACCOUNTS_UPDATED[acc.id] = updated
+            refreshAccounts()
         })
     }
 
@@ -1084,20 +1090,33 @@ function setupAccEditForm(id) {
                 }
                 ip.appendChild(opt)
             }
+            // todo: DRY
+            ip.addEventListener("input", e => {
+                let acc_ = ACCOUNTS.find(t => t.id === acc.id)
+                let updated = {
+                    ...acc_,
+                    asset_type: parseInt(e.target.value),
+                }
+                ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), updated]
+                ACCOUNTS_UPDATED[acc.id] = updated
+                refreshAccounts()
+            })
         } else {
             h = createEl("h3", {}, {marginBottom: 0, marginTop: "18px"}, "Currency code")
             ip = createEl("input", {value: acc.iso_currency_code, maxLength: "3"})
-        }
 
-        ip.addEventListener("input", e => {
-            let value = acc.sub_type === SUB_TYPE_CRYPTO ? parseInt(e.target.value) : e.target.value
-            let updated = {
-                ...acc,
-                iso_currency_code: value
-            }
-            ACCOUNTS_UPDATED[acc.id] = updated
-            refreshAccounts()
-        })
+            // todo: DRY
+            ip.addEventListener("input", e => {
+                let acc_ = ACCOUNTS.find(t => t.id === acc.id)
+                let updated = {
+                    ...acc_,
+                    iso_currency_code: e.target.value,
+                }
+                ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), updated]
+                ACCOUNTS_UPDATED[acc.id] = updated
+                refreshAccounts()
+            })
+        }
 
         d.appendChild(h)
         d.appendChild(ip)
@@ -1106,18 +1125,39 @@ function setupAccEditForm(id) {
 
         d = createEl("div", {}, {alignItems: "center", justifyContent: "space-between"})
 
-        let valueText = acc.sub_type === SUB_TYPE_CRYPTO ? "Quantity" : "Value"
-        h = createEl("h3", {}, {marginBottom: 0}, valueText)
-        ip = createEl("input", {type: "number", value: acc.value})
+        if (acc.sub_type === SUB_TYPE_CRYPTO) {
+            h = createEl("h3", {}, {marginBottom: 0}, "Quantity")
+            ip = createEl("input", {type: "number", value: acc.asset_quantity})
 
-        ip.addEventListener("input", e => {
-            let updated = {
-                ...acc,
-                current: parseFloat(e.target.value)
-            }
-            ACCOUNTS_UPDATED[acc.id] = updated
-            refreshAccounts()
-        })
+            // todo: DRY
+            ip.addEventListener("input", e => {
+                let acc_ = ACCOUNTS.find(t => t.id === acc.id)
+                let updated = {
+                    ...acc_,
+                    asset_quantity: parseFloat(e.target.value),
+                }
+                ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), updated]
+                ACCOUNTS_UPDATED[acc.id] = updated
+                refreshAccounts()
+            })
+        } else {
+            h = createEl("h3", {}, {marginBottom: 0}, "Value")
+            ip = createEl("input", {type: "number", value: acc.value})
+
+            // todo: DRY
+            ip.addEventListener("input", e => {
+                // Re-load from the list as TS maneuver against odd edit pattern
+                let acc_ = ACCOUNTS.find(t => t.id === acc.id)
+                let updated = {
+                    ...acc_,
+                    current:parseFloat(e.target.value),
+                }
+                ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), updated]
+                ACCOUNTS_UPDATED[acc.id] = updated
+                refreshAccounts()
+            })
+        }
+
 
         d.appendChild(h)
         d.appendChild(ip)

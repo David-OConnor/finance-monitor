@@ -232,14 +232,15 @@ def edit_accounts(request: HttpRequest) -> HttpResponse:
         acc_db.name = acc["name"]
         acc_db.nickname = acc["nickname"]
 
-        print("\n\nProblem: ", acc, "\n\n")
+        print("\n\nProblem from UI: ", acc, "\n\n")
+        print("\n\nProblem DB: ", acc_db, "\n\n")
 
         if acc_db.sub_type == SubAccountType.CRYPTO.value:
-            acc_db.asset_type = CryptoType(int(acc["iso_currency_code"])).value
-            acc_db.asset_quantity = acc["current"]
+            acc_db.asset_type = CryptoType(acc["asset_type"]).value
+            acc_db.asset_quantity = acc["asset_quantity"]
         else:
             acc_db.iso_currency_code = acc["iso_currency_code"]
-            acc_db.asset_quantity = acc["current"]
+            acc_db.current = acc["current"]
 
         acc_db.save()
 
