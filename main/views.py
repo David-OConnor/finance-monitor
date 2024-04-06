@@ -547,6 +547,10 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         account_updated.attention_needed = False
         account_updated.save()
 
+        # todo: This is temp debugging thi son the server
+        msg = f"\nUpdating account token.: \nPerson: {person}, \nAccount: {account_added}, Response: \n{response}"
+        send_debug_email(msg)
+
         # msg = f"\nError saving the account: {e}. \nPerson: {person}, \nAccount: {account_added}"
         # print(msg)
         # send_debug_email(msg)
