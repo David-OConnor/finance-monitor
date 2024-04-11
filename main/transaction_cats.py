@@ -115,7 +115,7 @@ class TransactionCategory(Enum):
             return cls.RECREATION
         if "gym" in s or "fitness" in s or "health" in s:
             return cls.GYMS_AND_FITNESS_CENTERS
-        if "transfer" in s:
+        if "transfer" in s or "square" in s:
             return cls.TRANSFER
         if "deposit" in s:
             return cls.DEPOSIT
