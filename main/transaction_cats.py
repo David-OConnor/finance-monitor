@@ -151,7 +151,9 @@ class TransactionCategory(Enum):
             return cls.CAR
         if "home" in s or "garden" in s:
             return cls.HOME_AND_GARDEN
-        if "medical" in s:
+        if "maintenance" in s or "repair" in s:
+            return cls.HOME_AND_GARDEN  # todo: eh...
+        if "medical" in s or "glasses" in s or "optometr" in s:
             return cls.MEDICAL
         if "entertainment" in s or "dance" in s or "music" in s:
             return cls.ENTERTAINMENT
@@ -169,13 +171,13 @@ class TransactionCategory(Enum):
             return cls.BUSINESS_SERVICES
         if "cash" in s or "check" in s:
             return cls.CASH_AND_CHECKS
-        if "gift" in s or "donation" in s:
+        if "gift" in s or "donation" in s or "charit" in s:
             return cls.GIFTS
         if "education" in s:
             return cls.EDUCATION
         if "alcohol" in s or "bar" in s:
             return cls.ALCOHOL
-        if "health" in s or "personal care" in s or "pharmacies" in s:
+        if "health" in s or "personal care" in s or "pharmacies" in s or "beauty" in s:
             return cls.HEALTH_AND_PERSONAL_CARE
         if "interest" in s:
             return cls.FEES
@@ -187,6 +189,8 @@ class TransactionCategory(Enum):
             return cls.SHOPS
         if "insurance" in s:
             return cls.BILLS_AND_UTILITIES
+        if "cable" in s:
+            return cls.BILLS_AND_UTILITIES
         if "office supplies" in s:
             return cls.BUSINESS_SERVICES  # todo: Eh...
         if "hotels" in s:
@@ -195,8 +199,12 @@ class TransactionCategory(Enum):
             return cls.BUSINESS_SERVICES  # todo Eh...
         if "community" in s or "church" in s:
             return cls.UNCATEGORIZED  # todo...
+        if "college" in s or "universit" in s:
+            return cls.EDUCATION
+        if "subscription" in s:
+            return cls.SOFTWARE_SUBSCRIPTIONS  # todo: Eh...
         if (
-            "clothing" in s or "department stores" in s
+            "clothing" in s or "department stores" in s or "shoe store" in s
         ):  # todo eh on dept stores. shopping?
             return cls.CLOTHING
 
@@ -509,7 +517,9 @@ replacements = [
     ("panera", TransactionCategory.FAST_FOOD),
     ("dominos", TransactionCategory.FAST_FOOD),
     ("cheesecake factory", TransactionCategory.RESTAURANTS),
+    ("annies parlour", TransactionCategory.RESTAURANTS),
     ("ihop", TransactionCategory.RESTAURANTS),
+    #
     ("cinnabon", TransactionCategory.FAST_FOOD),
     ("pizza hut", TransactionCategory.FAST_FOOD),
     ("dunkin", TransactionCategory.FAST_FOOD),
@@ -519,6 +529,7 @@ replacements = [
     ("baskin-robbins", TransactionCategory.FAST_FOOD),
     ("kfc", TransactionCategory.FAST_FOOD),
     ("in-n-out", TransactionCategory.FAST_FOOD),
+    ("raising cane", TransactionCategory.FAST_FOOD),
     #
     ("at&t", TransactionCategory.BILLS_AND_UTILITIES),
     ("cox cable", TransactionCategory.BILLS_AND_UTILITIES),
@@ -572,6 +583,8 @@ replacements = [
     ("bar", TransactionCategory.ALCOHOL),
     ("beer garden", TransactionCategory.ALCOHOL),
     ("total wine", TransactionCategory.ALCOHOL),
+    ("brewing", TransactionCategory.ALCOHOL),
+    ("irish pub", TransactionCategory.ALCOHOL),
     #
     ("bp products", TransactionCategory.CAR),
     ("exxon", TransactionCategory.CAR),
@@ -609,8 +622,8 @@ replacements = [
     # ("ibm", TransactionCategory.ELECTRONICS),
     ("microsoft", TransactionCategory.ELECTRONICS),
     #
-    ("costco gas", TransactionCategory.CAR),
     ("costco", TransactionCategory.SHOPS),
+    ("costco gas", TransactionCategory.CAR),
     ("kroger", TransactionCategory.SHOPS),
     ("home depot", TransactionCategory.SHOPS),
     ("target", TransactionCategory.SHOPS),
@@ -675,6 +688,8 @@ replacements = [
     ("jimmy choo", TransactionCategory.CLOTHING),
     ("oakley", TransactionCategory.CLOTHING),
     ("old navy", TransactionCategory.CLOTHING),
+    ("abercrombie", TransactionCategory.CLOTHING),
+    ("aeropostale", TransactionCategory.CLOTHING),
     ("marshalls", TransactionCategory.CLOTHING),
     #
 ]
