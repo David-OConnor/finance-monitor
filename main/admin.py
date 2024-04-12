@@ -80,13 +80,13 @@ class RecurringAdmin(ModelAdmin):
 
 @admin.register(models.CategoryRule)
 class CategoryRuleAdmin(ModelAdmin):
-    list_display = ("description", "category")
+    list_display = ("person", "description", "category")
     search_fields = ("person__user__email", "description", "category")
 
 
 @admin.register(models.CategoryCustom)
 class CustomCategoryAdmin(ModelAdmin):
-    list_display = ("id", "name")
+    list_display = ("id", "person", "name")
     search_fields = ("name",)
 
 

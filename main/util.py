@@ -280,9 +280,20 @@ def setup_spending_highlights(
     person: Person, start_days_back: int, end_days_back: int, is_lookback: bool
 ):
     """Find the biggest recent spending highlights."""
+    if start_days_back is None:  # Perhaps invalid data from the date picker.
+        start_days_back = 30
+    if end_days_back is None:
+        end_days_back = 0
+
     now = timezone.now()
-    start = now - timedelta(days=start_days_back)
-    end = now - timedelta(days=end_days_back)
+
+    try:
+        start = now - timedelta(days=start_days_back)
+        end = now - timedelta(days=end_days_back)
+    except OverflowError:
+        # Eg a date too old.
+        start = now - timedelta(days=30)
+        end = now
 
     # todo: We likely have already loaded these transactions. Optimize later.
     # todo: Maybe cache, this and run it once in a while? Or always load 30 days of trans?
