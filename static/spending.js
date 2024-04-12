@@ -223,7 +223,7 @@ function populateTransactions(transactions) {
     let section = getEl("transactions")
     section.replaceChildren()
 
-    const hStyle = {marginTop: 0, marginBottom: 0}
+    const hStyle = {marginTop: 0, marginBottom: 0, fontWeight: "normal"}
 
     for (let tran of transactions) {
         let el1 = createEl("div", {}, {gridColumn: "1/2"})
@@ -237,7 +237,7 @@ function populateTransactions(transactions) {
         section.appendChild(el2)
 
         let el3 = createEl("div", {}, {gridColumn: "3/4"})
-        let h3 = createEl("h4", {}, hStyle, tran.amount)
+        let h3 = createEl("h4", {class: "tran-neutral"}, hStyle, formatAmount(-tran.amount, 0))
         el3.appendChild(h3)
         section.appendChild(el3)
 
@@ -282,8 +282,6 @@ function loadTransactions(startDaysBack, endDaysBack, category, merchant) {
             //         TRANSACTIONS.push(tranLoaded)
             //     }
             // }
-            console.log("Loaded transactions: ", r.transactions)
-
             populateTransactions(r.transactions)
         });
 }
