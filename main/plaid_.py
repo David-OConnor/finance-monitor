@@ -525,6 +525,11 @@ def link_token_helper(
 ) -> LinkTokenCreateRequest:
     if update_mode:
         return LinkTokenCreateRequest(
+            # todo: TS by adding products to update mode. If this works, simplify this duplicated code
+            products=PRODUCTS,
+            required_if_supported_products=PRODUCTS_REQUIRED_IF_SUPPORTED,
+            optional_products=PRODUCTS_OPTIONAL,
+            additional_consented_products=PRODUCTS_ADDITIONAL_CONSENTED,
             access_token=access_token,
             client_name="Finance Monitor",
             country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
