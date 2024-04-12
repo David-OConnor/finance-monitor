@@ -467,6 +467,9 @@ def create_link_token_update(request: HttpRequest) -> HttpResponse:
     # note: expiration available.
     link_token = response["link_token"]
 
+    account.needs_attention = False
+    account.save()
+
     return JsonResponse({"link_token": link_token})
 
 

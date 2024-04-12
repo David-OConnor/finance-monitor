@@ -523,14 +523,14 @@ def refresh_recurring(account: FinancialAccount):
 def link_token_helper(
     user_id: int, update_mode: bool, access_token: Optional[str] = None
 ) -> LinkTokenCreateRequest:
-    if update_mode:
-        return LinkTokenCreateRequest(
+    result = LinkTokenCreateRequest(
+            access_token=access_token,
             # todo: TS by adding products to update mode. If this works, simplify this duplicated code
             products=PRODUCTS,
             required_if_supported_products=PRODUCTS_REQUIRED_IF_SUPPORTED,
             optional_products=PRODUCTS_OPTIONAL,
             additional_consented_products=PRODUCTS_ADDITIONAL_CONSENTED,
-            access_token=access_token,
+            # todo end test. Did not fix it.
             client_name="Finance Monitor",
             country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
             redirect_uri=PLAID_REDIRECT_URI,
@@ -538,16 +538,37 @@ def link_token_helper(
             user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
         )
 
-    else:
-        return LinkTokenCreateRequest(
-            # `products`: Which products to show.
-            products=PRODUCTS,
-            required_if_supported_products=PRODUCTS_REQUIRED_IF_SUPPORTED,
-            optional_products=PRODUCTS_OPTIONAL,
-            additional_consented_products=PRODUCTS_ADDITIONAL_CONSENTED,
-            client_name="Finance Monitor",
-            country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
-            redirect_uri=PLAID_REDIRECT_URI,
-            language="en",
-            user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
-        )
+    if update_mode:
+        result.access_token = access_token
+
+    return result
+
+    # if update_mode:
+    #     return LinkTokenCreateRequest(
+    #         access_token=access_token,
+    #         # todo: TS by adding products to update mode. If this works, simplify this duplicated code
+    #         products=PRODUCTS,
+    #         required_if_supported_products=PRODUCTS_REQUIRED_IF_SUPPORTED,
+    #         optional_products=PRODUCTS_OPTIONAL,
+    #         additional_consented_products=PRODUCTS_ADDITIONAL_CONSENTED,
+    #         # todo end test. Did not fix it.
+    #         client_name="Finance Monitor",
+    #         country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
+    #         redirect_uri=PLAID_REDIRECT_URI,
+    #         language="en",
+    #         user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
+    #     )
+    #
+    # else:
+    #     return LinkTokenCreateRequest(
+    #         # `products`: Which products to show.
+    #         products=PRODUCTS,
+    #         required_if_supported_products=PRODUCTS_REQUIRED_IF_SUPPORTED,
+    #         optional_products=PRODUCTS_OPTIONAL,
+    #         additional_consented_products=PRODUCTS_ADDITIONAL_CONSENTED,
+    #         client_name="Finance Monitor",
+    #         country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
+    #         redirect_uri=PLAID_REDIRECT_URI,
+    #         language="en",
+    #         user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
+    #     )
