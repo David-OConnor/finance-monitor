@@ -72,12 +72,15 @@ function getPublicToken() {
         return
     }
 
+    console.log("In getPublicToken") // todo: To TS re-linking not working correctly.
+
     let handler = Plaid.create({
         // Create a new link_token to initialize Link
         // token: await fetch("/create_link_token", {...FETCH_HEADERS_POST }).link_token,
         token: LINK_TOKEN,
         onLoad: function() {
             // Optional, called when Link loads
+            console.log("onLoad") // todo temp
         },
         onSuccess: function(public_token, metadata) {
             // Send the public_token to your app server.
@@ -88,7 +91,7 @@ function getPublicToken() {
             //     public_token: public_token,
             // });
             //
-
+            console.log("On success")
             const payload = {
                 public_token: public_token,
                 metadata: metadata

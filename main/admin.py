@@ -25,6 +25,7 @@ class FinancialAccountAdmin(ModelAdmin):
         "name",
         "last_balance_refresh_success",
         "last_tran_refresh_success",
+        "needs_attention",
     )
     search_fields = ("person__user__email", "item_id", "access_token", "name")
 

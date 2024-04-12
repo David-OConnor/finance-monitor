@@ -74,7 +74,7 @@ def landing(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def load_transactions(request: HttpRequest) -> HttpResponse:
-    """Load transactions. Return them as JSON. This is a POST request."""
+    """Load transactions based on criteria passed in the POST body. Return them as JSON."""
     person = request.user.person
 
     data = load_body(request)
