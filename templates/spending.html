@@ -252,10 +252,11 @@
                     INCOME_OVER_TIME = r.income_over_time
                     MERCHANTS_NEW = r.merchants_new
 
+                    // These 0 checks make sure we show "0" instead of "-0".
                     getEl("income-total").textContent = formatAmount(INCOME_TOTAL, 0)
-                    getEl("expenses-total").textContent = formatAmount(-EXPENSES_TOTAL, 0)
-                    getEl("expenses-discretionary").textContent = formatAmount(-EXPENSES_DISCRETIONARY, 0)
-                    getEl("expenses-nondiscret").textContent = formatAmount(-EXPENSES_NONDISCRET, 0)
+                    getEl("expenses-total").textContent = formatAmount(EXPENSES_TOTAL === 0 ? 0 : -EXPENSES_TOTAL, 0)
+                    getEl("expenses-discretionary").textContent = formatAmount(EXPENSES_DISCRETIONARY === 0 ? 0 : -EXPENSES_DISCRETIONARY, 0)
+                    getEl("expenses-nondiscret").textContent = formatAmount(EXPENSES_NONDISCRET === 0 ? 0 : -EXPENSES_NONDISCRET, 0)
 
                     populate()
                     setupPieCharts()
