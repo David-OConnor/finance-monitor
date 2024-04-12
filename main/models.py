@@ -292,7 +292,7 @@ class FinancialAccount(Model):
 
     class Meta:
         unique_together = ["person", "institution"]
-        ordering = ["name"]
+        ordering = ["-last_balance_refresh_attempt"]
 
 
 class SubAccount(Model):
