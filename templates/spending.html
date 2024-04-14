@@ -9,10 +9,10 @@
         <section style="display: flex; align-items: center; flex-wrap: wrap;">
 
             <h2 id="days-back" style="margin-right: 20px;">Past  30 days</h2>
-            <button id="range-30" class="button-general" onclick="setRangeFromDaysback(30)">Past 30 days</button>
-            <button id="range-60" class="button-general" onclick="setRangeFromDaysback(60)">Past 60 days</button>
-            <button id="range-90" class="button-general" onclick="setRangeFromDaysback(90)">Past 90 days</button>
-            <button id="range-custom" class="button-general" onclick="setRangeFromDaysback(-1)">Custom:</button>
+            <button id="range-30" class="button-general" style="height: 22px;" onclick="setRangeFromDaysback(30)">Past 30 days</button>
+            <button id="range-60" class="button-general" style="height: 22px;" onclick="setRangeFromDaysback(60)">Past 60 days</button>
+            <button id="range-90" class="button-general" style="height: 22px;" onclick="setRangeFromDaysback(90)">Past 90 days</button>
+            <button id="range-custom" class="button-general" style="height: 22px;" onclick="setRangeFromDaysback(-1)">Custom:</button>
 
             <h3 style="margin-right: 6px;">Start:</h3>
             <input id="start" type="date" oninput="setRangeFromDaysback(-1)" />
@@ -27,7 +27,7 @@
                 <button
                         id="range-month-{{ item.0 }}"
                         class="button-general"
-                        style="margin-left: 8px; margin-right: 8px;"
+                        style="margin-left: 8px; margin-right: 8px; height: 22px;"
                         onclick="setRangeWrapper('{{ item.0 }}', '{{ item.1 }}', '{{ item.2 }}')"
                 >{{ item.0 }}</button>
             {% endfor %}
