@@ -26,7 +26,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEPLOYED = True if "DATABASE_URL" in os.environ else False
 
-
 class PlaidMode(Enum):
     SANDBOX = auto()
     DEV = auto()
@@ -41,6 +40,7 @@ if DEPLOYED:
     PLAID_MODE = PlaidMode.PRODUCTION
     DEBUG = False
 
+    DATABASE_URL = os.environ["DATABASE_URL"]
     # SECURITY WARNING: keep the secret key used in production secret!
     SECRET_KEY = os.environ["SECRET_KEY"]
     PLAID_CLIENT_ID = os.environ["PLAID_CLIENT_ID"]
@@ -48,29 +48,40 @@ if DEPLOYED:
     SENDGRID_API_KEY = os.environ["SENDGRID_KEY"]
     EMAIL_HOST_PASSWORD = os.environ["SENDGRID_KEY"]
 else:
+    DATABASE_URL = "postgres://postgres:test@localhost:5432/wallet"
+
     DEBUG = True
+    # This key is insecure; don't use it in production.
     SECRET_KEY = "django-insecure-kt#8(6pid*k1u6b9!yh(70^7s41ydqu=_!#%l79n8nm-os*$b)"
+
+    PLAID_SECRET = None
+    PLAID_CLIENT_ID = None
+    SENDGRID_API_KEY = None
+    EMAIL_HOST_PASSWORD = None
 
     try:
         from main import private
     # Allow an escape hatch so the problem runs and can be tested with a quick
     # git pull. Email is non-functional here.
     except ImportError:
-        SENDGRID_API_KEY = ""
-        PLAID_SECRET = ""
-        PLAID_CLIENT_ID = ""
+        pass
     else:
-        PLAID_CLIENT_ID = private.PLAID_CLIENT_ID
+        try:
+            PLAID_CLIENT_ID = private.PLAID_CLIENT_ID
 
-        if PLAID_MODE == PlaidMode.SANDBOX:
-            PLAID_SECRET = private.PLAID_SECRET_SANDBOX
-        elif PLAID_MODE == PlaidMode.DEV:
-            PLAID_SECRET = private.PLAID_SECRET_DEV
-        else:
-            PLAID_SECRET = private.PLAID_SECRET_PRODUCTION
+            if PLAID_MODE == PlaidMode.SANDBOX:
+                PLAID_SECRET = private.PLAID_SECRET_SANDBOX
+            elif PLAID_MODE == PlaidMode.DEV:
+                PLAID_SECRET = private.PLAID_SECRET_DEV
+            else:
+                PLAID_SECRET = private.PLAID_SECRET_PRODUCTION
 
-        SENDGRID_API_KEY = private.SENDGRID_KEY
-        EMAIL_HOST_PASSWORD = private.SENDGRID_KEY
+            SENDGRID_API_KEY = private.SENDGRID_KEY
+            EMAIL_HOST_PASSWORD = private.SENDGRID_KEY
+
+        # This AttributeError happens if keys are missing.
+        except AttributeError:
+            pass
 
         # SECURITY WARNING: don't run with debug turned on in production!
 
@@ -129,32 +140,7 @@ WSGI_APPLICATION = "wallet.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-# Todo: Postgres once working.
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
-
-LOCAL_DB = "postgres://postgres:test@localhost:5432/wallet"
-
-DATABASES = {"default": dj_database_url.config(default=LOCAL_DB)}
-
-# if DEPLOYED:
-#     pass
-# else:
-#     DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.postgresql",
-#             "NAME": "wallet",
-#             "USER": "postgres",
-#             "PASSWORD": "test",
-#             "HOST": "localhost",
-#             "PORT": "5432",
-#         }
-#     }
+DATABASES = {"default": dj_database_url.config(default=DATABASE_URL)}
 
 
 # Password validation

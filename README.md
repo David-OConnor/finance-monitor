@@ -1,4 +1,4 @@
-# Finance-Monitor
+# Finance Monitor
 ## Open-source personal finance aggregator / Mint replacement
 
 ### [Official webapp](https://www.finance-monitor.com)
@@ -46,7 +46,6 @@ Including examples
 ### Decoupled architecture
 Make swapping in and out aggregators easier, through a decoupled API.
 
-
 ### Internal code cleanup
 The frontend code is currently repetative and messy in places; there is room for improvement in terms of making it faster
 
@@ -56,22 +55,41 @@ The plotting libraries used on the Spending page (Plotly and plot.js) are curren
 A more compact, faster alternative would be a better match for this application's otherwise streamlined architecture.
 
 
-## Populating `private.py`
-You must create a file `main/private.py` in order to connect to plaid, and the email server. Example 
+## Configuring for deployed, vice development environments.
+
+If the environment variable `DATABASE_URL` is present, this application is considered to be deployed,
+which has several implications for how it operates. (See `settings.py` for details.) If this is present, the 
+the following environment variables should be set up (if available):
+
+``````
+SECRET_KEY
+PLAID_CLIENT_ID
+PLAID_SECRET
+SENDGRID_KEY
+``````
+
+If not deployed (`DATABASE_URL` is not present), create a file called `private.py` in the `main` folder. 
+
+`private.py`
+You must create a file `main/private.py` in order to connect to plaid, and the email server. It will include
+several variables, provided by Plaid and Sendgrid, through their accounts. Note that you if you
+leave these blank, support for Plaid and/or email will be disabled.
+
+Example 
 contents:
 
 ```python
 PLAID_CLIENT_ID = "abc"
-
 PLAID_SECRET_SANDBOX = "abc"
 PLAID_SECRET_DEV = "abc"
 PLAID_SECRET_PRODUCTION = "abc"
-
-
 SENDGRID_KEY = "abc"
-SENDGRID_USERNAME = "abc"
-SENDGRID_PASSWORD = "abc"
+
 ```
+
+## Database setup:
+(todo)
+
 
 ### Notes
 Currently, the frontend code is written in plain Javascript. This has the distinct advantage of
