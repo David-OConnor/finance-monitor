@@ -26,15 +26,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEPLOYED = True if "DATABASE_URL" in os.environ else False
 
+
 class PlaidMode(Enum):
     SANDBOX = auto()
     DEV = auto()
     PRODUCTION = auto()
 
 
-# PLAID_MODE = PlaidMode.SANDBOX
+# todo: This will be discontinued soon by Plaid; switch to sandbox, and remove Dev as a variant.
 PLAID_MODE = PlaidMode.DEV
-# PLAID_MODE = PlaidMode.PRODUCTION
 
 if DEPLOYED:
     PLAID_MODE = PlaidMode.PRODUCTION
@@ -64,7 +64,7 @@ else:
     # Allow an escape hatch so the problem runs and can be tested with a quick
     # git pull. Email is non-functional here.
     except ImportError:
-        pass
+        pass  # Leave this config vars at their initialized-to-None values above.
     else:
         try:
             PLAID_CLIENT_ID = private.PLAID_CLIENT_ID
@@ -76,11 +76,18 @@ else:
             else:
                 PLAID_SECRET = private.PLAID_SECRET_PRODUCTION
 
+        # This AttributeError happens if values are missing from `private.py`.
+        except AttributeError:
+            print("One or more Plaid (Account aggregator) keys missing from `private.py`. If unavailable, set them to be empty strings, and try again.")
+            pass
+
+        try:
             SENDGRID_API_KEY = private.SENDGRID_KEY
             EMAIL_HOST_PASSWORD = private.SENDGRID_KEY
 
         # This AttributeError happens if keys are missing.
         except AttributeError:
+            print("One or more Sendgrid (email) keys missing from `private.py`. If unavailable, set them to be empty strings, and try again.")
             pass
 
         # SECURITY WARNING: don't run with debug turned on in production!

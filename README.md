@@ -88,7 +88,8 @@ SENDGRID_KEY = "abc"
 ```
 
 ## Database setup:
-(todo)
+The Database is configured via a URL. In production, this is configured via the `DATABASE_URL` environment
+variable. In dev use, it's configured by the `DATABASE_URL` variable in `settings.py`.
 
 
 ### Notes
