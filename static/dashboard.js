@@ -1,8 +1,10 @@
+// This module contains code related to UI interactions on the Dashboard.
+
 // Global mutal variables
 let LINK_TOKEN = ""
 let SEARCH_TEXT = ""
-let FILTER_START = "1999-09-09"  // todo!
-let FILTER_END = "2040-09-09"  // todo!
+let FILTER_START = "1999-09-09"
+let FILTER_END = "2040-09-09"
 let FILTER_CAT = null
 let VALUE_THRESH = 0
 let CURRENT_PAGE = 0
@@ -91,7 +93,6 @@ function getPublicToken() {
             //     public_token: public_token,
             // });
             //
-            console.log("On success")
             const payload = {
                 public_token: public_token,
                 metadata: metadata
@@ -152,7 +153,7 @@ function filterTransactions() {
     let transactions = TRANSACTIONS
 
     // -2 is the "any" selection of the main filter.
-    if (FILTER_CAT !== null && FILTER_CAT != -2) {
+    if (FILTER_CAT !== null && FILTER_CAT !== -2) {
         transactions = transactions.filter(t => t.category === FILTER_CAT)
     }
 
@@ -186,8 +187,6 @@ function filterTransactions() {
 
     const startI = CURRENT_PAGE * PAGE_SIZE
     const endI = CURRENT_PAGE * PAGE_SIZE + PAGE_SIZE
-    // todo: Kludge for sometimes not loading enough. Fix this.
-    // const endI = CURRENT_PAGE * PAGE_SIZE + 2*PAGE_SIZE
 
     transactions = transactions.slice(startI, endI)
 
@@ -300,7 +299,7 @@ function refreshAccounts() {
     const acc_crypto = ACCOUNTS.filter(acc => [ACC_TYPE_CRYPTO].includes(acc.sub_type))
     const acc_assets = ACCOUNTS.filter(acc => [ACC_TYPE_ASSET].includes(acc.sub_type))
 
-    let div, h1, h2, class_, totalFormatted
+    let div, h1, h2, totalFormatted
 
     for (let accs of [
         [acc_cash, "Cash"],
@@ -316,7 +315,7 @@ function refreshAccounts() {
             let d2 = createEl("div", {class: "account-heading"}) // to change horizontal/vertical mobile/desktop
             h1 = createEl("h2", {}, {marginTop: 0, marginBottom: 0, textAlign: "center"}, accs[1])
 
-            // note: We also calcualte this server side
+            // Note: We also calculate this server side
             let total = 0.
             for (let acc of accs[0]) {
                 if (["Credit", "Loan"].includes(accs[1])) {
@@ -346,6 +345,15 @@ function refreshAccounts() {
     }
 }
 
+function tranUpdateHelper(id, updated) {
+    // Helper function, to reduce code repetition.
+    TRANSACTIONS_UPDATED[String(tran.id)] = updated
+    TRANSACTIONS = [
+        ...TRANSACTIONS.filter(t => t.id !== tran.id),
+        updated
+    ]
+}
+
 function createCatEdit(tran, searchText, id) {
     // Create a select element for categories.
     // todo: Allow creating custom elements here, and search.
@@ -353,18 +361,11 @@ function createCatEdit(tran, searchText, id) {
     let sel = createCatSel(tran.category, searchText, false, id)
 
     sel.addEventListener("input", e => {
-        console.log("Updating trans!!!")
         let updated = {
             ...tran,
             category: parseInt(e.target.value)
         }
-        // todo: DRY!
-        TRANSACTIONS_UPDATED[String(tran.id)] = updated
-
-        TRANSACTIONS = [
-            ...TRANSACTIONS.filter(t => t.id !== tran.id),
-            updated
-        ]
+        tranUpdateHelper(tran.id, updated)
     })
 
     return sel
@@ -389,19 +390,12 @@ function createCatQuickEdit(tran) {
         QUICK_CAT_SEARCH = e.target.value
         dCatFilter.replaceChildren() // todo: If not working, getElById.
         dCatFilter.appendChild(createCatEdit(tran, QUICK_CAT_SEARCH, selId)) // Auto-save.
-        // refreshTransactions()
 
-        // todo: DRY, with createCatEdit. This is because the `input` field of it, which normally handles this,
-        // todo doesn't catch the options changing due to search text.
         let updated = {
             ...tran,
             category: parseInt(getEl(selId).value)
         }
-        TRANSACTIONS_UPDATED[String(tran.id)] = updated
-        TRANSACTIONS = [
-            ...TRANSACTIONS.filter(t => t.id !== tran.id),
-            updated
-        ]
+        tranUpdateHelper(tran.id, updated)
     })
     d.appendChild(search)
 
@@ -565,12 +559,8 @@ function createTranRow(tran) {
                 ...tran_,
                 description: e.target.value
             }
-            // todo: DRY!
-            TRANSACTIONS_UPDATED[String(tran.id)] = updated
-            TRANSACTIONS = [
-                ...TRANSACTIONS.filter(t => t.id !== tran.id),
-                updated,
-            ]
+
+            tranUpdateHelper(tran.id, updated)
         })
 
         col.appendChild(ip)
@@ -616,12 +606,7 @@ function createTranRow(tran) {
                     ...tran_,
                     institution_name: e.target.value
                 }
-                // todo: DRY!
-                TRANSACTIONS_UPDATED[String(tran.id)] = updated
-                TRANSACTIONS = [
-                    ...TRANSACTIONS.filter(t => t.id !== tran.id),
-                    updated,
-                ]
+                tranUpdateHelper(tran.id, updated)
             })
 
             col.appendChild(ip)
@@ -651,12 +636,7 @@ function createTranRow(tran) {
                 ...tran_,
                 notes: e.target.value
             }
-            // todo: DRY!
-            TRANSACTIONS_UPDATED[String(tran.id)] = updated
-            TRANSACTIONS = [
-                ...TRANSACTIONS.filter(t => t.id !== tran.id),
-                updated,
-            ]
+            tranUpdateHelper(tran.id, updated)
         })
     } else {
         h = createEl(
@@ -686,13 +666,7 @@ function createTranRow(tran) {
                     ...tran_,
                     amount: parseFloat(e.target.value)
                 }
-                // todo: DRY!
-                TRANSACTIONS_UPDATED[String(tran.id)] = updated
-
-                TRANSACTIONS = [
-                    ...TRANSACTIONS.filter(t => t.id !== tran.id),
-                    updated,
-                ]
+                tranUpdateHelper(tran.id, updated)
             }
         })
 
@@ -731,12 +705,7 @@ function createTranRow(tran) {
                 ...tran_,
                 date: e.target.value
             }
-            // todo: DRY!
-            TRANSACTIONS_UPDATED[String(tran.id)] = updated
-            TRANSACTIONS = [
-                ...TRANSACTIONS.filter(t => t.id !== tran.id),
-                updated,
-            ]
+            tranUpdateHelper(tran.id, updated)
         })
 
         let delBtn = createEl("button", {class: "button-small"}, {cursor: "pointer"}, "❌")
@@ -1673,8 +1642,6 @@ function addSplitTran() {
 
 function changeDates(start, end) {
     // Used, eg by the month quickpick buttons, to change the dates.
-    // FILTER_START = start
-    // FILTER_END = end
     getEl("tran-filter-start").value = start
     getEl("tran-filter-end").value = end
 
@@ -1684,8 +1651,6 @@ function changeDates(start, end) {
 }
 
 function handleAccountType() {
-    console.log("TEST")
-    console.log("A", getEl("add-manual-type").value)
     // For updating the template-based account add, for crypto and other assets vice manual value.
     if (parseInt(getEl("add-manual-type").value) === SUB_TYPE_CRYPTO) {
 

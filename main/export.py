@@ -18,9 +18,7 @@ from .util import send_debug_email
 
 def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
     """Parse CSV from mint; update the database accordingly."""
-    # lines = csv_data.strip().split('\n')
     reader = csv.reader(csv_data)
-    # reader = csv.reader(csv_file, escapechar='\\')
 
     # Skip the header
     try:
@@ -99,8 +97,6 @@ def import_csv_mint(csv_data: TextIOWrapper, person: Person) -> None:
 def export_csv(transactions: Iterable[Transaction], output: HttpResponse) -> str:
     """Export a CSV, using Mint's format, augmented with extra fields as required."""
     writer = csv.writer(output)
-
-    # writer = csv.writer(response, escapechar='\\')
 
     # Write the header
     writer.writerow(

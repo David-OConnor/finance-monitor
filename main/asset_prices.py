@@ -1,4 +1,8 @@
-# For automatically updating assets like stocks etc.
+"""
+For automatically updating account values defined by assets like stocks and crypto. When using
+this functionality, users enter asset identifiers, and quanity; totals are calculated using these,
+and prices pulled (and cached) from web APIs.
+"""
 
 from zoneinfo import ZoneInfo
 from datetime import datetime
@@ -12,6 +16,7 @@ from django.utils import timezone
 ASSET_PRICE_CACHE = {}  # { CryptoType: (value, datetime) }
 
 ASSET_TIMEOUT = 60 * 60  # seconds
+
 
 # todo: DRY with models due to Python's import system
 def enum_choices(cls):

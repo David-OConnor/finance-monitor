@@ -1,3 +1,5 @@
+// This module contains misc utility functions. It's loaded on all pages that use JS.
+
 // See `models.py`
 const SUB_TYPE_CRYPTO = 11
 
@@ -481,44 +483,6 @@ function createCatSel(initVal, filter, includeAll, id) {
             sel.appendChild(opt)
         }
     }
-    //
-    // console.log("Filter, tran: ", filter, tran)
-    //
-    // // The filter can cause an auto-selection that is not handled by the event handler; it changes the selected
-    // // option by potentially eliminating it.
-    // if (filter && tran) {
-    //       // todo: DRY: C+P from dash!
-    //         console.log("Updating trans from filter!!!")
-    //         let updated = {
-    //             ...tran,
-    //             category: parseInt(e.target.value)
-    //         }
-    //         // todo: DRY!
-    //         TRANSACTIONS_UPDATED[String(tran.id)] = updated
-    //
-    //         TRANSACTIONS = [
-    //             ...TRANSACTIONS.filter(t => t.id !== tran.id),
-    //             updated
-    //         ]
-
-        //
-        // let selectedExists = false
-        // for (let opt of sel.children) {
-        //     if (opt.selected) {
-        //         console.log("SELECTED!!", opt);
-        //         selectedExists = true
-        //         break
-        //     }
-        // }
-        //
-        // if (!selectedExists && sel.children.length !== 0) {
-        //     sel.children[0].selected = true
-        //
-        //
-        // }
-        //
-        //
-    // }
 
     return sel
 }

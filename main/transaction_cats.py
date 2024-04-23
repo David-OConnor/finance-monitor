@@ -37,9 +37,9 @@ class TransactionCategoryGeneral(Enum):
             TransactionCategory.AIRLINES_AND_AVIATION_SERVICES,
         ]:
             return cls.TRAVEL
-        if cat in [CONSUMER_PRODUCTS]:
+        if cat in [cls.CONSUMER_PRODUCTS]:
             return cls.CONSUMER_PRODUCTS
-        if cat in [CONSUMER_PRODUCTS]:
+        if cat in [cls.CONSUMER_PRODUCTS]:
             return cls.BUSINESS
         if cat in [
             TransactionCategory.GROCERIES,

@@ -5,9 +5,8 @@ Sandbox test credentials: user_good, pass_good, credential_good (pin), mfa_devic
 """
 
 import json
-from typing import Optional, Iterable, List, Tuple
+from typing import Optional, Iterable
 
-from django.core.mail import send_mail
 from django.db.models import Q
 from django.utils import timezone
 
@@ -16,8 +15,6 @@ from plaid.model.account_base import AccountBase
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
 
 from plaid.model.country_code import CountryCode
-from plaid.model.institutions_get_request import InstitutionsGetRequest
-from plaid.model.investments_holdings_get_request import InvestmentsHoldingsGetRequest
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 
@@ -28,15 +25,13 @@ from plaid.model.transactions_recurring_get_request import (
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
 from django.db import IntegrityError
 
-from wallet import settings
-from . import transaction_cats, util
+from . import util
 from .models import (
     FinancialAccount,
     SubAccount,
     AccountType,
     SubAccountType,
     Transaction,
-    Person,
     RecurringTransaction,
     RecurringDirection,
 )
@@ -48,7 +43,6 @@ from plaid.api import plaid_api
 
 HOUR = 60 * 60
 
-# todo: Settings.py?
 # todo: Increase to 12 or so hours.
 BALANCE_REFRESH_INTERVAL = 4 * HOUR  # seconds.
 TRAN_REFRESH_INTERVAL = 4 * HOUR  # seconds.
@@ -525,7 +519,6 @@ def link_token_helper(
 ) -> LinkTokenCreateRequest:
     result = LinkTokenCreateRequest(
             access_token=access_token,
-            # todo: TS by adding products to update mode. If this works, simplify this duplicated code
             products=PRODUCTS,
             required_if_supported_products=PRODUCTS_REQUIRED_IF_SUPPORTED,
             optional_products=PRODUCTS_OPTIONAL,
@@ -542,33 +535,3 @@ def link_token_helper(
         result.access_token = access_token
 
     return result
-
-    # if update_mode:
-    #     return LinkTokenCreateRequest(
-    #         access_token=access_token,
-    #         # todo: TS by adding products to update mode. If this works, simplify this duplicated code
-    #         products=PRODUCTS,
-    #         required_if_supported_products=PRODUCTS_REQUIRED_IF_SUPPORTED,
-    #         optional_products=PRODUCTS_OPTIONAL,
-    #         additional_consented_products=PRODUCTS_ADDITIONAL_CONSENTED,
-    #         # todo end test. Did not fix it.
-    #         client_name="Finance Monitor",
-    #         country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
-    #         redirect_uri=PLAID_REDIRECT_URI,
-    #         language="en",
-    #         user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
-    #     )
-    #
-    # else:
-    #     return LinkTokenCreateRequest(
-    #         # `products`: Which products to show.
-    #         products=PRODUCTS,
-    #         required_if_supported_products=PRODUCTS_REQUIRED_IF_SUPPORTED,
-    #         optional_products=PRODUCTS_OPTIONAL,
-    #         additional_consented_products=PRODUCTS_ADDITIONAL_CONSENTED,
-    #         client_name="Finance Monitor",
-    #         country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
-    #         redirect_uri=PLAID_REDIRECT_URI,
-    #         language="en",
-    #         user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
-    #     )

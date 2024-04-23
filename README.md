@@ -37,7 +37,10 @@ work better in other countries
 Budget support is currently nascent.
 
 
-### More insightful insights
+### 2 factor authentication (Eg with an authenticator phone app)
+
+
+### More insightful reports
 
 ### Better documentation
 Including examples
@@ -81,7 +84,6 @@ contents:
 ```python
 PLAID_CLIENT_ID = "abc"
 PLAID_SECRET_SANDBOX = "abc"
-PLAID_SECRET_DEV = "abc"
 PLAID_SECRET_PRODUCTION = "abc"
 SENDGRID_KEY = "abc"
 

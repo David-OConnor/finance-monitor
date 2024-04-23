@@ -1,3 +1,5 @@
+// This module contains user-interaction code for use on the spending page.
+
 getEl("menu-spending").classList.add("menu-highlighted")
 let HIGHLIGHTS = {by_cat: []}
 let INCOME_TOTAL = 0.
@@ -6,7 +8,6 @@ let EXPENSES_DISCRETIONARY = 0.
 let EXPENSES_NONDISCRET = 0.
 let SPENDING_OVER_TIME = []
 let INCOME_OVER_TIME = []
-// let TRANSACTIONS = []
 // Note: This is in days back. [start, end]. Consider switching to iso dates A/R.
 let RANGE_SELECTED = [30, 0]
 
