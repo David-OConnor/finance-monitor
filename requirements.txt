@@ -11,6 +11,6 @@ pydantic~=2.3.0
 
 python-dateutil ~= 2.9.0
 
-plaid-python~=19.0.0
+plaid-python~=21.0.0
 stripe==2.63.0
 pyotp~=2.9.0  # Authenticator 2FA

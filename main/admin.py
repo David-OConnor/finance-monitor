@@ -22,7 +22,8 @@ class FinancialAccountAdmin(ModelAdmin):
         "person",
         "institution",
         "name",
-        "last_balance_refresh_success",
+        # "last_balance_refresh_success",
+        "last_tran_refresh_attempt",
         "last_tran_refresh_success",
         "needs_attention",
     )

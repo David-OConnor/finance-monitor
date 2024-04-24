@@ -267,8 +267,8 @@ class FinancialAccount(Model):
     item_id = CharField(max_length=100)
     # todo: Account types associated with this institution/account. Checking, 401k etc.
     # todo: Check the metadata for this A/R.
-    last_balance_refresh_attempt = DateTimeField()
-    last_balance_refresh_success = DateTimeField()
+    # last_balance_refresh_attempt = DateTimeField()
+    # last_balance_refresh_success = DateTimeField()
     last_tran_refresh_attempt = DateTimeField()
     last_tran_refresh_success = DateTimeField()
     # Recurring can be refreshed at a lower rate.
@@ -288,7 +288,7 @@ class FinancialAccount(Model):
 
     class Meta:
         unique_together = ["person", "institution"]
-        ordering = ["-last_balance_refresh_attempt"]
+        ordering = ["-last_tran_refresh_attempt"]
 
 
 class SubAccount(Model):

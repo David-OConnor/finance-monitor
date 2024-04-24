@@ -15,6 +15,7 @@ from plaid import ApiException
 from plaid.model.account_base import AccountBase
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
 from plaid.model.accounts_balance_get_request_options import AccountsBalanceGetRequestOptions
+from plaid.model.accounts_get_request import AccountsGetRequest
 
 from plaid.model.country_code import CountryCode
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
@@ -46,7 +47,7 @@ from plaid.api import plaid_api
 HOUR = 60 * 60
 
 # todo: Increase to 12 or so hours.
-BALANCE_REFRESH_INTERVAL = 4 * HOUR  # seconds.
+# BALANCE_REFRESH_INTERVAL = 4 * HOUR  # seconds.
 TRAN_REFRESH_INTERVAL = 4 * HOUR  # seconds.
 
 # We can use a slow update for recurring transactions.
@@ -119,19 +120,28 @@ def get_balance_data(account: FinancialAccount) -> Optional[AccountBase]:
     """Pull real-time balance information for each account associated
     with the access token. This returns sub-accounts, currently as a dict."""
 
-    # `min_last_updated_datetime` is required for some Capital One acccounts. It's ignored otherwise.
-    mlud = timezone.now() - timedelta(hours=24)
+    # todo: DOn't use this; use accounts/get instead of accounts/balances/get
 
-    request = AccountsBalanceGetRequest(
+    request = AccountsGetRequest(
         access_token=account.access_token,
-        options=AccountsBalanceGetRequestOptions(min_last_updated_datetime=mlud)
     )
 
+    # `min_last_updated_datetime` is required for some Capital One acccounts. It's ignored otherwise.
+    # mlud = timezone.now() - timedelta(hours=24)
+    #
+    # request = AccountsBalanceGetRequest(
+    #     access_token=account.access_token,
+    #     options=AccountsBalanceGetRequestOptions(min_last_updated_datetime=mlud)
+    # )
+
     try:
-        response = CLIENT.accounts_balance_get(request)
+        # response = CLIENT.accounts_balance_get(request)
+        response = CLIENT.accounts_get(request)
     except ApiException as e:
         handle_api_exception(e, account)
         return None
+
+    print(f"\n\n\nAccounts balance data: \n{response}\n\n\n\n")
 
     return response["accounts"]
 
@@ -144,18 +154,18 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     now = timezone.now()
 
     for acc in accounts:
-        if (
-            now - acc.last_balance_refresh_attempt
-        ).total_seconds() > BALANCE_REFRESH_INTERVAL:
-            print(f"Refreshing balances on acc{acc}...")
-            success = refresh_account_balances(acc)
-
-            if success:
-                acc.last_balance_refresh_success = now
-                new_data = True
-
-            acc.last_balance_refresh_attempt = now
-            acc.save()
+        # if (
+        #     now - acc.last_balance_refresh_attempt
+        # ).total_seconds() > BALANCE_REFRESH_INTERVAL:
+        #     print(f"Refreshing balances on acc{acc}...")
+        #     success = refresh_account_balances(acc)
+        #
+        #     if success:
+        #         acc.last_balance_refresh_success = now
+        #         new_data = True
+        #
+        #     acc.last_balance_refresh_attempt = now
+        #     acc.save()
 
         if (
             now - acc.last_tran_refresh_attempt
@@ -181,38 +191,38 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     return new_data
 
 
-def refresh_account_balances(account: FinancialAccount) -> bool:
-    """Update account information in the database. Returns True if successful."""
-    balance_data = get_balance_data(account)
-    if balance_data is None:
-        return False
-
-    account.last_balance_refresh_success = timezone.now()
-
-    # todo:  Handle  sub-acct entries in DB that have missing data.
-    for sub in balance_data:
-        try:
-            sub_acc_model, _ = SubAccount.objects.update_or_create(
-                account=account,
-                plaid_id=sub.account_id,
-                defaults={
-                    # "plaid_id_persistent": acc_sub.persistent_account_id,
-                    "plaid_id_persistent": "",  # todo temp
-                    "name": sub.name,
-                    "name_official": sub.official_name,
-                    "type": AccountType.from_str(str(sub.type)).value,
-                    "sub_type": SubAccountType.from_str(str(sub.subtype)).value,
-                    "iso_currency_code": sub.balances.iso_currency_code,
-                    "available": sub.balances.available,
-                    "current": sub.balances.current,
-                    "limit": sub.balances.limit,
-                },
-            )
-        except IntegrityError:
-            print(f"This subaccount already exists: {sub}")
-
-    account.save()
-    return True
+# def refresh_account_balances(account: FinancialAccount) -> bool:
+#     """Update account information in the database. Returns True if successful."""
+#     balance_data = get_balance_data(account)
+#     if balance_data is None:
+#         return False
+#
+#     account.last_balance_refresh_success = timezone.now()
+#
+#     # todo:  Handle  sub-acct entries in DB that have missing data.
+#     for sub in balance_data:
+#         try:
+#             sub_acc_model, _ = SubAccount.objects.update_or_create(
+#                 account=account,
+#                 plaid_id=sub.account_id,
+#                 defaults={
+#                     # "plaid_id_persistent": acc_sub.persistent_account_id,
+#                     "plaid_id_persistent": "",  # todo temp
+#                     "name": sub.name,
+#                     "name_official": sub.official_name,
+#                     "type": AccountType.from_str(str(sub.type)).value,
+#                     "sub_type": SubAccountType.from_str(str(sub.subtype)).value,
+#                     "iso_currency_code": sub.balances.iso_currency_code,
+#                     "available": sub.balances.available,
+#                     "current": sub.balances.current,
+#                     "limit": sub.balances.limit,
+#                 },
+#             )
+#         except IntegrityError:
+#             print(f"This subaccount already exists: {sub}")
+#
+#     account.save()
+#     return True
 
 
 def refresh_transactions(account: FinancialAccount) -> bool:
@@ -228,10 +238,13 @@ def refresh_transactions(account: FinancialAccount) -> bool:
     cursor = account.plaid_cursor
 
     # New transaction updates since "cursor"
+    accounts = []
     added = []
     modified = []
     removed = []  # Removed transaction ids
     has_more = True
+
+    print("\n\n\n Tran/sync \n\n")
 
     # Iterate through each page of new transaction updates for item
     while has_more:
@@ -246,9 +259,10 @@ def refresh_transactions(account: FinancialAccount) -> bool:
             handle_api_exception(e, account)
             return False
 
-        print("Transaction resp: ", response)
+        print(f"\n\nTransaction resp: {response}\n\n")
 
         # Add this page of results
+        accounts.extend(response["accounts"])
         added.extend(response["added"])
         modified.extend(response["modified"])
         removed.extend(response["removed"])
@@ -261,6 +275,28 @@ def refresh_transactions(account: FinancialAccount) -> bool:
     # Persist cursor and updated data
     # database.apply_updates(item_id, added, modified, removed, cursor)
     rules = account.person.category_rules.all()
+
+    for sub in accounts:
+        print(f"\n\n Updating or adding acc from sync: {sub}\n\n")
+
+        try:
+            sub_acc_model, _ = SubAccount.objects.update_or_create(
+                account=account,
+                plaid_id=sub.account_id,
+                defaults={
+                    "plaid_id_persistent": "",  # todo temp?
+                    "name": sub.name,
+                    "name_official": sub.official_name,
+                    "type": AccountType.from_str(str(sub.type)).value,
+                    "sub_type": SubAccountType.from_str(str(sub.subtype)).value,
+                    "iso_currency_code": sub.balances.iso_currency_code,
+                    "available": sub.balances.available,
+                    "current": sub.balances.current,
+                    "limit": sub.balances.limit,
+                },
+            )
+        except IntegrityError:
+            print(f"\nThis subaccount already exists: {sub}")
 
     for tran in added:
         print("\n\n Adding transaction: ", tran, "\n\n")
