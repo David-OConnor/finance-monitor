@@ -9,12 +9,9 @@ from typing import Optional, Iterable
 
 from django.db.models import Q
 from django.utils import timezone
-from datetime import timedelta
 
 from plaid import ApiException
 from plaid.model.account_base import AccountBase
-from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
-from plaid.model.accounts_balance_get_request_options import AccountsBalanceGetRequestOptions
 from plaid.model.accounts_get_request import AccountsGetRequest
 
 from plaid.model.country_code import CountryCode
@@ -54,7 +51,7 @@ TRAN_REFRESH_INTERVAL = 4 * HOUR  # seconds.
 ACCOUNT_REFRESH_INTERVAL_RECURRING = 48 * HOUR  # seconds.
 
 
-# Note: We don't use assets! That's used to qualify for a loan. Maybe see if Transactions only works?
+# Note: We don't use assets! That's used to qualify for a loan. Transactions only appears to work.
 # PRODUCTS = [Products(p) for p in ["transactions", "recurring_transactions"]]
 PRODUCTS = [Products(p) for p in ["transactions"]]
 PRODUCTS_REQUIRED_IF_SUPPORTED = [Products(p) for p in []]
@@ -116,36 +113,6 @@ def handle_api_exception(e: ApiException, account: FinancialAccount):
         util.send_debug_email(msg)
 
 
-def get_balance_data(account: FinancialAccount) -> Optional[AccountBase]:
-    """Pull real-time balance information for each account associated
-    with the access token. This returns sub-accounts, currently as a dict."""
-
-    # todo: DOn't use this; use accounts/get instead of accounts/balances/get
-
-    request = AccountsGetRequest(
-        access_token=account.access_token,
-    )
-
-    # `min_last_updated_datetime` is required for some Capital One acccounts. It's ignored otherwise.
-    # mlud = timezone.now() - timedelta(hours=24)
-    #
-    # request = AccountsBalanceGetRequest(
-    #     access_token=account.access_token,
-    #     options=AccountsBalanceGetRequestOptions(min_last_updated_datetime=mlud)
-    # )
-
-    try:
-        # response = CLIENT.accounts_balance_get(request)
-        response = CLIENT.accounts_get(request)
-    except ApiException as e:
-        handle_api_exception(e, account)
-        return None
-
-    print(f"\n\n\nAccounts balance data: \n{response}\n\n\n\n")
-
-    return response["accounts"]
-
-
 def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     """Update all account balances and related information. Return sub accounts, and net worth.
     Returns `True if there is new data."""
@@ -154,19 +121,6 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     now = timezone.now()
 
     for acc in accounts:
-        # if (
-        #     now - acc.last_balance_refresh_attempt
-        # ).total_seconds() > BALANCE_REFRESH_INTERVAL:
-        #     print(f"Refreshing balances on acc{acc}...")
-        #     success = refresh_account_balances(acc)
-        #
-        #     if success:
-        #         acc.last_balance_refresh_success = now
-        #         new_data = True
-        #
-        #     acc.last_balance_refresh_attempt = now
-        #     acc.save()
-
         if (
             now - acc.last_tran_refresh_attempt
         ).total_seconds() > TRAN_REFRESH_INTERVAL:
@@ -191,43 +145,9 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     return new_data
 
 
-# def refresh_account_balances(account: FinancialAccount) -> bool:
-#     """Update account information in the database. Returns True if successful."""
-#     balance_data = get_balance_data(account)
-#     if balance_data is None:
-#         return False
-#
-#     account.last_balance_refresh_success = timezone.now()
-#
-#     # todo:  Handle  sub-acct entries in DB that have missing data.
-#     for sub in balance_data:
-#         try:
-#             sub_acc_model, _ = SubAccount.objects.update_or_create(
-#                 account=account,
-#                 plaid_id=sub.account_id,
-#                 defaults={
-#                     # "plaid_id_persistent": acc_sub.persistent_account_id,
-#                     "plaid_id_persistent": "",  # todo temp
-#                     "name": sub.name,
-#                     "name_official": sub.official_name,
-#                     "type": AccountType.from_str(str(sub.type)).value,
-#                     "sub_type": SubAccountType.from_str(str(sub.subtype)).value,
-#                     "iso_currency_code": sub.balances.iso_currency_code,
-#                     "available": sub.balances.available,
-#                     "current": sub.balances.current,
-#                     "limit": sub.balances.limit,
-#                 },
-#             )
-#         except IntegrityError:
-#             print(f"This subaccount already exists: {sub}")
-#
-#     account.save()
-#     return True
-
-
 def refresh_transactions(account: FinancialAccount) -> bool:
     """
-    Updates the database with transactions for a single account.
+    Updates the database with transaction and account balance data for a single institutions accounts.
     https://plaid.com/docs/api/products/transactions/#transactionssync
 
     Returns success status
