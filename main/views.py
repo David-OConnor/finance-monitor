@@ -964,15 +964,12 @@ def edit_rules(request: HttpRequest) -> HttpResponse:
         # todo: Once working, re-use this, as a fn, for custom cats.
         success = False
         attempt = 0
-        print("\n\n Always; saving...")
         while not success:
-            print("LOOP")
             try:
                 rule_db.save()
                 util.change_tran_cats_from_rule(rule_db, person)
                 success = True
             except IntegrityError:
-                print("\nFAIL")
                 attempt += 1
                 # Find the current highest number for this base description
                 latest_rule = CategoryRule.objects.filter(
@@ -1021,8 +1018,6 @@ def edit_categories(request: HttpRequest) -> HttpResponse:
 
     data = load_body(request)
     person = request.user.person
-
-    print("DATA", data)
 
     for cat in data["edited"]:
         cat_db, _ = CategoryCustom.objects.update_or_create(

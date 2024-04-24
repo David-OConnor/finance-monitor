@@ -10,6 +10,7 @@ from enum import Enum
 import requests
 from django.utils import timezone
 
+from main import util
 
 # We cache remotely-loaded prices for performance reasons; no need to make their HTTP call every time
 # we load an asset's value. Cache them in memory.
@@ -61,10 +62,12 @@ class CryptoType(Enum):
 
         now = timezone.now()
         if (now - cache_details[1]).seconds > ASSET_TIMEOUT:
-            print("Updating price on ", self)
-
             data = requests.get(f"https://api.coinbase.com/v2/prices/{self.abbrev()}-usd/spot").json()
             price = float(data["data"]["amount"]) * quantity
+
+            if price == 0:  # Troubleshooting. Do we get this?
+                util.send_debug_email("0 asset price on crypto")
+                return cache_details[0]
 
             ASSET_PRICE_CACHE[self] = (price, now)
             return price

@@ -278,8 +278,6 @@ def refresh_transactions(account: FinancialAccount) -> bool:
         # Update cursor to the next cursor
         cursor = response["next_cursor"]
 
-        print("Cursor: ", cursor)
-
     # Persist cursor and updated data
     # database.apply_updates(item_id, added, modified, removed, cursor)
     rules = account.person.category_rules.all()
