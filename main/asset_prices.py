@@ -4,13 +4,12 @@ this functionality, users enter asset identifiers, and quanity; totals are calcu
 and prices pulled (and cached) from web APIs.
 """
 
-from zoneinfo import ZoneInfo
 from datetime import datetime
 from enum import Enum
 import requests
 from django.utils import timezone
 
-from main import util
+# from main.util import send_debug_email
 
 # We cache remotely-loaded prices for performance reasons; no need to make their HTTP call every time
 # we load an asset's value. Cache them in memory.
@@ -66,7 +65,8 @@ class CryptoType(Enum):
             price = float(data["data"]["amount"]) * quantity
 
             if price == 0:  # Troubleshooting. Do we get this?
-                util.send_debug_email("0 asset price on crypto")
+                # todo: circular import problem preventing sending a debug email here.
+                # util.send_debug_email("0 asset price on crypto")
                 return cache_details[0]
 
             ASSET_PRICE_CACHE[self] = (price, now)

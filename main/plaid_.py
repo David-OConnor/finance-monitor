@@ -9,10 +9,12 @@ from typing import Optional, Iterable
 
 from django.db.models import Q
 from django.utils import timezone
+from datetime import timedelta
 
 from plaid import ApiException
 from plaid.model.account_base import AccountBase
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
+from plaid.model.accounts_balance_get_request_options import AccountsBalanceGetRequestOptions
 
 from plaid.model.country_code import CountryCode
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
@@ -50,26 +52,6 @@ TRAN_REFRESH_INTERVAL = 4 * HOUR  # seconds.
 # We can use a slow update for recurring transactions.
 ACCOUNT_REFRESH_INTERVAL_RECURRING = 48 * HOUR  # seconds.
 
-# ACCOUNT_REFRESH_INTERVAL = 1 * 60 * 60  # seconds.  # todo temp
-# ACCOUNT_REFRESH_INTERVAL = 1   # seconds.  # todo temp
-
-#  must be one of [
-#  "assets",  "auth", "balance", "identity", "identity_match", "investments", "investments_auth", "liabilities", "payment_initiation",
-#  "identity_verification", "transactions", "credit_details", "income", "income_verification", "deposit_switch",
-#  "standing_orders", "transfer", "employment", "recurring_transactions", "signal", "statements", "processor_payments", "processor_identity",
-
-# Todo: SO confused about this, eg https://dashboard.plaid.com/overview/request-products
-# Note: Activating with too many products enabled may cause problems: https://www.youtube.com/watch?v=yPQPPGdBYIs
-
-# "auth",
-# "assets",
-# "transactions",
-# "investments",
-# "liabilities",
-# "recurring_transactions",  # Not enabled in the Plaid dashboard.
-
-# From experimenting: products= investments only allows access to Vanguard
-# products = assets only allows access to novo, Amex
 
 # Note: We don't use assets! That's used to qualify for a loan. Maybe see if Transactions only works?
 # PRODUCTS = [Products(p) for p in ["transactions", "recurring_transactions"]]
@@ -79,13 +61,8 @@ PRODUCTS_OPTIONAL = [Products(p) for p in []]
 PRODUCTS_ADDITIONAL_CONSENTED = [Products(p) for p in []]
 
 PLAID_COUNTRY_CODES = ["US"]
-PLAID_REDIRECT_URI = "https://financial-monitor-783ae5ca6965.herokuapp.com/dashboard"
-# PLAID_REDIRECT_URI = "https://www.financial-monitor.com/dashboard"
+PLAID_REDIRECT_URI = "https://www.finance-monitor.com/dashboard"
 
-# Available environments arefr
-# 'Production'
-# 'Development'
-# 'Sandbox'
 if PLAID_MODE == PlaidMode.SANDBOX:
     host = plaid.Environment.Sandbox
 elif PLAID_MODE == PlaidMode.DEV:
@@ -133,19 +110,22 @@ def handle_api_exception(e: ApiException, account: FinancialAccount):
         # so we can diagnose an unhealthy account by this being expired, should we keep getting this message.
 
     else:
-        msg = f"\nOther problem refreshing: {e}:\n"
+        msg = f"\nProblem refreshing accounts: {e}. \nAccount: {account}:\n"
         print(msg)
         util.send_debug_email(msg)
-
-    msg = f"\nProblem refreshing accounts. Error: {e}. \nAccount: {account}"
-    print(msg)
-    util.send_debug_email(msg)
 
 
 def get_balance_data(account: FinancialAccount) -> Optional[AccountBase]:
     """Pull real-time balance information for each account associated
     with the access token. This returns sub-accounts, currently as a dict."""
-    request = AccountsBalanceGetRequest(access_token=account.access_token)
+
+    # `min_last_updated_datetime` is required for some Capital One acccounts. It's ignored otherwise.
+    mlud = timezone.now() - timedelta(hours=24)
+
+    request = AccountsBalanceGetRequest(
+        access_token=account.access_token,
+        options=AccountsBalanceGetRequestOptions(min_last_updated_datetime=mlud)
+    )
 
     try:
         response = CLIENT.accounts_balance_get(request)

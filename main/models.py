@@ -1,18 +1,15 @@
 import json
-from datetime import date, datetime
+from datetime import date
 from enum import Enum
-from json import JSONDecodeError
-from typing import Dict, List
+from typing import Dict
 
 from django.db import models
 from django.contrib.auth.models import Group, User
 from django.core.mail import send_mail
 from django.http import HttpRequest
-from django.urls import reverse
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.shortcuts import get_current_site
 
 from django.db.models import (
     SET_NULL,
@@ -26,7 +23,6 @@ from django.db.models import (
     Model,
     BooleanField,
     ForeignKey,
-    JSONField,
 )
 
 from main.asset_prices import CryptoType
