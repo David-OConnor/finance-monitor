@@ -246,7 +246,8 @@ def refresh_transactions(account: FinancialAccount) -> bool:
 
     # todo: This is sloppy. Figure out the proper way to handle transactions/sync not working
     # todo for investment accounts.
-    if len(sub_accs) == 0:
+    # todo: FOr example, is there a way to check the account type?
+    if len(sub_accs) == 0 and not account.plaid_cursor:
         sub_accs = refresh_investment(account)
 
     for sub in sub_accs:
