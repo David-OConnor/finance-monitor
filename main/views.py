@@ -268,7 +268,7 @@ def add_account_manual(request: HttpRequest) -> HttpResponse:
 
     if sub_type == SubAccountType.CRYPTO:
         # todo: A bit of an awk hijack; fix this in the form.
-        account.current = 0.
+        account.current = 0.0
         account.asset_type = data["iso_currency_code"]
         account.asset_quantity = data["current"]
     else:
@@ -550,8 +550,6 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         name="",
         access_token=access_token,
         item_id=item_id,
-        # last_balance_refresh_attempt=long_ago,
-        # last_balance_refresh_success=long_ago,
         last_tran_refresh_attempt=long_ago,
         last_tran_refresh_success=long_ago,
         last_refreshed_recurring=long_ago,
@@ -568,7 +566,9 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
         print(msg)
 
         # todo: Check your re-link process. Is there a way to catch this earlier? Is there another problem?
-        account_updated = FinancialAccount.objects.get(person=person, access_token=access_token, item_id=item_id)
+        account_updated = FinancialAccount.objects.get(
+            person=person, access_token=access_token, item_id=item_id
+        )
         account_updated.attention_needed = False
         account_updated.save()
 

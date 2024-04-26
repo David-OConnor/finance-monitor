@@ -78,7 +78,9 @@ else:
 
         # This AttributeError happens if values are missing from `private.py`.
         except AttributeError:
-            print("One or more Plaid (Account aggregator) keys missing from `private.py`. If unavailable, set them to be empty strings, and try again.")
+            print(
+                "One or more Plaid (Account aggregator) keys missing from `private.py`. If unavailable, set them to be empty strings, and try again."
+            )
             pass
 
         try:
@@ -87,7 +89,9 @@ else:
 
         # This AttributeError happens if keys are missing.
         except AttributeError:
-            print("One or more Sendgrid (email) keys missing from `private.py`. If unavailable, set them to be empty strings, and try again.")
+            print(
+                "One or more Sendgrid (email) keys missing from `private.py`. If unavailable, set them to be empty strings, and try again."
+            )
             pass
 
         # SECURITY WARNING: don't run with debug turned on in production!

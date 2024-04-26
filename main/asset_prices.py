@@ -57,11 +57,15 @@ class CryptoType(Enum):
         Get an account's value of this cryptocurrency,in USD.
         https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices
         """
-        cache_details = ASSET_PRICE_CACHE.get(self, [0., timezone.make_aware(datetime.fromisoformat("1999-09-09"))])
+        cache_details = ASSET_PRICE_CACHE.get(
+            self, [0.0, timezone.make_aware(datetime.fromisoformat("1999-09-09"))]
+        )
 
         now = timezone.now()
         if (now - cache_details[1]).seconds > ASSET_TIMEOUT:
-            data = requests.get(f"https://api.coinbase.com/v2/prices/{self.abbrev()}-usd/spot").json()
+            data = requests.get(
+                f"https://api.coinbase.com/v2/prices/{self.abbrev()}-usd/spot"
+            ).json()
             price = float(data["data"]["amount"]) * quantity
 
             if price == 0:  # Troubleshooting. Do we get this?

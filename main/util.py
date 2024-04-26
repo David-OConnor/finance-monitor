@@ -179,7 +179,6 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         else:
             print("Fallthrough in sub account type: ", t)
 
-
     # Apply a class for color-coding in the template.
 
     totals_display = {}  # Avoids adding keys while iterating.
@@ -208,7 +207,8 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
     for acc in person.accounts.all():
         if (
             # now - acc.last_balance_refresh_success
-            now - acc.last_tran_refresh_success
+            now
+            - acc.last_tran_refresh_success
         ).total_seconds() > ACCOUNT_UNHEALTHY_REFRESH_HOURS * 3600:
             for sub_acc in acc.sub_accounts.all():
                 acc_health.append([sub_acc.id, False])

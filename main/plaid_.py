@@ -5,16 +5,17 @@ Sandbox test credentials: user_good, pass_good, credential_good (pin), mfa_devic
 """
 
 import json
-from typing import Optional, Iterable
+from datetime import date
+from typing import Optional, Iterable, List
 
 from django.db.models import Q
 from django.utils import timezone
 
 from plaid import ApiException
-from plaid.model.account_base import AccountBase
-from plaid.model.accounts_get_request import AccountsGetRequest
 
 from plaid.model.country_code import CountryCode
+from plaid.model.investments_transactions_get_request import InvestmentsTransactionsGetRequest
+from plaid.model.investments_transactions_get_request_options import InvestmentsTransactionsGetRequestOptions
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 
@@ -43,8 +44,7 @@ from plaid.api import plaid_api
 
 HOUR = 60 * 60
 
-# todo: Increase to 12 or so hours.
-# BALANCE_REFRESH_INTERVAL = 4 * HOUR  # seconds.
+# todo: Increase A/R to balance costs.
 TRAN_REFRESH_INTERVAL = 4 * HOUR  # seconds.
 
 # We can use a slow update for recurring transactions.
@@ -52,7 +52,6 @@ ACCOUNT_REFRESH_INTERVAL_RECURRING = 48 * HOUR  # seconds.
 
 
 # Note: We don't use assets! That's used to qualify for a loan. Transactions only appears to work.
-# PRODUCTS = [Products(p) for p in ["transactions", "recurring_transactions"]]
 PRODUCTS = [Products(p) for p in ["transactions"]]
 PRODUCTS_REQUIRED_IF_SUPPORTED = [Products(p) for p in []]
 PRODUCTS_OPTIONAL = [Products(p) for p in []]
@@ -124,7 +123,7 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
         if (
             now - acc.last_tran_refresh_attempt
         ).total_seconds() > TRAN_REFRESH_INTERVAL:
-            print(f"Refreshing transactions on acc{acc}...")
+            print(f"Refreshing account: {acc}...")
             success = refresh_transactions(acc)
 
             if success:
@@ -137,7 +136,7 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
         if (
             now - acc.last_refreshed_recurring
         ).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
-            print(f"Refreshing recurring on acc{acc}...")
+            print(f"Refreshing recurring on acc {acc}...")
             refresh_recurring(acc)
             acc.last_refreshed_recurring = now
             acc.save()
@@ -145,10 +144,60 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     return new_data
 
 
+# todo: Delegate to these A/R
+def refresh_non_investment(account: FinancialAccount) -> bool:
+    """Returns error status"""
+    pass
+
+
+def refresh_investment(account: FinancialAccount) -> List[dict]:
+    """Returns error status"""
+    # todo: The way we handle this is wonky.
+    request = InvestmentsTransactionsGetRequest(
+        access_token=account.access_token,
+        start_date=date.fromisoformat("2019-03-01"),
+        end_date=date.fromisoformat("2025-04-30"),
+        options=InvestmentsTransactionsGetRequestOptions(),
+    )
+
+    response = CLIENT.investments_transactions_get(request)
+
+    investment_transactions = response["investment_transactions"]
+    sub_accs = response["accounts"]
+
+    print(f"\n\n Response Investment for acc {account}: \n{response}\n\n\n")
+
+    return sub_accs
+
+    # Manipulate the count and offset parameters to paginate
+
+    # transactions and retrieve all available data
+
+    # todo: Put this back if you end up using investment transactions.
+    # while len(investment_transactions) < response["total_investment_transactions"]:
+    #     request = InvestmentsTransactionsGetRequest(
+    #         access_token=account.access_token,
+    #         start_date=date.fromisoformat("2019-03-01"),
+    #         end_date=date.fromisoformat("2025-04-30"),
+    #         options=InvestmentsTransactionsGetRequestOptions(
+    #             offset=len(investment_transactions)
+    #         ),
+    #     )
+    #
+    #     response = CLIENT.investments_transactions_get(request)
+    #
+    #     print(f"\n\n Sub Response Investment for acc {account}: \n{response}\n\n\n")
+    #
+    #     investment_transactions.extend(response["transactions"])
+
+
 def refresh_transactions(account: FinancialAccount) -> bool:
     """
     Updates the database with transaction and account balance data for a single institutions accounts.
     https://plaid.com/docs/api/products/transactions/#transactionssync
+
+    For investment accounts, uses [/investments/transactions/get](https://plaid.com/docs/api/products/investments/#investmentstransactionsget)
+    instead.
 
     Returns success status
     """
@@ -158,13 +207,11 @@ def refresh_transactions(account: FinancialAccount) -> bool:
     cursor = account.plaid_cursor
 
     # New transaction updates since "cursor"
-    accounts = []
+    sub_accs = []
     added = []
     modified = []
     removed = []  # Removed transaction ids
     has_more = True
-
-    print("\n\n\n Tran/sync \n\n")
 
     # Iterate through each page of new transaction updates for item
     while has_more:
@@ -179,10 +226,11 @@ def refresh_transactions(account: FinancialAccount) -> bool:
             handle_api_exception(e, account)
             return False
 
-        print(f"\n\nTransaction resp: {response}\n\n")
+        # # todo: This is temp/debug
+        # print(f"\n\nRESPONSE from : {account.institution}", response, "\n\n")
 
         # Add this page of results
-        accounts.extend(response["accounts"])
+        sub_accs.extend(response["accounts"])
         added.extend(response["added"])
         modified.extend(response["modified"])
         removed.extend(response["removed"])
@@ -196,7 +244,12 @@ def refresh_transactions(account: FinancialAccount) -> bool:
     # database.apply_updates(item_id, added, modified, removed, cursor)
     rules = account.person.category_rules.all()
 
-    for sub in accounts:
+    # todo: This is sloppy. Figure out the proper way to handle transactions/sync not working
+    # todo for investment accounts.
+    if len(sub_accs) == 0:
+        sub_accs = refresh_investment(account)
+
+    for sub in sub_accs:
         print(f"\n\n Updating or adding acc from sync: {sub}\n\n")
 
         try:
@@ -219,7 +272,7 @@ def refresh_transactions(account: FinancialAccount) -> bool:
             print(f"\nThis subaccount already exists: {sub}")
 
     for tran in added:
-        print("\n\n Adding transaction: ", tran, "\n\n")
+        # print("\n\n Adding transaction: ", tran, "\n\n")
         cat_detailed = tran.personal_finance_category.detailed
         cat_primary = tran.personal_finance_category.primary
 
@@ -256,7 +309,6 @@ def refresh_transactions(account: FinancialAccount) -> bool:
     # Pending transactions will be in the remove category once completed, and the
     # final transaction wil be added; so, they are not modifications.
     for tran in modified:
-        print("\n\n Modifing transaction:\n", tran, "\n\n")
         tran_db = Transaction.objects.filter(
             # account=account,
             Q(plaid_id=tran.transaction_id)
@@ -289,7 +341,6 @@ def refresh_transactions(account: FinancialAccount) -> bool:
                 )
 
     for tran in removed:
-        print("\n\n Deleting transaction:\n", tran, "\n\n")
         _ = Transaction.objects.filter(
             # account=account,
             # Q(plaid_id=tran.transaction_id) | Q(plaid_id=tran.pending_transaction_id) & Q(account=account),
@@ -452,18 +503,18 @@ def link_token_helper(
     user_id: int, update_mode: bool, access_token: Optional[str] = None
 ) -> LinkTokenCreateRequest:
     result = LinkTokenCreateRequest(
-            access_token=access_token,
-            products=PRODUCTS,
-            required_if_supported_products=PRODUCTS_REQUIRED_IF_SUPPORTED,
-            optional_products=PRODUCTS_OPTIONAL,
-            additional_consented_products=PRODUCTS_ADDITIONAL_CONSENTED,
-            # todo end test. Did not fix it.
-            client_name="Finance Monitor",
-            country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
-            redirect_uri=PLAID_REDIRECT_URI,
-            language="en",
-            user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
-        )
+        access_token=access_token,
+        products=PRODUCTS,
+        required_if_supported_products=PRODUCTS_REQUIRED_IF_SUPPORTED,
+        optional_products=PRODUCTS_OPTIONAL,
+        additional_consented_products=PRODUCTS_ADDITIONAL_CONSENTED,
+        # todo end test. Did not fix it.
+        client_name="Finance Monitor",
+        country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES)),
+        redirect_uri=PLAID_REDIRECT_URI,
+        language="en",
+        user=LinkTokenCreateRequestUser(client_user_id=str(user_id)),
+    )
 
     if update_mode:
         result.access_token = access_token

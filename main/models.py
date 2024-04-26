@@ -376,7 +376,7 @@ class SubAccount(Model):
             "needs_attention": needs_attention,
             "asset_type": self.asset_type,
             "asset_quantity": self.asset_quantity,
-            "value": self.get_value()
+            "value": self.get_value(),
         }
 
     def __str__(self):
