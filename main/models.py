@@ -65,6 +65,7 @@ class SubAccountType(Enum):
     ASSET = 12  # A bit of a catch-all
     BROKERAGE = 13
     ROTH = 14
+    STOCK = 15
 
     @classmethod
     def from_str(cls, s: str) -> "SubAccountType":
@@ -100,6 +101,8 @@ class SubAccountType(Enum):
             return cls.BROKERAGE
         if "roth" in s:
             return cls.ROTH
+        if "stock" in s:
+            return cls.STOCK
 
         print(f"\nFallthrough in parsing sub account type: {s}\n")
         return cls.CHECKING

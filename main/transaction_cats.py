@@ -621,6 +621,7 @@ replacements = [
     ("hewlett", TransactionCategory.ELECTRONICS),
     # ("ibm", TransactionCategory.ELECTRONICS),
     ("microsoft", TransactionCategory.ELECTRONICS),
+    ("bose corp", TransactionCategory.ELECTRONICS),
     #
     ("costco", TransactionCategory.SHOPS),
     ("costco gas", TransactionCategory.CAR),

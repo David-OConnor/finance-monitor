@@ -347,9 +347,9 @@ function refreshAccounts() {
 
 function tranUpdateHelper(id, updated) {
     // Helper function, to reduce code repetition.
-    TRANSACTIONS_UPDATED[String(tran.id)] = updated
+    TRANSACTIONS_UPDATED[String(id)] = updated
     TRANSACTIONS = [
-        ...TRANSACTIONS.filter(t => t.id !== tran.id),
+        ...TRANSACTIONS.filter(t => t.id !== id),
         updated
     ]
 }

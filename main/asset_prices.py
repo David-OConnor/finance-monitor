@@ -63,6 +63,10 @@ class CryptoType(Enum):
 
         now = timezone.now()
         if (now - cache_details[1]).seconds > ASSET_TIMEOUT:
+
+            # todo temp
+            print(f"\n\n Refreshing asset: {self} \n\n\n")
+
             data = requests.get(
                 f"https://api.coinbase.com/v2/prices/{self.abbrev()}-usd/spot"
             ).json()

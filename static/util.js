@@ -98,6 +98,10 @@ function accTypeFromNum(val) {
     if (val === 14) {
         return "Roth"
     }
+
+    if (val === 15) {
+        return "Stock"
+    }
 }
 
 function catNameFromVal(val) {
