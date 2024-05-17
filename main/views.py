@@ -424,7 +424,7 @@ def create_link_token(request: HttpRequest) -> HttpResponse:
         response = CLIENT.link_token_create(request)
 
     except plaid.ApiException as e:
-        print(e, "Plaid error")
+        print(e, "Plaid error Link Token")
         return HttpResponse(json.loads(e.body))
 
     print(f"Link token response: {response}")
