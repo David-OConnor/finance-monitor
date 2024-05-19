@@ -22,6 +22,10 @@ const PAGE_SIZE = 60
 const HIGHLIGHT_COLOR = "#fffbdb"
 const FEE_COLOR = "#fff0ff"
 const IGNORED_COLOR = "#bbbbbb"
+const COLOR_HIGH_AMOUNT = "#c56926"
+
+// Color transactions in value in excess of this. (todo: Make customizable)
+const THRESH_HIGH_AMOUNT = 200
 
 // Show this many items in the highlights category, per section.
 const HIGHLIGHTS_SIZE = 5
@@ -471,7 +475,11 @@ function createSplitter(id) {
 
     let h = getEl("split-tran-title")
     h.textContent = tran.description + ": " + tran.institution_name + ", " + tran.date_display + ", "
-    let s = createEl("span", {class: "tran-neutral"}, {fontWeight: "bold"}, formatAmount(tran.amount, 2).replace("-", ""))
+    let s = createEl(
+        "span",
+        {class: "tran-neutral"},
+        {fontWeight: "bold"},
+            formatAmount(tran.amount,2).replace("-", ""))
     h.appendChild(s)
 
     let body = getEl("split-tran-body")
@@ -683,7 +691,11 @@ function createTranRow(tran) {
 
         h = createEl("h4",
             {class: "tran-heading " + tranClass},
-            {textAlign: "right", marginRight: "40px"}, amtText
+            {
+                textAlign: "right",
+                marginRight: "40px",
+                color: Math.abs(tran.amount) > THRESH_HIGH_AMOUNT ? COLOR_HIGH_AMOUNT : null,
+            }, amtText
         )
         if  (tran.ignored) {
             h.style.color = IGNORED_COLOR
