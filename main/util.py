@@ -1,7 +1,5 @@
 # Misc / utility functions
 import json
-from collections import defaultdict
-from io import TextIOWrapper
 from typing import List, Dict, Iterable, Optional, Tuple
 from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
@@ -309,14 +307,12 @@ def setup_spending_highlights(
     LARGE_PURCHASE_THRESH = 150.0
 
     trans_spending = filter_trans_spending(trans)
-    # print(trans_spending, "TS")
 
     for tran in trans_spending:
-        # cat = TransactionCategory(tran.category)
         cat = tran.category
 
         if cat not in by_cat.keys():
-            by_cat[cat] = [1, tran.amount]  # count, total, transactions serialized
+            by_cat[cat] = [1, tran.amount]  # count, total
         else:
             by_cat[cat][0] += 1
             by_cat[cat][1] += tran.amount
@@ -399,13 +395,11 @@ def setup_spending_data(
     for t in expense_transactions:
         expenses_total += t.amount
 
-        try:
-            discret = TransactionCategoryDiscret.from_cat(TransactionCategory(t.category))
-        except ValueError:
-            msg = f"Problem with transaction category: {t} "
-            send_debug_email(msg)
-            print(msg)
+        if t.category > 1_000:
+            # Assume discret for now.
             discret = TransactionCategoryDiscret.DISCRETIONARY
+        else:
+            discret = TransactionCategoryDiscret.from_cat(TransactionCategory(t.category))
 
         if discret == TransactionCategoryDiscret.DISCRETIONARY:
             expenses_discretionary += t.amount

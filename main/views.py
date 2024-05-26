@@ -99,11 +99,11 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     if (
         category is not None and category != -2
     ):  # We use -2 on the frontend for all categories.
-        try:
+        if category > 1_000:
+            # todo: Handle custom here.
+            category = None
+        else:
             category = TransactionCategory(category)
-        except ValueError:
-            send_debug_email(f"Problem with transaction category. Data: {data} ")
-            category = TransactionCategory.SHOPS
 
     if category == -2:
         category = None
@@ -382,6 +382,8 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     context = util.load_dash_data(request.user.person)
 
     spending_highlights = util.setup_spending_highlights(person, 30, 0, False)
+
+    print(spending_highlights, "SH")
 
     context["spending_highlights"] = json.dumps(spending_highlights)
     context["custom_categories"] = [

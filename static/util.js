@@ -225,6 +225,7 @@ function catNameFromVal(val) {
     if (val === 37) {
         return "Withdrawal"
     }
+
     if (val > 1000 && CUSTOM_CATEGORIES !== undefined) {
         // This is a custom category
         for (let cat of CUSTOM_CATEGORIES) {
@@ -361,13 +362,16 @@ function catIconFromVal(val){
         return "💵"
     }
     if (val > 1000 && CUSTOM_CATEGORIES !== undefined) {
-        // This is a custom category
-        for (let cat of CUSTOM_CATEGORIES) {
-            let effectiveId = 1000 + cat.id
-            if (val === effectiveId) {
-                return cat.name
-            }
-        }
+        // No icon for custom categories.
+        return ""
+
+        // // This is a custom category
+        // for (let cat of CUSTOM_CATEGORIES) {
+        //     let effectiveId = 1000 + cat.id
+        //     if (val === effectiveId) {
+        //         return cat.name
+        //     }
+        // }
     }
 
     console.error("Fallthrough on cat icon", val)

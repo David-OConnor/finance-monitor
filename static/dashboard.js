@@ -1227,7 +1227,6 @@ function setupSpendingHighlights() {
     h = createEl(
         "h3",
         {class: "spending-highlight-title"},
-        // {marginRight: "40px"},
         {},
         "Total: "
     )
@@ -1241,7 +1240,6 @@ function setupSpendingHighlights() {
         h = createEl(
             "h4",
             {},
-            // {marginRight: "40px", marginBottom: 0, marginTop: 0, cursor: "pointer", fontWeight: "normal"},
             {marginBottom: 0, marginTop: 0, cursor: "pointer", fontWeight: "normal"},
             text
         )

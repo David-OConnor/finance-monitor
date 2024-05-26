@@ -4,9 +4,22 @@ from typing import List, Iterable
 
 from django.core.mail import send_mail
 
-from main.util import send_debug_email
 from wallet import settings
 
+
+# This function is a dup from `util` to avoid circular imports
+def send_debug_email(message: str):
+    if not settings.DEPLOYED:
+        return
+
+    send_mail(
+        "Finance Monitor debug",
+        "",
+        "contact@finance-monitor.com",
+        ["contact@finance-monitor.com"],
+        fail_silently=False,
+        html_message=message,
+    )
 
 # todo: C+P from main.models due ot circular import concern
 def enum_choices(cls):
@@ -704,13 +717,11 @@ def category_override(
         if descrip.strip() == rule.description.lower().replace("&", "").replace(
             " ", ""
         ):
-            try:
+            if rule.category > 1_000:
+                # todo: Is this how to handle a custom cat?
+                return TransactionCategory.UNCATEGORIZED
+            else:
                 return TransactionCategory(rule.category)
-            except ValueError:
-                msg = f"Problem with transaction category: {rule} "
-                send_debug_email(msg)
-                print(msg)
-                return TransactionCategory.SHOPS
 
     return category
 
