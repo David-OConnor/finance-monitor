@@ -4,6 +4,7 @@ from typing import List, Iterable
 
 from django.core.mail import send_mail
 
+from main.util import send_debug_email
 from wallet import settings
 
 
@@ -189,7 +190,7 @@ class TransactionCategory(Enum):
             return cls.SHOPS
         if "insurance" in s:
             return cls.BILLS_AND_UTILITIES
-        if "cable" in s:
+        if "cable" in s or "utilit" in s:
             return cls.BILLS_AND_UTILITIES
         if "office supplies" in s:
             return cls.BUSINESS_SERVICES  # todo: Eh...
@@ -210,19 +211,7 @@ class TransactionCategory(Enum):
 
         msg = f"Fallthrough in parsing transaction category: {s}"
         print(msg)
-
-        # Send an email, so we know and can add it.
-
-        if settings.DEPLOYED:
-            send_mail(
-                "Finance Monitor error",
-                msg,
-                "contact@finance-monitor.com",
-                # todo: contact @FM, and my person emails are temp
-                ["contact@finance-monitor.com"],
-                fail_silently=False,
-                html_message="",
-            )
+        send_debug_email(msg)
 
         return cls.UNCATEGORIZED
 
@@ -715,7 +704,13 @@ def category_override(
         if descrip.strip() == rule.description.lower().replace("&", "").replace(
             " ", ""
         ):
-            return TransactionCategory(rule.category)
+            try:
+                return TransactionCategory(rule.category)
+            except ValueError:
+                msg = f"Problem with transaction category: {rule} "
+                send_debug_email(msg)
+                print(msg)
+                return TransactionCategory.SHOPS
 
     return category
 

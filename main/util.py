@@ -399,7 +399,14 @@ def setup_spending_data(
     for t in expense_transactions:
         expenses_total += t.amount
 
-        discret = TransactionCategoryDiscret.from_cat(TransactionCategory(t.category))
+        try:
+            discret = TransactionCategoryDiscret.from_cat(TransactionCategory(t.category))
+        except ValueError:
+            msg = f"Problem with transaction category: {t} "
+            send_debug_email(msg)
+            print(msg)
+            discret = TransactionCategoryDiscret.DISCRETIONARY
+
         if discret == TransactionCategoryDiscret.DISCRETIONARY:
             expenses_discretionary += t.amount
         elif discret == TransactionCategoryDiscret.NON_DISCRETIONARY:

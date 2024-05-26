@@ -99,7 +99,11 @@ def load_transactions(request: HttpRequest) -> HttpResponse:
     if (
         category is not None and category != -2
     ):  # We use -2 on the frontend for all categories.
-        category = TransactionCategory(category)
+        try:
+            category = TransactionCategory(category)
+        except ValueError:
+            send_debug_email(f"Problem with transaction category. Data: {data} ")
+            category = TransactionCategory.SHOPS
 
     if category == -2:
         category = None
