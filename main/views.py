@@ -606,7 +606,6 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
 
         # Refresh balances, and send the updated account data to the client to display.
         # (Currently, the client commands a refresh)
-        plaid_.refresh_account_balances(account_added)
         plaid_.refresh_transactions(account_added)
 
     return JsonResponse({"success": success})

@@ -148,7 +148,7 @@ class TransactionCategory(Enum):
             return cls.CHILDREN
         if "mortgate" in s or "rent" in s:
             return cls.MORTGAGE_AND_RENT
-        if "car" in s or "auto" in s or "gas station" in s or "parking" in s:
+        if "car" in s or "auto" in s or "gas station" in s or "parking" in s or "fuel" in s:
             return cls.CAR
         if "home" in s or "garden" in s:
             return cls.HOME_AND_GARDEN
@@ -194,7 +194,7 @@ class TransactionCategory(Enum):
             return cls.BILLS_AND_UTILITIES
         if "office supplies" in s:
             return cls.BUSINESS_SERVICES  # todo: Eh...
-        if "hotels" in s:
+        if "hotel" in s:
             return cls.TRAVEL
         if "government departments" in s:
             return cls.BUSINESS_SERVICES  # todo Eh...
