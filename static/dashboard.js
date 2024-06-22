@@ -1459,6 +1459,10 @@ function init() {
                 // todo: This won't work until you also update spending highlights.
                 setupSpendingHighlights()
             }
+
+            console.log("Totals loaded post-dash: {}", r.totals) // todo temp
+            TOTALS = r.totals
+            getEl("nw-span").text = TOTALS.net_worth
         });
 
     setupSpendingHighlights()

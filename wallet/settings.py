@@ -29,12 +29,10 @@ DEPLOYED = True if "DATABASE_URL" in os.environ else False
 
 class PlaidMode(Enum):
     SANDBOX = auto()
-    DEV = auto()
     PRODUCTION = auto()
 
 
-# todo: This will be discontinued soon by Plaid; switch to sandbox, and remove Dev as a variant.
-PLAID_MODE = PlaidMode.DEV
+PLAID_MODE = PlaidMode.SANDBOX
 
 if DEPLOYED:
     PLAID_MODE = PlaidMode.PRODUCTION
@@ -71,8 +69,6 @@ else:
 
             if PLAID_MODE == PlaidMode.SANDBOX:
                 PLAID_SECRET = private.PLAID_SECRET_SANDBOX
-            elif PLAID_MODE == PlaidMode.DEV:
-                PLAID_SECRET = private.PLAID_SECRET_DEV
             else:
                 PLAID_SECRET = private.PLAID_SECRET_PRODUCTION
 

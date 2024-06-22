@@ -62,8 +62,6 @@ PLAID_REDIRECT_URI = "https://www.finance-monitor.com/dashboard"
 
 if PLAID_MODE == PlaidMode.SANDBOX:
     host = plaid.Environment.Sandbox
-elif PLAID_MODE == PlaidMode.DEV:
-    host = plaid.Environment.Development
 elif PLAID_MODE == PlaidMode.PRODUCTION:
     host = plaid.Environment.Production
 else:

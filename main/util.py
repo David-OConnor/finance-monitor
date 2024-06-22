@@ -120,15 +120,7 @@ def setup_month_picker() -> List[Tuple[str, str, str]]:
     return result
 
 
-def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
-    """Load account balances, transactions, and totals."""
-
-    # todo: Rethink totals.
-
-    sub_accounts = SubAccount.objects.filter(
-        Q(account__person=person) | Q(person=person)
-    )
-
+def create_totals(sub_accounts: List[SubAccount]) -> dict:
     totals = {
         "cash": 0.0,
         "investment": 0.0,
@@ -138,8 +130,6 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         "assets": 0.0,
         "net_worth": 0.0,
     }
-
-    no_accs = sub_accounts.count() == 0
 
     for sub_acc in sub_accounts:
         if sub_acc.ignored:
@@ -186,6 +176,18 @@ def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
         # A bit of a hack to keep this value consistent with the sub-account values.
         # totals_display[k] = f"{v:,.0f}".replace("-", "")
         totals_display[k] = f"{v:,.0f}"
+
+    return totals_display
+
+
+def load_dash_data(person: Person, no_preser: bool = False) -> Dict:
+    """Load account balances, transactions, and totals."""
+    sub_accounts = SubAccount.objects.filter(
+        Q(account__person=person) | Q(person=person)
+    )
+    totals_display = create_totals(sub_accounts)
+
+    no_accs = sub_accounts.count() == 0
 
     count = 60  # todo: Set this elsewhere
     transactions = load_transactions(0, count, person, None, None, None, None)

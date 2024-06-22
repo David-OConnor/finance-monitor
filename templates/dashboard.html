@@ -10,7 +10,7 @@
             <h2>Add an account to get started.</h2>
         {% endif %}
         <section style="display: flex; align-items: center;">
-            <h2 style="margin-right: 32px">Net worth: <span class="{{ totals.net_worth_class }}">{{ totals.net_worth }}</span></h2>
+            <h2 style="margin-right: 32px">Net worth: <span id="nw-span" class="{{ totals.net_worth_class }}">{{ totals.net_worth }}</span></h2>
 
             {#  todo: Unnecessary repetition for a style change #}
             {% if not no_accs %}

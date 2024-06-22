@@ -52,7 +52,7 @@ from plaid.model.item_public_token_exchange_request import (
 
 from main import plaid_, util
 from main.plaid_ import (
-    CLIENT,
+    CLIENT, ACCOUNT_REFRESH_INTERVAL_RECURRING,
 )
 from .asset_prices import CryptoType
 from .transaction_cats import TransactionCategory
@@ -403,10 +403,12 @@ def post_dash_load(request: HttpRequest) -> HttpResponse:
     accounts = person.accounts.all()
 
     data = {
+        "totals": {},
         "sub_accs": [],
         "transactions": [],
         "acc_health": [],
     }
+
     # Get new balance and transaction data from Plaid. This only populates if there is new data available.
     if plaid_.update_accounts(accounts):
         # Send balances and transactions to the UI, if new data is available.
@@ -415,6 +417,11 @@ def post_dash_load(request: HttpRequest) -> HttpResponse:
         # Save snapshots, for use with charts, etc
         # todo: We need to make sure this is called regularly, even if the user doesn't log into the page.
         util.take_snapshots(accounts, person)
+
+        sub_accounts = SubAccount.objects.filter(
+            Q(account__person=person) | Q(person=person)
+        )
+        data["totals"] = util.create_totals(sub_accounts)
 
     return JsonResponse(data)
 
@@ -672,20 +679,15 @@ def recurring(request: HttpRequest) -> HttpResponse:
 
     # Note: This is also checked in post_load.
     for acc in person.accounts.all():
-        #     if (timezone.now() - acc.last_refreshed_recurring).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
-        #         plaid_.refresh_recurring(acc)
-        #         acc.last_refreshed_recurring = timezone.now()
-
-        pass
-    # todo temp
-    #     plaid_.refresh_recurring(acc)
+        if (timezone.now() - acc.last_refreshed_recurring).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
+            plaid_.refresh_recurring(acc)
+            acc.last_refreshed_recurring = timezone.now()
 
     recur = RecurringTransaction.objects.filter(
         Q(account__person=person) | Q(account__account__person=person)
     ).filter(is_active=True)
 
     context = {
-        # "recurring": json.dumps([r.serialize() for r in recur])
         "recurring": recur
     }
 
