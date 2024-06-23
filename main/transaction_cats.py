@@ -21,6 +21,7 @@ def send_debug_email(message: str):
         html_message=message,
     )
 
+
 # todo: C+P from main.models due ot circular import concern
 def enum_choices(cls):
     """Required to make Python enums work with Django integer fields"""
@@ -161,7 +162,13 @@ class TransactionCategory(Enum):
             return cls.CHILDREN
         if "mortgate" in s or "rent" in s:
             return cls.MORTGAGE_AND_RENT
-        if "car" in s or "auto" in s or "gas station" in s or "parking" in s or "fuel" in s:
+        if (
+            "car" in s
+            or "auto" in s
+            or "gas station" in s
+            or "parking" in s
+            or "fuel" in s
+        ):
             return cls.CAR
         if "home" in s or "garden" in s:
             return cls.HOME_AND_GARDEN

@@ -401,7 +401,9 @@ def setup_spending_data(
             # Assume discret for now.
             discret = TransactionCategoryDiscret.DISCRETIONARY
         else:
-            discret = TransactionCategoryDiscret.from_cat(TransactionCategory(t.category))
+            discret = TransactionCategoryDiscret.from_cat(
+                TransactionCategory(t.category)
+            )
 
         if discret == TransactionCategoryDiscret.DISCRETIONARY:
             expenses_discretionary += t.amount

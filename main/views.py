@@ -52,7 +52,8 @@ from plaid.model.item_public_token_exchange_request import (
 
 from main import plaid_, util
 from main.plaid_ import (
-    CLIENT, ACCOUNT_REFRESH_INTERVAL_RECURRING,
+    CLIENT,
+    ACCOUNT_REFRESH_INTERVAL_RECURRING,
 )
 from .asset_prices import CryptoType
 from .transaction_cats import TransactionCategory
@@ -679,7 +680,9 @@ def recurring(request: HttpRequest) -> HttpResponse:
 
     # Note: This is also checked in post_load.
     for acc in person.accounts.all():
-        if (timezone.now() - acc.last_refreshed_recurring).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
+        if (
+            timezone.now() - acc.last_refreshed_recurring
+        ).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
             plaid_.refresh_recurring(acc)
             acc.last_refreshed_recurring = timezone.now()
 
@@ -687,9 +690,7 @@ def recurring(request: HttpRequest) -> HttpResponse:
         Q(account__person=person) | Q(account__account__person=person)
     ).filter(is_active=True)
 
-    context = {
-        "recurring": recur
-    }
+    context = {"recurring": recur}
 
     return render(request, "recurring.html", context)
 

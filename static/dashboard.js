@@ -347,6 +347,9 @@ function refreshAccounts() {
             section.appendChild(div)
         }
     }
+
+    console.log("Updating NW span", TOTALS.net_worth)
+    getEl("nw-span").text = TOTALS.net_worth
 }
 
 function tranUpdateHelper(id, updated) {
@@ -1426,6 +1429,8 @@ function init() {
 
     setupEditTranButton()
 
+    console.log("A")
+
     // Put this back; currently removed due due to layout shifts.
     // let refreshIndicator = getEl("refreshing-indicator")
     // refreshIndicator.style.visibility = "visible"
@@ -1435,6 +1440,9 @@ function init() {
         // Parse JSON if able.
         .then(result => result.json())
         .then(r => {
+            console.log("Totals loaded post-dash: {}", r.totals) // todo temp
+            TOTALS = r.totals
+
             // refreshIndicator.style.visibility = "collapse" // todo A/R
             // todo: Loading/spinning indicator on screen until the update is complete.
             for (let acc_new of r.sub_accs) {
@@ -1459,10 +1467,6 @@ function init() {
                 // todo: This won't work until you also update spending highlights.
                 setupSpendingHighlights()
             }
-
-            console.log("Totals loaded post-dash: {}", r.totals) // todo temp
-            TOTALS = r.totals
-            getEl("nw-span").text = TOTALS.net_worth
         });
 
     setupSpendingHighlights()
