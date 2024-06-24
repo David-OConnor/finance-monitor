@@ -1429,8 +1429,6 @@ function init() {
 
     setupEditTranButton()
 
-    console.log("A")
-
     // Put this back; currently removed due due to layout shifts.
     // let refreshIndicator = getEl("refreshing-indicator")
     // refreshIndicator.style.visibility = "visible"
@@ -1441,6 +1439,7 @@ function init() {
         .then(result => result.json())
         .then(r => {
             console.log("Totals loaded post-dash: {}", r.totals) // todo temp
+            console.log("R", r)
             TOTALS = r.totals
 
             // refreshIndicator.style.visibility = "collapse" // todo A/R
