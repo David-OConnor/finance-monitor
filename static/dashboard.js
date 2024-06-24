@@ -349,7 +349,7 @@ function refreshAccounts() {
     }
 
     console.log("Updating NW span", TOTALS.net_worth)
-    getEl("nw-span").text = TOTALS.net_worth
+    getEl("nw-span").textContent = TOTALS.net_worth
 }
 
 function tranUpdateHelper(id, updated) {
