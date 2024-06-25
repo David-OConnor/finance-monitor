@@ -348,7 +348,6 @@ function refreshAccounts() {
         }
     }
 
-    console.log("Updating NW span", TOTALS.net_worth)
     getEl("nw-span").textContent = TOTALS.net_worth
 }
 
@@ -1438,8 +1437,6 @@ function init() {
         // Parse JSON if able.
         .then(result => result.json())
         .then(r => {
-            console.log("Totals loaded post-dash: {}", r.totals) // todo temp
-            console.log("R", r)
             TOTALS = r.totals
 
             // refreshIndicator.style.visibility = "collapse" // todo A/R
