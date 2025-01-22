@@ -32,7 +32,8 @@ class PlaidMode(Enum):
     PRODUCTION = auto()
 
 
-PLAID_MODE = PlaidMode.SANDBOX
+# PLAID_MODE = PlaidMode.SANDBOX
+PLAID_MODE = PlaidMode.PRODUCTION  # todo temp
 
 if DEPLOYED:
     PLAID_MODE = PlaidMode.PRODUCTION

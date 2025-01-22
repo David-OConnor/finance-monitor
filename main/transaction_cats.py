@@ -406,7 +406,7 @@ class TransactionCategory(Enum):
     def from_plaid(
         cls, cats_raw: List[str], descrip: str, rules: Iterable["CategoryRule"]
     ) -> "TransactionCategory":
-        if len(cats_raw):
+        if cats_raw is not None and len(cats_raw):
             category = cleanup_categories(
                 TransactionCategory.from_str(c) for c in cats_raw
             )[0]

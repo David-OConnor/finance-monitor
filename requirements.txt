@@ -4,13 +4,13 @@ dj-database-url==2.0.0
 dj-static==0.0.6
 
 gunicorn~=21.2.0
-psycopg2-binary==2.9.6
+psycopg~=3.2.4
 requests~=2.31.0
 django-cors-headers~=4.2.0
-pydantic~=2.3.0
+pydantic~=2.10.5
 
-python-dateutil ~= 2.9.0
+python-dateutil~=2.9.0
 
-plaid-python~=21.0.0
+plaid-python~=28.0.0
 stripe==2.63.0
 pyotp~=2.9.0  # Authenticator 2FA
