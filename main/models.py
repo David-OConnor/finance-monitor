@@ -173,7 +173,7 @@ class Person(Model):
     # verification_token = CharField(max_length=20, blank=True, null=True)
     previous_emails = TextField(default="", blank=True, null=True)  # JSON list
     # We use this token to verify the user's email address. We set it to null once the email is verified.
-    email_verification_token = CharField(max_length=60, blank=True, null=True)
+    email_verification_token = CharField(max_length=200, blank=True, null=True)
     date_registered = DateTimeField()
 
     def __str__(self):
@@ -238,7 +238,7 @@ class Person(Model):
 class Institution(Model):
     # Both of these fields are provided by Plaid
     name = CharField(max_length=50)
-    plaid_id = CharField(max_length=60, unique=True)
+    plaid_id = CharField(max_length=200, unique=True)
 
     def __str__(self):
         return f"Institution. Name: {self.name} Plaid ID: {self.plaid_id}"
@@ -311,9 +311,9 @@ class SubAccount(Model):
     )
     plaid_id = CharField(max_length=100, blank=True, null=True)
     plaid_id_persistent = CharField(max_length=100, blank=True, null=True)
-    name = CharField(max_length=50)
+    name = CharField(max_length=200)
     name_official = CharField(max_length=100, default="", null=True, blank=True)
-    nickname = CharField(max_length=60, default="", null=True, blank=True)
+    nickname = CharField(max_length=200, default="", null=True, blank=True)
     type = IntegerField(choices=AccountType.choices())
     sub_type = IntegerField(choices=SubAccountType.choices())
     iso_currency_code = CharField(max_length=5)
@@ -510,7 +510,7 @@ class SnapshotAccount(Model):
         SubAccount, related_name="snapshots", on_delete=SET_NULL, blank=True, null=True
     )
     # Used if the account gets deleted etc.
-    account_name = CharField(max_length=60)
+    account_name = CharField(max_length=200)
     dt = DateTimeField()
     value = FloatField()
 
@@ -529,7 +529,7 @@ class SnapshotPerson(Model):
 
 class CategoryCustom(Model):
     person = ForeignKey(Person, related_name="custom_cats", on_delete=CASCADE)
-    name = CharField(max_length=60)
+    name = CharField(max_length=200)
 
     def __str__(self):
         return f"Custom cat. {self.person}, {self.name}"
