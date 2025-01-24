@@ -582,6 +582,7 @@ replacements = [
     ("intuit", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     ("quicken", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     ("adobe", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("mullvad", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     #
     ("sparkfun", TransactionCategory.ELECTRONICS),
     ("digikey", TransactionCategory.ELECTRONICS),
@@ -598,6 +599,8 @@ replacements = [
     ("bp products", TransactionCategory.CAR),
     ("exxon", TransactionCategory.CAR),
     ("shell", TransactionCategory.CAR),
+    ("express lane", TransactionCategory.CAR),
+    ("vatoll", TransactionCategory.CAR),
     ("oreilly", TransactionCategory.CAR),
     ("autozone", TransactionCategory.CAR),
     ("advance auto", TransactionCategory.CAR),
@@ -663,14 +666,18 @@ replacements = [
     ("ultra beauty", TransactionCategory.SHOPS),
     ("menards", TransactionCategory.SHOPS),
     ("amazon", TransactionCategory.SHOPS),
+    ("frontgate", TransactionCategory.SHOPS),
     #
     ("interest", TransactionCategory.FEES),
     ("online payment", TransactionCategory.TRANSFER),
     ("cash reward", TransactionCategory.INCOME),
     ("deposit-ach", TransactionCategory.INCOME),
     ("gusto", TransactionCategory.INCOME),
+
     # https://fashionunited.com/i/most-valuable-fashion-brands
+    ("asket", TransactionCategory.CLOTHING),
     ("uniqlo", TransactionCategory.CLOTHING),
+    ("mack weldon", TransactionCategory.CLOTHING),
     ("nike", TransactionCategory.CLOTHING),
     ("zara", TransactionCategory.CLOTHING),
     ("h&m", TransactionCategory.CLOTHING),
@@ -701,7 +708,7 @@ replacements = [
     ("abercrombie", TransactionCategory.CLOTHING),
     ("aeropostale", TransactionCategory.CLOTHING),
     ("marshalls", TransactionCategory.CLOTHING),
-    #
+    ("privatew", TransactionCategory.CLOTHING),
 ]
 
 
