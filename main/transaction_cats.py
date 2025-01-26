@@ -567,6 +567,7 @@ replacements = [
     ("state farm", TransactionCategory.BILLS_AND_UTILITIES),
     ("progressive", TransactionCategory.BILLS_AND_UTILITIES),
     ("nationwide", TransactionCategory.BILLS_AND_UTILITIES),
+    ("electric", TransactionCategory.BILLS_AND_UTILITIES),
     #
     ("bumble", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     ("hinge", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
@@ -583,6 +584,7 @@ replacements = [
     ("quicken", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     ("adobe", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     ("mullvad", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
+    ("vpn", TransactionCategory.SOFTWARE_SUBSCRIPTIONS),
     #
     ("sparkfun", TransactionCategory.ELECTRONICS),
     ("digikey", TransactionCategory.ELECTRONICS),
@@ -667,9 +669,13 @@ replacements = [
     ("menards", TransactionCategory.SHOPS),
     ("amazon", TransactionCategory.SHOPS),
     ("frontgate", TransactionCategory.SHOPS),
+    ("newsstands", TransactionCategory.SHOPS),
+    ("convenience stores", TransactionCategory.SHOPS),
     #
     ("interest", TransactionCategory.FEES),
     ("online payment", TransactionCategory.TRANSFER),
+    ("venmo", TransactionCategory.TRANSFER),
+
     ("cash reward", TransactionCategory.INCOME),
     ("deposit-ach", TransactionCategory.INCOME),
     ("gusto", TransactionCategory.INCOME),
@@ -709,6 +715,7 @@ replacements = [
     ("aeropostale", TransactionCategory.CLOTHING),
     ("marshalls", TransactionCategory.CLOTHING),
     ("privatew", TransactionCategory.CLOTHING),
+    ("women's store", TransactionCategory.CLOTHING),
 ]
 
 
