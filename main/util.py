@@ -26,7 +26,8 @@ from wallet import settings
 from main.transaction_cats import TransactionCategory, TransactionCategoryDiscret
 
 # Show an account as unhealthy if the last successful refresh was older than this.
-ACCOUNT_UNHEALTHY_REFRESH_HOURS = 18
+# Must be higher than the refresh interval.
+ACCOUNT_UNHEALTHY_REFRESH_HOURS = 24
 
 
 def unw_helper(net_worth: float, sub_acc: SubAccount) -> float:
