@@ -22,13 +22,13 @@ from main.models import (
     SnapshotPerson,
     CategoryRule,
 )
+from main.plaid_ import TRAN_REFRESH_INTERVAL, HOUR
 from wallet import settings
 from main.transaction_cats import TransactionCategory, TransactionCategoryDiscret
 
 # Show an account as unhealthy if the last successful refresh was older than this.
 # Must be higher than the refresh interval.
-ACCOUNT_UNHEALTHY_REFRESH_HOURS = 24
-
+ACCOUNT_UNHEALTHY_REFRESH_HOURS = TRAN_REFRESH_INTERVAL / HOUR
 
 def unw_helper(net_worth: float, sub_acc: SubAccount) -> float:
     if not sub_acc.ignored and sub_acc.get_value() is not None:

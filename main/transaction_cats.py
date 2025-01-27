@@ -469,6 +469,7 @@ replacements = [
     ("gsuite", TransactionCategory.BUSINESS_SERVICES),
     ("pirate ship", TransactionCategory.BUSINESS_SERVICES),
     ("polycase", TransactionCategory.BUSINESS_SERVICES),
+    ("organizations and associations", TransactionCategory.BUSINESS_SERVICES),
     #
     ("trader joe", TransactionCategory.GROCERIES),
     ("whole foods", TransactionCategory.GROCERIES),
@@ -609,6 +610,7 @@ replacements = [
     ("tire", TransactionCategory.CAR),
     #
     ("pharmacy", TransactionCategory.MEDICAL),
+    ("dentists", TransactionCategory.MEDICAL),
     #
     ("cvs", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
     ("walgreen", TransactionCategory.HEALTH_AND_PERSONAL_CARE),
@@ -675,6 +677,9 @@ replacements = [
     ("interest", TransactionCategory.FEES),
     ("online payment", TransactionCategory.TRANSFER),
     ("venmo", TransactionCategory.TRANSFER),
+    ("save as you go", TransactionCategory.TRANSFER),
+    ("vintage and thrift", TransactionCategory.TRANSFER),
+    ("atm", TransactionCategory.TRANSFER),
 
     ("cash reward", TransactionCategory.INCOME),
     ("deposit-ach", TransactionCategory.INCOME),
