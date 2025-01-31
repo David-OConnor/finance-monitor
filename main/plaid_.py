@@ -48,11 +48,10 @@ from plaid.api import plaid_api
 
 HOUR = 60 * 60
 
-# todo: Increase A/R to balance costs.
-TRAN_REFRESH_INTERVAL = 24 * HOUR  # seconds.
+TRAN_REFRESH_INTERVAL = 18 * HOUR  # seconds.
 
 # We can use a slow update for recurring transactions.
-ACCOUNT_REFRESH_INTERVAL_RECURRING = 48 * HOUR  # seconds.
+ACCOUNT_REFRESH_INTERVAL_RECURRING = 7 * 24 * HOUR  # seconds.
 
 
 # Note: We don't use assets! That's used to qualify for a loan. Transactions only appears to work.
