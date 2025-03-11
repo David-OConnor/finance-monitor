@@ -125,21 +125,24 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
             now - acc.last_tran_refresh_attempt
         ).total_seconds() > TRAN_REFRESH_INTERVAL:
             print(f"Refreshing account: {acc}...")
+            acc.last_tran_refresh_attempt = now
+            acc.save()
             success = refresh_transactions(acc)
 
             if success:
                 acc.last_tran_refresh_success = now
                 new_data = True
 
-            acc.last_tran_refresh_attempt = now
+
             acc.save()
 
         if (
             now - acc.last_refreshed_recurring
         ).total_seconds() > ACCOUNT_REFRESH_INTERVAL_RECURRING:
             print(f"Refreshing recurring on acc {acc}...")
-            refresh_recurring(acc)
             acc.last_refreshed_recurring = now
+            acc.save()
+            refresh_recurring(acc)
             acc.save()
 
     return new_data
