@@ -490,7 +490,7 @@ def create_link_token_update(request: HttpRequest) -> HttpResponse:
 @login_required
 def exchange_public_token(request: HttpRequest) -> HttpResponse:
     """Part of the Plaid workflow. POST request. Exchanges the public token retrieved by
-    the client, after it successfullya uthenticates with an institution. Exchanges this for
+    the client, after it successfully authenticates with an institution. Exchanges this for
     an access token, which is stored in the database, along with its associated item id.
     """
     person = request.user.person
@@ -616,7 +616,8 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
 
         # Refresh balances, and send the updated account data to the client to display.
         # (Currently, the client commands a refresh)
-        plaid_.refresh_transactions(account_added)
+        # plaid_.refresh_transactions(account_added)
+        pass
 
     return JsonResponse({"success": success})
 
