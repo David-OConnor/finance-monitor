@@ -590,35 +590,7 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
 
         send_debug_email(msg)
 
-        # msg = f"\nError saving the account: {e}. \nPerson: {person}, \nAccount: {account_added}"
-        # print(msg)
-        # send_debug_email(msg)
-
         success = False
-    else:
-        # Add sub-accounts. Note that these are also added when refreshing A/R.
-        # for sub in metadata.get("accounts", []):
-        #     sub_acc = SubAccount(
-        #         account=account_added,
-        #         plaid_id=sub["id"],
-        #         plaid_id_persistent="",  # todo temp
-        #         name=sub.get("name_official", ""),z
-        #         name_official=sub.get("name_official", ""),
-        #         type=AccountType.from_str(str(sub["type"])).value,
-        #         sub_type=AccountType.from_str(str(sub["subtype"])).value,
-        #         iso_currency_code=sub.get("iso_currency_code", "USD"),
-        #     )
-        #     try:
-        #         sub_acc.save()
-        #     except IntegrityError as e:
-        #         print("\nError saving a subaccount during account add", e)
-        #         success = False
-
-        # Refresh balances, and send the updated account data to the client to display.
-        # (Currently, the client commands a refresh)
-        # plaid_.refresh_transactions(account_added)
-        pass
-
     return JsonResponse({"success": success})
 
 
