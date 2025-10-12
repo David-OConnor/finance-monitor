@@ -48,7 +48,7 @@ from plaid.api import plaid_api
 
 HOUR = 60 * 60
 
-TRAN_REFRESH_INTERVAL = 24 * 4 * HOUR  # seconds.
+TRAN_REFRESH_INTERVAL = 4 * 24 * HOUR  # seconds.
 
 # We can use a slow update for recurring transactions.
 ACCOUNT_REFRESH_INTERVAL_RECURRING = 10 * 24 * HOUR  # seconds.
@@ -120,6 +120,8 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     new_data = False
     now = timezone.now()
 
+    send_debug_email("Updating accounts for accounts: ", accounts)  # todo temp
+
     for acc in accounts:
         if (
             now - acc.last_tran_refresh_attempt
@@ -156,6 +158,9 @@ def refresh_non_investment(account: FinancialAccount) -> bool:
 
 def refresh_investment(account: FinancialAccount) -> List[dict]:
     """Returns error status"""
+
+    send_debug_email("Refreshing investmentsfor account: ", account)  # todo temp
+
     # todo: The way we handle this is wonky.
     request = InvestmentsTransactionsGetRequest(
         access_token=account.access_token,
@@ -205,6 +210,8 @@ def refresh_transactions(account: FinancialAccount) -> bool:
 
     Returns success status
     """
+    send_debug_email("Refreshing transactions for account: ", account)  # todo temp
+
     # Provide a cursor from your database if you've previously
     # received one for the Item. Leave null if this is your first sync call for this Item. The first request will
     # return a cursor. (It seems None doesn't work with this API, but an empty string does.)
@@ -365,6 +372,8 @@ def refresh_recurring(account: FinancialAccount):
     # https://plaid.com/docs/api/products/transactions/#transactionsrecurringget
 
     # todo: Use your own logic instead of paying Plaid for this API.
+
+    send_debug_email("Refreshing recurring for account: ", account)  # todo temp
 
     sub_accs = (
         account.sub_accounts.all()
