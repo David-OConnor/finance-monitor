@@ -46,8 +46,6 @@ from wallet.settings import PLAID_SECRET, PLAID_CLIENT_ID, PLAID_MODE, PlaidMode
 import plaid
 from plaid.api import plaid_api
 
-from .util import send_debug_email
-
 HOUR = 60 * 60
 
 TRAN_REFRESH_INTERVAL = 4 * 24 * HOUR  # seconds.
@@ -122,7 +120,7 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     new_data = False
     now = timezone.now()
 
-    send_debug_email("Updating accounts for accounts: ", accounts)  # todo temp
+    util.send_debug_email("Updating accounts for accounts: ", accounts)  # todo temp
 
     for acc in accounts:
         if (
@@ -375,7 +373,7 @@ def refresh_recurring(account: FinancialAccount):
 
     # todo: Use your own logic instead of paying Plaid for this API.
 
-    send_debug_email(f"Refreshing transactions for account: {account}")  # todo temp
+    util.send_debug_email(f"Refreshing transactions for account: {account}")  # todo temp
 
     sub_accs = (
         account.sub_accounts.all()
