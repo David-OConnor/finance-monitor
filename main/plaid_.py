@@ -120,7 +120,7 @@ def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
     new_data = False
     now = timezone.now()
 
-    util.send_debug_email("Updating accounts for accounts: ", accounts)  # todo temp
+    util.send_debug_email(f"Updating accounts for accounts: {accounts}")  # todo temp
 
     for acc in accounts:
         if (
@@ -159,7 +159,7 @@ def refresh_non_investment(account: FinancialAccount) -> bool:
 def refresh_investment(account: FinancialAccount) -> List[dict]:
     """Returns error status"""
 
-    send_debug_email("Refreshing investmentsfor account: ", account)  # todo temp
+    util.send_debug_email("Refreshing investmentsfor account: ", account)  # todo temp
 
     # todo: The way we handle this is wonky.
     request = InvestmentsTransactionsGetRequest(
@@ -210,7 +210,7 @@ def refresh_transactions(account: FinancialAccount) -> bool:
 
     Returns success status
     """
-    send_debug_email(f"Refreshing transactions for account: {account}")  # todo temp
+    util.send_debug_email(f"Refreshing transactions for account: {account}")  # todo temp
 
     # Provide a cursor from your database if you've previously
     # received one for the Item. Leave null if this is your first sync call for this Item. The first request will
