@@ -46,6 +46,8 @@ from wallet.settings import PLAID_SECRET, PLAID_CLIENT_ID, PLAID_MODE, PlaidMode
 import plaid
 from plaid.api import plaid_api
 
+from .util import send_debug_email
+
 HOUR = 60 * 60
 
 TRAN_REFRESH_INTERVAL = 4 * 24 * HOUR  # seconds.
@@ -210,7 +212,7 @@ def refresh_transactions(account: FinancialAccount) -> bool:
 
     Returns success status
     """
-    send_debug_email("Refreshing transactions for account: ", account)  # todo temp
+    send_debug_email(f"Refreshing transactions for account: {account}")  # todo temp
 
     # Provide a cursor from your database if you've previously
     # received one for the Item. Leave null if this is your first sync call for this Item. The first request will
@@ -373,7 +375,7 @@ def refresh_recurring(account: FinancialAccount):
 
     # todo: Use your own logic instead of paying Plaid for this API.
 
-    send_debug_email("Refreshing recurring for account: ", account)  # todo temp
+    send_debug_email(f"Refreshing transactions for account: {account}")  # todo temp
 
     sub_accs = (
         account.sub_accounts.all()
