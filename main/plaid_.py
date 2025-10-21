@@ -210,7 +210,7 @@ def refresh_transactions(account: FinancialAccount) -> bool:
 
     Returns success status
     """
-    util.send_debug_email(f"Refreshing transactions for account: {account}")  # todo temp
+    # util.send_debug_email(f"Refreshing transactions for account: {account}")  # todo temp
 
     # Provide a cursor from your database if you've previously
     # received one for the Item. Leave null if this is your first sync call for this Item. The first request will
@@ -373,7 +373,7 @@ def refresh_recurring(account: FinancialAccount):
 
     # todo: Use your own logic instead of paying Plaid for this API.
 
-    util.send_debug_email(f"Refreshing transactions for account: {account}")  # todo temp
+    # util.send_debug_email(f"Refreshing transactions for account: {account}")  # todo temp
 
     sub_accs = (
         account.sub_accounts.all()
