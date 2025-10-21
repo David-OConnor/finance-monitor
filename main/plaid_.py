@@ -159,7 +159,7 @@ def refresh_non_investment(account: FinancialAccount) -> bool:
 def refresh_investment(account: FinancialAccount) -> List[dict]:
     """Returns error status"""
 
-    util.send_debug_email("Refreshing investmentsfor account: ", account)  # todo temp
+    # util.send_debug_email("Refreshing investmentsfor account: ", account)  # todo temp
 
     # todo: The way we handle this is wonky.
     request = InvestmentsTransactionsGetRequest(
