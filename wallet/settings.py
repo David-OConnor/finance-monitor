@@ -32,7 +32,6 @@ PLAID_MODE = PlaidMode.SANDBOX
 
 if DEPLOYED:
     DEBUG = False
-    DEBUG = True  # todo temp
     SECRET_KEY = os.environ["SECRET_KEY"]
 
     SENDGRID_KEY = os.environ["SENDGRID_KEY"]
