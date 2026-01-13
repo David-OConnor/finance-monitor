@@ -755,6 +755,7 @@ def login_failed_handler(sender, credentials, request, **kwargs):
 
 
 def register(request):
+    return HttpResponse(500)
     if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
