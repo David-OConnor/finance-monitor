@@ -297,7 +297,6 @@ def delete_accounts(request: HttpRequest) -> HttpResponse:
 
     person = request.user.person
 
-    # todo: Unlink etc if not manual
     for id_ in data.get("ids", []):
         try:
             # person and account checks prevent abuse.
@@ -312,6 +311,23 @@ def delete_accounts(request: HttpRequest) -> HttpResponse:
         # Delete the parent Account, if it's a linked account.
         if sub_acc.account is not None:
             acc = sub_acc.account
+
+            # Unlink at Plaid *before* dropping our copy of the access token. Transactions is
+            # billed as a monthly subscription per Item, for as long as a valid token exists at
+            # Plaid -- whether or not we ever call the API for it again. Deleting only our row
+            # would leave the Item billing forever, with no token left to cancel it with.
+            # https://plaid.com/docs/account/billing/#subscription-fee
+            if not plaid_.remove_item(
+                acc.access_token, context=f"account deletion, item {acc.item_id}"
+            ):
+                # Keep the row: it holds the only means of ending the subscription.
+                result["success"] = False
+                result["error"] = (
+                    "Could not unlink this account from Plaid, so it was not deleted. "
+                    "Please try again."
+                )
+                return JsonResponse(result)
+
             # Associate the transactions with the person, so it will still be loaded.
             for tran in acc.transactions.all():
                 tran.person = person
@@ -362,6 +378,19 @@ def delete_user_account(request: HttpRequest) -> HttpResponse:
     # todo until we confirm the safety implications. Make sure to manually delete all user data
     # todo locked in this method.
     person = request.user.person
+
+    # Deleting the user's account must also end their Plaid subscriptions. Transactions bills
+    # monthly per Item for as long as the token is valid at Plaid, so a merely-locked account
+    # would otherwise keep accruing charges indefinitely.
+    for acc in person.accounts.all():
+        if plaid_.remove_item(
+            acc.access_token, context=f"user deletion, item {acc.item_id}"
+        ):
+            # The token is dead at Plaid now. The row is kept (see the todo above), so flag it so
+            # it is not treated as a live link if the account is ever unlocked.
+            acc.needs_attention = True
+            acc.save()
+
     person.account_locked = True
     person.user.is_active = False
 
@@ -572,26 +601,43 @@ def exchange_public_token(request: HttpRequest) -> HttpResponse:
     # todo: Sub-keys
 
     success = True
+    error = ""
 
     try:
         account_added.save()
     except IntegrityError:
-        msg = f"\nUpdating account token.: \nPerson: {person}, \nAccount: {account_added}, Response: \n{response}"
+        # `FinancialAccount` is unique on (person, institution), so we land here when this
+        # institution is already linked for this user. The exchange above has *already* created a
+        # new, billable Item at Plaid. We have nowhere to persist its token, so unless we remove it
+        # right now it becomes an orphan: billed monthly forever, with no token left to cancel it.
+        existing = FinancialAccount.objects.filter(
+            person=person, institution=inst
+        ).first()
+
+        msg = (
+            f"Duplicate link attempt. Person: {person}, Institution: {inst}. "
+            f"Removing the just-created Item {item_id}. "
+            f"Existing item: {existing.item_id if existing else 'none'}."
+        )
         print(msg)
 
-        # todo: Check your re-link process. Is there a way to catch this earlier? Is there another problem?
-        account_updated = FinancialAccount.objects.get(
-            person=person, access_token=access_token, item_id=item_id
-        )
-        account_updated.attention_needed = False
-        account_updated.save()
+        plaid_.remove_item(access_token, context=f"duplicate link, item {item_id}")
 
-        # todo: This is temp debugging thi son the server
+        if existing is not None:
+            # The existing link is the one to keep. Re-auth goes through update mode
+            # (`create_link_token_update`), which reuses the same Item rather than making another.
+            existing.needs_attention = False
+            existing.save()
 
         send_debug_email(msg)
 
         success = False
-    return JsonResponse({"success": success})
+        error = (
+            "This institution is already linked. Use the re-link option on the existing "
+            "account rather than adding it again."
+        )
+
+    return JsonResponse({"success": success, "error": error})
 
 
 @login_required

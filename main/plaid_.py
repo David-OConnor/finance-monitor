@@ -20,6 +20,7 @@ from plaid.model.investments_transactions_get_request import (
 from plaid.model.investments_transactions_get_request_options import (
     InvestmentsTransactionsGetRequestOptions,
 )
+from plaid.model.item_remove_request import ItemRemoveRequest
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 
@@ -111,6 +112,43 @@ def handle_api_exception(e: ApiException, account: FinancialAccount):
         msg = f"\nProblem refreshing accounts: {e}. \nAccount: {account}:\n"
         print(msg)
         util.send_debug_email(msg)
+
+
+def remove_item(access_token: str, context: str = "") -> bool:
+    """Remove an Item from Plaid, via `/item/remove`.
+
+    This is what actually ends billing: Transactions is a *subscription* product, billed monthly
+    per Item for as long as a valid access token exists at Plaid, regardless of whether we ever
+    call the API for it again. Deleting our local `FinancialAccount` row only makes us forget the
+    token; Plaid keeps charging. So every path that drops an access token must call this first.
+    https://plaid.com/docs/account/billing/#subscription-fee
+
+    Returns success status. Removing an already-removed Item is treated as success, so this is
+    safe to retry.
+    """
+    if not access_token:
+        return False
+
+    try:
+        CLIENT.item_remove(ItemRemoveRequest(access_token=access_token))
+    except ApiException as e:
+        try:
+            error_code = json.loads(e.body)["error_code"].lower()
+        except (ValueError, KeyError):
+            error_code = ""
+
+        # The Item is already gone; that's the state we wanted.
+        if error_code in ("item_not_found", "invalid_access_token"):
+            print(f"Item already removed at Plaid ({context}).")
+            return True
+
+        msg = f"\nFailed to remove Plaid Item ({context}): {e}\n"
+        print(msg)
+        util.send_debug_email(msg)
+        return False
+
+    print(f"Removed Plaid Item, ending its subscription ({context}).")
+    return True
 
 
 def update_accounts(accounts: Iterable[FinancialAccount]) -> bool:
