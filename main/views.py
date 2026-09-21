@@ -227,7 +227,7 @@ def edit_accounts(request: HttpRequest) -> HttpResponse:
     person = request.user.person
 
     data = load_body(request)
-    result = {"success": True}
+    result = {"success": True, "accounts": []}
 
     for acc in data.get("accounts", []):
         acc_db = SubAccount.objects.get(
@@ -248,6 +248,8 @@ def edit_accounts(request: HttpRequest) -> HttpResponse:
             acc_db.current = acc["current"]
 
         acc_db.save()
+        # Return the updated account, so the UI can display server-calculated values, eg for crypto.
+        result["accounts"].append(acc_db.serialize())
 
     return JsonResponse(result)
 

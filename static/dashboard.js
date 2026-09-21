@@ -58,6 +58,10 @@ const ACC_TYPE_ASSET = 12
 const ACC_TYPE_BROKERAGE = 13
 const ACC_TYPE_ROTH = 14
 
+// Top-level (Plaid) account types; see `AccountType` in models.py
+const ACC_TYPE_LOAN = 3
+const ACC_TYPE_CREDIT_PLAID = 4
+
 
 function getPublicToken() {
     // Launches a Plaid-controlled window to link to an account, using an already-retrieved link token.
@@ -348,7 +352,20 @@ function refreshAccounts() {
         }
     }
 
-    getEl("nw-span").textContent = TOTALS.net_worth
+    // Calculate net worth from account state, so it updates immediately on edits. Mirrors `create_totals`
+    // on the backend: Skip ignored accounts, and subtract loan and credit accounts.
+    let netWorth = 0.
+    for (let acc of ACCOUNTS) {
+        if (acc.ignored === true || acc.ignored === "true" || acc.value === null) {
+            continue
+        }
+        const sign = [ACC_TYPE_LOAN, ACC_TYPE_CREDIT_PLAID].includes(acc.type) ? -1 : 1
+        netWorth += sign * acc.value
+    }
+
+    let nwSpan = getEl("nw-span")
+    nwSpan.textContent = formatAmount(netWorth, 0)
+    nwSpan.className = netWorth > 0 ? "tran-pos" : "tran-neg"
 }
 
 function tranUpdateHelper(id, updated) {
@@ -1140,11 +1157,17 @@ function setupAccEditForm(id) {
 
             // todo: DRY
             ip.addEventListener("input", e => {
+                if (!isValidNumber(e.target.value)) {
+                    return
+                }
                 // Re-load from the list as TS maneuver against odd edit pattern
                 let acc_ = ACCOUNTS.find(t => t.id === acc.id)
+                const val = parseFloat(e.target.value)
+                // The display uses `value`; the backend saves `current`. For non-asset accounts, these are the same.
                 let updated = {
                     ...acc_,
-                    current:parseFloat(e.target.value),
+                    current: val,
+                    value: val,
                 }
                 ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), updated]
                 ACCOUNTS_UPDATED[acc.id] = updated
@@ -1178,7 +1201,13 @@ function setupAccEditForm(id) {
             .then(r => {
                 if (!r.success) {
                     console.error("Account edits save failed")
+                    return
                 }
+                // Apply server-calculated values; eg crypto account values depend on asset price.
+                for (let accNew of r.accounts) {
+                    ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== accNew.id), accNew]
+                }
+                refreshAccounts()
             });
 
         // Update the ACCOUNTS list, and refresh accounts.
@@ -1193,6 +1222,9 @@ function setupAccEditForm(id) {
     })
 
     btnCancel.addEventListener("click", _ => {
+        // Revert the live edits made while the form was open.
+        ACCOUNTS = [...ACCOUNTS.filter(a => a.id !== acc.id), acc]
+        refreshAccounts()
         ACCOUNTS_UPDATED = {}
         outerDiv.style.display = "none"
     })
