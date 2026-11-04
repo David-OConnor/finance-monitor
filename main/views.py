@@ -68,6 +68,10 @@ def load_body(request: HttpRequest) -> dict:
 
 
 def landing(request: HttpRequest) -> HttpResponse:
+    # Logged-in users don't need the home page; send them straight to their dashboard.
+    if request.user.is_authenticated:
+        return redirect("/dashboard")
+
     context = {}
 
     return render(request, "../templates/index.html", context)
